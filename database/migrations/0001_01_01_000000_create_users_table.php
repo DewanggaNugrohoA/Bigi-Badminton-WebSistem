@@ -10,16 +10,16 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id('id_user');
-            $table->string('nama');
-            $table->string('email')->unique();
+            $table->string('nama', 255);
+            $table->string('no_whatsapp', 20);
+            $table->string('email', 255)->unique();
             $table->string('password');
-            $table->string('no_whatsapp')->nullable();
-            $table->enum('jenis_pelanggan', ['reguler', 'member'])->default('reguler');
+            $table->enum('role', ['admin', 'kasir', 'user'])->default('user');
+            $table->enum('jenis_pelanggan', ['member', 'reguler'])->default('reguler');
             $table->date('tanggal_mulai_member')->nullable();
             $table->date('tanggal_akhir_member')->nullable();
             $table->enum('status_member', ['aktif', 'tidak_aktif'])->default('tidak_aktif');
             $table->enum('status_akun', ['aktif', 'nonaktif'])->default('aktif');
-            $table->enum('role', ['user', 'admin', 'kasir'])->default('user');
             $table->rememberToken();
             $table->timestamps();
         });

@@ -2,25 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Informasi extends Model
 {
-    use HasFactory;
+
+    const STATUS_DRAFT = 'draft';
+    const STATUS_TERBIT = 'terbit';
 
     protected $table = 'informasi';
     protected $primaryKey = 'id_informasi';
+    
+    protected $fillable = ['id_user', 'judul', 'gambar', 'tanggal_publikasi', 'status'];
 
-    protected $fillable = [
-        'id_user',
-        'judul',
-        'konten',
-        'status_terbit',
-    ];
-
-    public function admin()
-    {
-        return $this->belongsTo(User::class, 'id_user', 'id_user');
-    }
+    public function user() { return $this->belongsTo(User::class, 'id_user'); }
 }

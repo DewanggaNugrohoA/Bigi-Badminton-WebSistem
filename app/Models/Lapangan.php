@@ -2,29 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Lapangan extends Model
 {
-    use HasFactory;
+
+    const STATUS_TERSEDIA = 'tersedia';
+    const STATUS_PERAWATAN = 'perawatan';
 
     protected $table = 'lapangan';
     protected $primaryKey = 'id_lapangan';
+    
+    protected $fillable = ['nama_lapangan', 'harga_per_jam', 'status_lapangan', 'keterangan'];
 
-    protected $fillable = [
-        'nama_lapangan',
-        'harga_per_jam',
-        'status',
-    ];
 
-    public function detailReservasi()
-    {
-        return $this->hasMany(DetailReservasi::class, 'id_lapangan', 'id_lapangan');
-    }
-
-    public function openMabar()
-    {
-        return $this->hasMany(OpenMabar::class, 'id_lapangan', 'id_lapangan');
-    }
 }

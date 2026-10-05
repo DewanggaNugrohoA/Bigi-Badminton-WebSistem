@@ -2,37 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ReturVoid extends Model
 {
-    use HasFactory;
+
+    const JENIS_VOID = 'void';
+    const JENIS_RETUR = 'retur';
+    const STATUS_MENUNGGU = 'menunggu';
+    const STATUS_DISETUJUI = 'disetujui';
+    const STATUS_DITOLAK = 'ditolak';
 
     protected $table = 'retur_void';
     protected $primaryKey = 'id_retur';
+    
+    protected $fillable = ['id_transaksi', 'id_user', 'id_admin', 'jenis', 'alasan', 'status', 'tanggal'];
 
-    protected $fillable = [
-        'id_transaksi',
-        'id_user',
-        'id_admin',
-        'tipe',
-        'alasan',
-        'status',
-    ];
-
-    public function transaksiPos()
-    {
-        return $this->belongsTo(TransaksiPos::class, 'id_transaksi', 'id_transaksi');
-    }
-
-    public function kasir()
-    {
-        return $this->belongsTo(User::class, 'id_user', 'id_user');
-    }
-
-    public function admin()
-    {
-        return $this->belongsTo(User::class, 'id_admin', 'id_user');
-    }
+    public function transaksiPos() { return $this->belongsTo(TransaksiPos::class, 'id_transaksi'); }
+    public function pengaju() { return $this->belongsTo(User::class, 'id_user'); }
+    public function penyetuju() { return $this->belongsTo(User::class, 'id_admin'); }
 }
