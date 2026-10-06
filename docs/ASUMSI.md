@@ -24,3 +24,4 @@
 - Template pesan WhatsApp yang digunakan adalah format baku tunggal sesuai spesifikasi tanpa pengisian otomatis nama lapangan.
 - Papan skor pada homepage beroperasi murni secara client-side (state lokal React) tanpa request ke server.
 - Section Pilihan Lapangan dan Papan Skor dihapus dari homepage atas keputusan tim.
+- Section Berita & Pengumuman (Informasi Terbaru) dihapus dari homepage atas permintaan tim.

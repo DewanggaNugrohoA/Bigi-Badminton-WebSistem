@@ -18,17 +18,6 @@ import {
     MapPin,
 } from "lucide-react";
 
-interface InformasiItem {
-    id_informasi: number;
-    judul: string;
-    gambar?: string | null;
-    tanggal_publikasi?: string | null;
-}
-
-interface HomeProps {
-    informasi: InformasiItem[];
-}
-
 interface SharedProps {
     auth?: {
         user?: {
@@ -53,24 +42,11 @@ const facilityIcons = [
     Wifi,
 ];
 
-export default function Home({ informasi = [] }: HomeProps) {
+export default function Home() {
     const { auth, config } = usePage<SharedProps>().props;
     const user = auth?.user;
     const waReservationLink = buildWaLink(config?.wa_admin_number);
     const prefersReducedMotion = useReducedMotion();
-
-    const formatDate = (dateString?: string | null) => {
-        if (!dateString) return "";
-        try {
-            return new Intl.DateTimeFormat("id-ID", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-            }).format(new Date(dateString));
-        } catch {
-            return dateString;
-        }
-    };
 
     const getAnimProps = (delay = 0) =>
         prefersReducedMotion
@@ -238,66 +214,7 @@ export default function Home({ informasi = [] }: HomeProps) {
                 </div>
             </section>
 
-            {/* 3. Informasi Terbaru Section (sembunyikan jika kosong) */}
-            {informasi.length > 0 && (
-                <section className="py-20 px-4 sm:px-6 bg-zinc-950 border-t border-zinc-900">
-                    <div className="max-w-6xl mx-auto">
-                        <motion.div {...getAnimProps()} className="text-center max-w-2xl mx-auto mb-14">
-                            <span className="text-xs uppercase tracking-widest text-[var(--brand)] font-bold">
-                                BERITA & PENGUMUMAN
-                            </span>
-                            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                                Informasi Terbaru GOR
-                            </h2>
-                            <p className="mt-3 text-zinc-400 text-sm sm:text-base">
-                                Ikuti perkembangan, jadwal turnamen, dan pengumuman resmi dari manajemen Bigi Badminton.
-                            </p>
-                        </motion.div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {informasi.map((item, index) => (
-                                <motion.div
-                                    key={item.id_informasi}
-                                    {...getAnimProps(index * 0.08)}
-                                    className="rounded-2xl bg-zinc-900/70 border border-zinc-800 overflow-hidden flex flex-col justify-between hover:border-zinc-700 transition-all group"
-                                >
-                                    <div>
-                                        <div className="h-44 w-full bg-zinc-800/80 overflow-hidden relative">
-                                            {item.gambar ? (
-                                                <img
-                                                    src={`/storage/${item.gambar}`}
-                                                    alt={item.judul}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 bg-zinc-900">
-                                                    <Trophy className="size-10 mb-2 opacity-40 text-purple-400" />
-                                                    <span className="text-xs font-medium text-zinc-500">
-                                                        Bigi Badminton News
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="p-6">
-                                            {item.tanggal_publikasi && (
-                                                <div className="flex items-center gap-1.5 text-xs text-zinc-400 mb-2.5">
-                                                    <Calendar className="size-3.5 text-purple-400" />
-                                                    <span>{formatDate(item.tanggal_publikasi)}</span>
-                                                </div>
-                                            )}
-                                            <h3 className="text-lg font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-2">
-                                                {item.judul}
-                                            </h3>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {/* 4. Open Mabar Banner Section */}
+            {/* 3. Open Mabar Banner Section */}
             <section className="py-20 px-4 sm:px-6 bg-zinc-950/80 border-t border-zinc-900 relative isolate overflow-hidden">
                 <div className="max-w-4xl mx-auto rounded-3xl p-8 sm:p-12 border border-purple-500/30 bg-gradient-to-br from-zinc-900 via-zinc-950 to-purple-950/30 shadow-2xl relative">
                     <motion.div {...getAnimProps()} className="text-center flex flex-col items-center">
