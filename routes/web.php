@@ -23,6 +23,18 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:user')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Open Mabar routes
+        Route::get('/open-mabar', [\App\Http\Controllers\OpenMabarController::class, 'index'])->name('open-mabar.index');
+        Route::get('/open-mabar/create', [\App\Http\Controllers\OpenMabarController::class, 'create'])->name('open-mabar.create');
+        Route::post('/open-mabar', [\App\Http\Controllers\OpenMabarController::class, 'store'])->name('open-mabar.store');
+        Route::get('/open-mabar/saya', [\App\Http\Controllers\OpenMabarController::class, 'saya'])->name('open-mabar.saya');
+        Route::get('/open-mabar/{mabar}', [\App\Http\Controllers\OpenMabarController::class, 'show'])->name('open-mabar.show');
+        Route::get('/open-mabar/{mabar}/edit', [\App\Http\Controllers\OpenMabarController::class, 'edit'])->name('open-mabar.edit');
+        Route::put('/open-mabar/{mabar}/edit', [\App\Http\Controllers\OpenMabarController::class, 'update'])->name('open-mabar.update');
+        Route::delete('/open-mabar/{mabar}', [\App\Http\Controllers\OpenMabarController::class, 'destroy'])->name('open-mabar.destroy');
+        Route::post('/open-mabar/{mabar}/ikut', [\App\Http\Controllers\OpenMabarController::class, 'ikut'])->name('open-mabar.ikut');
+        Route::delete('/open-mabar/{mabar}/ikut', [\App\Http\Controllers\OpenMabarController::class, 'batalIkut'])->name('open-mabar.batal-ikut');
     });
 
     Route::middleware('role:admin')->group(function () {

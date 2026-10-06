@@ -19,6 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\OpenMabar::class, \App\Policies\OpenMabarPolicy::class);
     }
 }
