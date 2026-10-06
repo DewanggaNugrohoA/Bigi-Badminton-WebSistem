@@ -23,3 +23,4 @@
 - Fungsi `cleanWaNumber` membersihkan karakter non-angka dan mengubah awalan "0" menjadi "62".
 - Template pesan WhatsApp yang digunakan adalah format baku tunggal sesuai spesifikasi tanpa pengisian otomatis nama lapangan.
 - Papan skor pada homepage beroperasi murni secara client-side (state lokal React) tanpa request ke server.
+- Section Pilihan Lapangan dan Papan Skor dihapus dari homepage atas keputusan tim.

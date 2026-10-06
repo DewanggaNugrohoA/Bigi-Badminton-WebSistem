@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Informasi;
-use App\Models\Lapangan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -26,23 +25,8 @@ class Fase1CTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Home')
-            ->has('lapangan')
             ->has('informasi')
             ->has('config.wa_admin_number')
-        );
-    }
-
-    public function test_homepage_shows_lapangan_from_database(): void
-    {
-        $lapanganCount = Lapangan::count();
-
-        $response = $this->get('/');
-
-        $response->assertStatus(200);
-        $response->assertInertia(fn (Assert $page) => $page
-            ->component('Home')
-            ->has('lapangan', $lapanganCount)
-            ->where('lapangan.0.nama_lapangan', Lapangan::first()->nama_lapangan)
         );
     }
 
