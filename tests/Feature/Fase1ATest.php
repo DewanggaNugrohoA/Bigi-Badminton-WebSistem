@@ -74,7 +74,7 @@ class Fase1ATest extends TestCase
         $responseKasir->assertStatus(403);
     }
 
-    public function test_registration_creates_user_with_role_user_and_defaults(): void
+    public function test_registration_creates_user_with_role_user_and_redirects_to_login(): void
     {
         $response = $this->post('/register', [
             'nama' => 'Pemain Baru',
@@ -84,7 +84,9 @@ class Fase1ATest extends TestCase
             'password_confirmation' => 'password123',
         ]);
 
-        $response->assertRedirect('/dashboard');
+        $response->assertRedirect('/login');
+        $response->assertSessionHas('success');
+        $this->assertGuest();
 
         $this->assertDatabaseHas('users', [
             'email' => 'pemainbaru@bigi.test',
@@ -95,5 +97,42 @@ class Fase1ATest extends TestCase
             'status_member' => 'tidak_aktif',
             'status_akun' => 'aktif',
         ]);
+    }
+
+    public function test_login_redirect_handles_internal_paths_and_blocks_malicious_urls(): void
+    {
+        $responseValid = $this->post('/login', [
+            'email' => 'user@bigi.test',
+            'password' => 'password',
+            'redirect' => '/open-mabar',
+        ]);
+        $responseValid->assertRedirect('/open-mabar');
+
+        auth()->logout();
+
+        $responseDoubleSlash = $this->post('/login', [
+            'email' => 'user@bigi.test',
+            'password' => 'password',
+            'redirect' => '//evil.com',
+        ]);
+        $responseDoubleSlash->assertRedirect('/dashboard');
+
+        auth()->logout();
+
+        $responseBackslash = $this->post('/login', [
+            'email' => 'user@bigi.test',
+            'password' => 'password',
+            'redirect' => '/\evil.com',
+        ]);
+        $responseBackslash->assertRedirect('/dashboard');
+
+        auth()->logout();
+
+        $responseExternal = $this->post('/login', [
+            'email' => 'user@bigi.test',
+            'password' => 'password',
+            'redirect' => 'https://evil.com',
+        ]);
+        $responseExternal->assertRedirect('/dashboard');
     }
 }

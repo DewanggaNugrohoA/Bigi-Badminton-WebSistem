@@ -37,14 +37,51 @@ class LoginController extends Controller
             ]);
         }
 
-        Auth::login($user, $request->boolean('remember'));
+        // Login tanpa remember me
+        Auth::login($user, false);
         $request->session()->regenerate();
 
+        // Cek redirect target yang aman
+        $target = $request->input('redirect') ?: $request->session()->pull('url.intended');
+
+        if ($this->isValidInternalRedirect($target)) {
+            return redirect($target);
+        }
+
         return match ($user->role) {
-            'admin' => redirect()->intended('/admin'),
-            'kasir' => redirect()->intended('/kasir'),
-            default => redirect()->intended('/dashboard'),
+            'admin' => redirect('/admin'),
+            'kasir' => redirect('/kasir'),
+            default => redirect('/dashboard'),
         };
+    }
+
+    protected function isValidInternalRedirect(?string $target): bool
+    {
+        if (! $target) {
+            return false;
+        }
+
+        // Harus diawali persis satu '/' dan bukan '//'
+        if (! str_starts_with($target, '/') || str_starts_with($target, '//')) {
+            return false;
+        }
+
+        // Tidak boleh mengandung backslash (\)
+        if (str_contains($target, '\\')) {
+            return false;
+        }
+
+        // Tidak boleh mengandung karakter newline/kontrol
+        if (preg_match('/[\r\n\t\x00-\x1F\x7F]/', $target)) {
+            return false;
+        }
+
+        // Tidak boleh mengandung skema apapun (misal http:, https:, javascript:)
+        if (preg_match('/^[a-zA-Z][a-zA-Z0-9+.-]*:/', ltrim($target, '/')) || preg_match('/:\/\//', $target)) {
+            return false;
+        }
+
+        return true;
     }
 
     public function destroy(Request $request)

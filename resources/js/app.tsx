@@ -7,8 +7,13 @@ const appName = import.meta.env.VITE_APP_NAME || 'Bigi Badminton';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: (name) => resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob('./Pages/**/*.tsx')),
+    resolve: (name) =>
+        resolvePageComponent(
+            `./Pages/${name}.tsx`,
+            import.meta.glob('./Pages/**/*.tsx')
+        ) as any,
     setup({ el, App, props }) {
+        if (!el) return;
         const root = createRoot(el);
         root.render(<App {...props} />);
     },

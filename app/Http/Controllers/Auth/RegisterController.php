@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -25,7 +24,7 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = User::create([
+        User::create([
             'nama' => $validated['nama'],
             'email' => $validated['email'],
             'no_whatsapp' => $validated['no_whatsapp'],
@@ -36,8 +35,6 @@ class RegisterController extends Controller
             'status_akun' => 'aktif',
         ]);
 
-        Auth::login($user);
-
-        return redirect()->intended('/dashboard');
+        return redirect('/login')->with('success', 'Registrasi berhasil, silakan masuk.');
     }
 }

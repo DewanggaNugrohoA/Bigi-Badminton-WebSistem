@@ -35,9 +35,25 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
-            //
+            'auth' => [
+                'user' => $user ? [
+                    'id_user' => $user->id_user,
+                    'nama' => $user->nama,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ] : null,
+            ],
+            'config' => [
+                'wa_admin_number' => config('bigi.wa_admin_number'),
+            ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ];
     }
 }
