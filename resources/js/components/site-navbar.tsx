@@ -19,6 +19,7 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/co
 import { Button } from "@/components/ui/button";
 import { Menu, User as UserIcon, Calendar, PlusCircle, List, ExternalLink, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { buildWaLink } from "@/lib/content";
 
 interface AuthUser {
     id_user: number;
@@ -55,8 +56,7 @@ export function SiteNavbar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const waNumber = config?.wa_admin_number || "6281234567890";
-    const waLink = `https://wa.me/${waNumber}`;
+    const waLink = buildWaLink(config?.wa_admin_number);
 
     return (
         <header

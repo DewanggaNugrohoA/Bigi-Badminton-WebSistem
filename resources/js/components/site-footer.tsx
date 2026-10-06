@@ -1,7 +1,19 @@
 import DitheredFooter, { FooterColumn, FooterSocial } from "@/components/ui/dithered-footer";
-import { APP_CONTENT } from "@/lib/content";
+import { APP_CONTENT, buildWaLink, cleanWaNumber } from "@/lib/content";
+import { usePage } from "@inertiajs/react";
+
+interface SharedProps {
+    config?: {
+        wa_admin_number?: string;
+    };
+    [key: string]: any;
+}
 
 export function SiteFooter() {
+    const { config } = usePage<SharedProps>().props;
+    const waNumber = config?.wa_admin_number ? cleanWaNumber(config.wa_admin_number) : "";
+    const waReservationLink = buildWaLink(config?.wa_admin_number);
+
     const columns: FooterColumn[] = [
         {
             title: "Navigasi",
@@ -23,7 +35,7 @@ export function SiteFooter() {
         {
             title: "Kontak",
             links: [
-                { label: `WhatsApp: ${APP_CONTENT.whatsapp}`, href: `https://wa.me/${APP_CONTENT.whatsapp}` },
+                { label: waNumber ? `WhatsApp: ${waNumber}` : "WhatsApp", href: waReservationLink },
                 { label: APP_CONTENT.alamat, href: "#" },
                 { label: `Buka: ${APP_CONTENT.jam_operasional}`, href: "#" },
             ],
@@ -33,7 +45,7 @@ export function SiteFooter() {
     const socials: FooterSocial[] = [
         {
             label: "WhatsApp",
-            href: `https://wa.me/${APP_CONTENT.whatsapp}`,
+            href: waReservationLink,
             icon: (
                 <svg viewBox="0 0 24 24" className="size-4" fill="currentColor">
                     <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.04 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z" />

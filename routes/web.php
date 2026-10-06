@@ -4,13 +4,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KasirController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
