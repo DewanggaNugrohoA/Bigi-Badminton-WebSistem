@@ -27,7 +27,7 @@ class LoginController extends Controller
 
         if (! $user || ! Auth::validate($credentials)) {
             throw ValidationException::withMessages([
-                'email' => 'Email atau password yang Anda masukkan salah.',
+                'email' => 'Email atau kata sandi salah.',
             ]);
         }
 

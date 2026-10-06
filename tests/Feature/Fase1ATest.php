@@ -48,7 +48,7 @@ class Fase1ATest extends TestCase
             'password' => 'wrongpassword',
         ]);
 
-        $response->assertSessionHasErrors('email');
+        $response->assertSessionHasErrors(['email' => 'Email atau kata sandi salah.']);
     }
 
     public function test_disabled_account_login_shows_disabled_error_message(): void

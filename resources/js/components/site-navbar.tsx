@@ -152,12 +152,14 @@ export function SiteNavbar() {
                 <div className="hidden md:flex items-center gap-3">
                     {user ? (
                         <DropdownMenu>
-                            <DropdownMenuTrigger>
-                                <Button variant="outline" size="sm" className="gap-2">
-                                    <UserIcon className="size-4 text-muted-foreground" />
-                                    <span>{user.nama}</span>
-                                </Button>
-                            </DropdownMenuTrigger>
+                            <DropdownMenuTrigger
+                                render={
+                                    <Button variant="outline" size="sm" className="gap-2">
+                                        <UserIcon className="size-4 text-muted-foreground" />
+                                        <span>{user.nama}</span>
+                                    </Button>
+                                }
+                            />
                             <DropdownMenuContent align="end" className="w-56">
                                 <div className="p-2 border-b border-border">
                                     <p className="text-sm font-semibold truncate">{user.nama}</p>
@@ -227,11 +229,13 @@ export function SiteNavbar() {
                 {/* Mobile Menu Trigger */}
                 <div className="flex md:hidden items-center gap-2">
                     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                        <SheetTrigger>
-                            <Button variant="ghost" size="icon" aria-label="Buka navigasi mobile">
-                                <Menu className="size-5" />
-                            </Button>
-                        </SheetTrigger>
+                        <SheetTrigger
+                            render={
+                                <Button variant="ghost" size="icon" aria-label="Buka navigasi mobile">
+                                    <Menu className="size-5" />
+                                </Button>
+                            }
+                        />
                         <SheetContent side="right" className="w-[85vw] max-w-xs flex flex-col justify-between">
                             <div className="flex flex-col gap-6 mt-6">
                                 <SheetHeader className="text-left">
