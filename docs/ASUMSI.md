@@ -36,3 +36,23 @@
 - Jika baris `peserta_mabar` untuk pasangan `(id_mabar, id_user)` sudah ada dengan status `batal`, maka status diubah menjadi `terdaftar` tanpa membuat baris baru (mematuhi unique constraint `['id_mabar', 'id_user']`).
 - Pembuat jadwal (`id_user` pada `open_mabar`) **tidak** otomatis menjadi peserta.
 - Ikut jadwal hanya diperbolehkan jika status jadwal adalah `disetujui`; jadwal berstatus `menunggu` atau `ditolak` menolak permintaan ikut.
+
+## 7. Fase 1E — Forum Chat Real-time per Jadwal Mabar (UC-08)
+
+- **Cara Menjalankan Real-time:**
+  - Menjalankan web server: `php artisan serve` (atau via host lokal Laragon).
+  - Menjalankan WebSocket Reverb server: buka terminal terpisah dan jalankan `php artisan reverb:start`.
+  - Frontend development (jika mode dev): `npm run dev`.
+- **Build Frontend & Environment Variables:**
+  - Nilai variabel `VITE_REVERB_*` (`VITE_REVERB_APP_KEY`, `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, `VITE_REVERB_SCHEME`) tertanam secara statis saat build bundling Vite.
+  - Setiap kali konfigurasi Reverb pada file `.env` diubah atau diperbarui, proses build ulang (`npm run build`) **wajib** dijalankan kembali agar file build frontend di `public/build/` memuat konfigurasi WebSocket yang baru.
+- **Deduplikasi Pesan & UX:**
+  - Halaman chat memuat 50 pesan terakhir dengan urutan kronologis (dari lama ke baru).
+  - State pesan di React mendeduplikasi pesan berdasarkan identifier pesan (`id` / `id_chat`) sehingga pengirim yang baru saja mengirim pesan langsung melihat pesannya di UI, dan ketika event siaran Echo diterima tidak terjadi pesan ganda.
+  - Jika server Reverb tidak aktif, pengiriman pesan tetap berjalan normal lewat HTTP POST dan tersimpan di database `chat_mabar`, serta pesan langsung tampil kembali saat halaman dimuat ulang.
+- **Hak Akses & Otorisasi Channel:**
+  - Rute HTTP (`GET` dan `POST /open-mabar/{mabar}/chat`) dilindungi middleware `auth` dan `role:user`. Pengguna role `admin` dan `kasir` mendapatkan respons `403 Forbidden`.
+  - Otorisasi channel privat WebSocket `mabar.{id_mabar}`:
+    - Role `user`: diizinkan bergabung jika status jadwal mabar adalah `disetujui`. Jika berstatus `menunggu` atau `ditolak`, otorisasi ditolak.
+    - Role `admin`: diizinkan bergabung sebagai pendengar (hak Read).
+    - Role `kasir`: ditolak bergabung (`false`).

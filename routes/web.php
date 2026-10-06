@@ -35,6 +35,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/open-mabar/{mabar}', [\App\Http\Controllers\OpenMabarController::class, 'destroy'])->name('open-mabar.destroy');
         Route::post('/open-mabar/{mabar}/ikut', [\App\Http\Controllers\OpenMabarController::class, 'ikut'])->name('open-mabar.ikut');
         Route::delete('/open-mabar/{mabar}/ikut', [\App\Http\Controllers\OpenMabarController::class, 'batalIkut'])->name('open-mabar.batal-ikut');
+
+        // Chat Mabar routes
+        Route::get('/open-mabar/{mabar}/chat', [\App\Http\Controllers\ChatMabarController::class, 'index'])->name('open-mabar.chat');
+        Route::post('/open-mabar/{mabar}/chat', [\App\Http\Controllers\ChatMabarController::class, 'kirimPesan'])->name('open-mabar.chat.kirim');
     });
 
     Route::middleware('role:admin')->group(function () {
