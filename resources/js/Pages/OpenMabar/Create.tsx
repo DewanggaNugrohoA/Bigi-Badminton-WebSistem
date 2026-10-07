@@ -244,7 +244,7 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                             <div className="flex flex-col sm:flex-row items-center gap-4">
                                 <label
                                     htmlFor="foto"
-                                    className="cursor-pointer border border-dashed border-input hover:border-primary px-4 py-3 rounded-lg flex items-center gap-2 text-sm text-muted-foreground w-full sm:w-auto"
+                                    className="cursor-pointer border border-dashed border-input hover:border-primary focus-within:ring-2 focus-within:ring-ring focus-within:outline-none px-4 py-3 rounded-lg flex items-center gap-2 text-sm text-muted-foreground w-full sm:w-auto transition-colors"
                                 >
                                     <Upload className="size-4" />
                                     <span>Pilih File Gambar</span>
@@ -253,7 +253,7 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                                         type="file"
                                         accept="image/*"
                                         onChange={handleFileChange}
-                                        className="hidden"
+                                        className="sr-only"
                                     />
                                 </label>
                                 {data.foto && (

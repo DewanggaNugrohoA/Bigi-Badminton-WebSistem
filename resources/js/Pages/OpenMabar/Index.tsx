@@ -173,17 +173,17 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                                 id="gender"
                                 value={gender}
                                 onChange={(e) => setGender(e.target.value)}
-                                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input"
+                                className="w-full h-10 px-3 rounded-md border border-input bg-transparent text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
                             >
-                                <option value="">Semua Kategori</option>
-                                <option value="putra">Putra</option>
-                                <option value="putri">Putri</option>
-                                <option value="campuran">Campuran</option>
+                                <option value="" className="bg-background text-foreground">Semua Kategori</option>
+                                <option value="putra" className="bg-background text-foreground">Putra</option>
+                                <option value="putri" className="bg-background text-foreground">Putri</option>
+                                <option value="campuran" className="bg-background text-foreground">Campuran</option>
                             </select>
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Button type="submit" className="flex-1 h-10 gap-2 bg-[var(--brand)] hover:opacity-90">
+                            <Button type="submit" className="flex-1 h-10 min-h-[44px] gap-2 bg-[var(--brand)] hover:opacity-90">
                                 <Filter className="size-4" />
                                 <span>Terapkan</span>
                             </Button>
@@ -192,8 +192,9 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                                     type="button"
                                     variant="outline"
                                     onClick={handleReset}
-                                    className="h-10 px-3"
+                                    className="h-10 min-h-[44px] px-3.5"
                                     title="Reset filter"
+                                    aria-label="Reset filter pencarian"
                                 >
                                     <RotateCcw className="size-4" />
                                 </Button>

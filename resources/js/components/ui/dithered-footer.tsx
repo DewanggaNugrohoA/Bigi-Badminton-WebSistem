@@ -67,7 +67,7 @@ export default function DitheredFooter({
     columns = [],
     socials = [],
     legal = [],
-    copyright = `© ${new Date().getFullYear()} Bigi Badminton`,
+    copyright = `© ${new Date().getFullYear()} Bigi Badminton.`,
     status = null,
     accent = "var(--brand, #6633ee)",
 }: DitheredFooterProps) {
@@ -113,7 +113,11 @@ export default function DitheredFooter({
                         <ul className="mt-4 space-y-3 [@media(pointer:coarse)]:space-y-0">
                             {col.links.map((l) => (
                                 <li key={l.label}>
-                                    <a href={l.href} className={`rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground ${focus} ${coarse}`}>{l.label}</a>
+                                    {l.href ? (
+                                        <a href={l.href} className={`rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground ${focus} ${coarse}`}>{l.label}</a>
+                                    ) : (
+                                        <span className={`text-sm text-muted-foreground ${coarse}`}>{l.label}</span>
+                                    )}
                                 </li>
                             ))}
                         </ul>

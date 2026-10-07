@@ -36,8 +36,8 @@ export function SiteFooter() {
             title: "Kontak",
             links: [
                 { label: waNumber ? `WhatsApp: ${waNumber}` : "WhatsApp", href: waReservationLink },
-                { label: APP_CONTENT.alamat, href: "#" },
-                { label: `Buka: ${APP_CONTENT.jam_operasional}`, href: "#" },
+                { label: APP_CONTENT.alamat, href: "" },
+                { label: `Buka: ${APP_CONTENT.jam_operasional}`, href: "" },
             ],
         },
     ];
@@ -71,7 +71,7 @@ export function SiteFooter() {
             columns={columns}
             socials={socials}
             legal={[]}
-            copyright={`© ${new Date().getFullYear()} ${APP_CONTENT.nama}. All rights reserved.`}
+            copyright={`© ${new Date().getFullYear()} ${APP_CONTENT.nama}.`}
             accent="var(--brand, #6633ee)"
         />
     );

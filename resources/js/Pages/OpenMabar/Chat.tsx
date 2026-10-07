@@ -120,7 +120,6 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
         [mabar.id_mabar]
     );
 
-    // Format tanggal Indonesia
     const formatTanggal = (dateStr: string) => {
         try {
             const date = new Date(dateStr);
@@ -157,7 +156,6 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
         }
     };
 
-    // Handler submit kirim pesan
     const handleKirim = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (isSubmitting) return;
@@ -202,7 +200,6 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
         );
     };
 
-    // Shortcut Enter untuk kirim, Shift+Enter untuk baris baru
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -360,7 +357,8 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                             <Button
                                 type="submit"
                                 disabled={isSubmitting || !pesanInput.trim()}
-                                className="h-[42px] px-4 gap-1.5 shrink-0 rounded-xl"
+                                aria-label="Kirim pesan"
+                                className="h-[42px] min-h-[44px] min-w-[44px] px-4 gap-1.5 shrink-0 rounded-xl"
                             >
                                 <Send className="size-4" />
                                 <span className="hidden sm:inline">Kirim</span>

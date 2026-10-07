@@ -81,7 +81,7 @@ export function SiteNavbar() {
                         <NavigationMenuList>
                             <NavigationMenuItem>
                                 <NavigationMenuLink asChild>
-                                    <Link href="/" className="px-3 py-2 text-sm font-medium hover:text-foreground">
+                                    <Link href="/" className="px-3 py-2 text-sm font-medium hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none rounded-md transition-colors">
                                         Beranda
                                     </Link>
                                 </NavigationMenuLink>
@@ -89,7 +89,7 @@ export function SiteNavbar() {
 
                             <NavigationMenuItem>
                                 <NavigationMenuLink asChild>
-                                    <a href="/#fasilitas" className="px-3 py-2 text-sm font-medium hover:text-foreground">
+                                    <a href="/#fasilitas" className="px-3 py-2 text-sm font-medium hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none rounded-md transition-colors">
                                         Fasilitas
                                     </a>
                                 </NavigationMenuLink>

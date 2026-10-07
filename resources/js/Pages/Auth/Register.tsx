@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm, Link } from '@inertiajs/react';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -84,9 +84,7 @@ export default function Register() {
                         </p>
                     </div>
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Nama */}
+                    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                         <div className="space-y-1.5">
                             <Label htmlFor="nama">Nama Lengkap</Label>
                             <Input
@@ -98,13 +96,14 @@ export default function Register() {
                                 placeholder="Nama lengkap Anda"
                                 required
                                 autoComplete="name"
+                                aria-invalid={!!errors.nama}
+                                aria-describedby={errors.nama ? "nama-error" : undefined}
                             />
                             {errors.nama && (
-                                <p className="text-xs text-destructive">{errors.nama}</p>
+                                <p id="nama-error" role="alert" className="text-xs text-destructive">{errors.nama}</p>
                             )}
                         </div>
 
-                        {/* Email */}
                         <div className="space-y-1.5">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -116,13 +115,14 @@ export default function Register() {
                                 placeholder="nama@email.com"
                                 required
                                 autoComplete="email"
+                                aria-invalid={!!errors.email}
+                                aria-describedby={errors.email ? "email-error" : undefined}
                             />
                             {errors.email && (
-                                <p className="text-xs text-destructive">{errors.email}</p>
+                                <p id="email-error" role="alert" className="text-xs text-destructive">{errors.email}</p>
                             )}
                         </div>
 
-                        {/* No WhatsApp */}
                         <div className="space-y-1.5">
                             <Label htmlFor="no_whatsapp">Nomor WhatsApp</Label>
                             <Input
@@ -134,13 +134,14 @@ export default function Register() {
                                 placeholder="Contoh: 081234567890"
                                 required
                                 autoComplete="tel"
+                                aria-invalid={!!errors.no_whatsapp}
+                                aria-describedby={errors.no_whatsapp ? "wa-error" : undefined}
                             />
                             {errors.no_whatsapp && (
-                                <p className="text-xs text-destructive">{errors.no_whatsapp}</p>
+                                <p id="wa-error" role="alert" className="text-xs text-destructive">{errors.no_whatsapp}</p>
                             )}
                         </div>
 
-                        {/* Password */}
                         <div className="space-y-1.5">
                             <Label htmlFor="password">Kata sandi</Label>
                             <div className="relative">
@@ -154,6 +155,8 @@ export default function Register() {
                                     className="pr-10"
                                     required
                                     autoComplete="new-password"
+                                    aria-invalid={!!errors.password}
+                                    aria-describedby={errors.password ? "password-error" : undefined}
                                 />
                                 <button
                                     type="button"
@@ -169,11 +172,10 @@ export default function Register() {
                                 </button>
                             </div>
                             {errors.password && (
-                                <p className="text-xs text-destructive">{errors.password}</p>
+                                <p id="password-error" role="alert" className="text-xs text-destructive">{errors.password}</p>
                             )}
                         </div>
 
-                        {/* Konfirmasi Password */}
                         <div className="space-y-1.5">
                             <Label htmlFor="password_confirmation">Konfirmasi Kata sandi</Label>
                             <div className="relative">
@@ -203,7 +205,6 @@ export default function Register() {
                             </div>
                         </div>
 
-                        {/* Submit Button */}
                         <Button
                             type="submit"
                             disabled={processing}

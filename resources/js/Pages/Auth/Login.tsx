@@ -33,10 +33,8 @@ export default function Login() {
     };
 
     return (
-        <div className="h-screen w-screen bg-background text-foreground flex overflow-hidden">
-            {/* Left Panel - Image Section (hidden on small screens) */}
+        <div className="min-h-dvh w-screen bg-background text-foreground flex overflow-y-auto">
             <div className="hidden lg:flex flex-1 relative overflow-hidden bg-muted">
-                {/* Back Button */}
                 <div className="absolute top-6 left-6 z-10">
                     <Link
                         href="/"
@@ -66,9 +64,7 @@ export default function Login() {
                 </div>
             </div>
 
-            {/* Right Panel - Form Section */}
             <div className="flex-1 flex items-center justify-center bg-background px-6 py-12 relative">
-                {/* Mobile Back Button */}
                 <div className="lg:hidden absolute top-6 left-6 z-10">
                     <Link
                         href="/"
@@ -80,7 +76,6 @@ export default function Login() {
                 </div>
 
                 <div className="w-full max-w-md space-y-6">
-                    {/* Header */}
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight mb-2">
                             Selamat Datang Kembali
@@ -96,25 +91,15 @@ export default function Login() {
                         </p>
                     </div>
 
-                    {/* Success Flash Notification */}
                     {flash?.success && (
                         <div className="p-3 text-sm rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                             {flash.success}
                         </div>
                     )}
 
-                    {/* Error Flash / Validation general */}
-                    {errors.email && (
-                        <div className="p-3 text-sm rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
-                            {errors.email}
-                        </div>
-                    )}
-
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                         <input type="hidden" name="redirect" value={data.redirect} />
 
-                        {/* Email */}
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -126,10 +111,16 @@ export default function Login() {
                                 placeholder="nama@email.com"
                                 required
                                 autoComplete="email"
+                                aria-invalid={!!errors.email}
+                                aria-describedby={errors.email ? "email-error" : undefined}
                             />
+                            {errors.email && (
+                                <p id="email-error" role="alert" className="text-xs text-destructive">
+                                    {errors.email}
+                                </p>
+                            )}
                         </div>
 
-                        {/* Password */}
                         <div className="space-y-2">
                             <Label htmlFor="password">Kata sandi</Label>
                             <div className="relative">
@@ -143,6 +134,8 @@ export default function Login() {
                                     className="pr-10"
                                     required
                                     autoComplete="current-password"
+                                    aria-invalid={!!errors.password}
+                                    aria-describedby={errors.password ? "password-error" : undefined}
                                 />
                                 <button
                                     type="button"
@@ -158,11 +151,12 @@ export default function Login() {
                                 </button>
                             </div>
                             {errors.password && (
-                                <p className="text-xs text-destructive">{errors.password}</p>
+                                <p id="password-error" role="alert" className="text-xs text-destructive">
+                                    {errors.password}
+                                </p>
                             )}
                         </div>
 
-                        {/* Submit Button */}
                         <Button
                             type="submit"
                             disabled={processing}

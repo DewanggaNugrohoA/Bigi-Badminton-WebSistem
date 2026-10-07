@@ -15,7 +15,6 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // 1. Ringkasan angka mabar milik saya
         $mabarStats = [
             'menunggu' => OpenMabar::where('id_user', $user->id_user)
                 ->where('status', OpenMabar::STATUS_MENUNGGU)
@@ -31,7 +30,6 @@ class DashboardController extends Controller
                 ->count(),
         ];
 
-        // 2. Reservasi saya (eager loaded, read-only)
         $reservasiSaya = Reservasi::where('id_user', $user->id_user)
             ->with([
                 'detailReservasi.lapangan:id_lapangan,nama_lapangan',
@@ -42,7 +40,6 @@ class DashboardController extends Controller
             ->orderBy('tanggal_pemesanan', 'desc')
             ->get();
 
-        // 3. Mabar yang saya ikuti (mendatang: tanggal >= today, status disetujui, terdaftar)
         $today = Carbon::today()->toDateString();
         $mabarDiikuti = OpenMabar::whereHas('pesertaMabar', function ($query) use ($user) {
                 $query->where('id_user', $user->id_user)
