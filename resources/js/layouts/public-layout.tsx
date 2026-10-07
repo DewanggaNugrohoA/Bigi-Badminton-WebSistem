@@ -1,22 +1,41 @@
-﻿import { Head } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import { ReactNode } from "react";
 import { SiteNavbar } from "@/components/site-navbar";
 import { SiteFooter } from "@/components/site-footer";
+import { cn } from "@/lib/utils";
 
 interface PublicLayoutProps {
     children: ReactNode;
     title?: string;
+    showFooter?: boolean;
+    className?: string;
 }
 
-export default function PublicLayout({ children, title }: PublicLayoutProps) {
+export default function PublicLayout({
+    children,
+    title,
+    showFooter = true,
+    className,
+}: PublicLayoutProps) {
     return (
-        <div className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-[var(--brand)] selection:text-white">
+        <div
+            className={cn(
+                "min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-[var(--brand)] selection:text-white",
+                !showFooter && "h-dvh overflow-hidden",
+                className
+            )}
+        >
             {title && <Head title={title} />}
             <SiteNavbar />
-            <main className="flex-1">
+            <main
+                className={cn(
+                    "flex-1",
+                    !showFooter && "flex flex-col min-h-0 overflow-hidden"
+                )}
+            >
                 {children}
             </main>
-            <SiteFooter />
+            {showFooter && <SiteFooter />}
         </div>
     );
 }

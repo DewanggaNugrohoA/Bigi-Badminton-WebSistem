@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from "@inertiajs/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import PublicLayout from "@/layouts/public-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,7 +65,7 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // Koneksi status dari Laravel Echo
     const connectionStatus = useConnectionStatus();
@@ -88,16 +88,19 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
         });
     }, [initialMessages]);
 
-    // Fungsi bantu untuk auto-scroll ke pesan terbawah
-    const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior });
+    // Fungsi scroll kontainer pesan saja ke posisi terbawah tanpa menggeser window
+    const scrollToBottom = () => {
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
         }
     };
 
-    // Auto-scroll saat ada pesan bertambah
-    useEffect(() => {
-        scrollToBottom();
+    // Auto-scroll pada kontainer pesan setelah pesan baru dirender di DOM
+    useLayoutEffect(() => {
+        const frameId = requestAnimationFrame(() => {
+            scrollToBottom();
+        });
+        return () => cancelAnimationFrame(frameId);
     }, [chatMessages.length]);
 
     // Dengarkan event siaran WebSocket via useEcho
@@ -157,6 +160,7 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
     // Handler submit kirim pesan
     const handleKirim = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        if (isSubmitting) return;
 
         const text = pesanInput.trim();
         if (!text) {
@@ -180,12 +184,19 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                 preserveState: true,
                 onSuccess: () => {
                     setPesanInput("");
+                    requestAnimationFrame(() => {
+                        textareaRef.current?.focus({ preventScroll: true });
+                        scrollToBottom();
+                    });
                 },
                 onError: (errors) => {
                     setErrorMessage(errors.pesan || "Gagal mengirim pesan.");
                 },
                 onFinish: () => {
                     setIsSubmitting(false);
+                    requestAnimationFrame(() => {
+                        textareaRef.current?.focus({ preventScroll: true });
+                    });
                 },
             }
         );
@@ -203,11 +214,11 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
     const isConnecting = connectionStatus === "connecting";
 
     return (
-        <PublicLayout title={`Ruang Obrolan - ${mabar.judul}`}>
+        <PublicLayout title={`Ruang Obrolan - ${mabar.judul}`} showFooter={false}>
             <Head title={`Ruang Obrolan - ${mabar.judul}`} />
 
-            {/* Container luar dengan padding atas yang cukup agar tidak tertutup navbar fixed */}
-            <div className="pt-20 sm:pt-24 pb-4 px-3 sm:px-6 max-w-4xl mx-auto flex flex-col h-[calc(100dvh-5.5rem)] sm:h-[calc(100dvh-6rem)]">
+            {/* Container luar mengisi 1 layar pas di bawah navbar, tanpa sisa scroll di window */}
+            <div className="flex-1 flex flex-col min-h-0 pt-16 sm:pt-20 pb-2 sm:pb-3 px-3 sm:px-6 max-w-4xl w-full mx-auto">
                 {/* Kartu Chat Utama */}
                 <div className="flex-1 flex flex-col min-h-0 bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden">
                     {/* Header Chat */}
@@ -263,10 +274,10 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                         </div>
                     </div>
 
-                    {/* Area Riwayat Pesan (Scroll Sendiri) */}
+                    {/* Area Riwayat Pesan (Scroll Sendiri Hanya pada Kontainer Ini) */}
                     <div
                         ref={messagesContainerRef}
-                        className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 space-y-4 bg-muted/10"
+                        className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 space-y-4 bg-muted/10 overscroll-contain"
                     >
                         {chatMessages.length === 0 ? (
                             <div className="h-full min-h-[220px] flex flex-col items-center justify-center text-center text-muted-foreground p-6">
@@ -315,7 +326,6 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                                 );
                             })
                         )}
-                        <div ref={messagesEndRef} />
                     </div>
 
                     {/* Kotak Input Pesan (Tetap di Bawah Layar) */}
@@ -330,6 +340,7 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                         <form onSubmit={handleKirim} className="flex items-end gap-2">
                             <div className="flex-1 relative">
                                 <textarea
+                                    ref={textareaRef}
                                     value={pesanInput}
                                     onChange={(e) => {
                                         setPesanInput(e.target.value);
@@ -339,8 +350,7 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                                     placeholder="Tulis pesan (Enter untuk kirim, Shift+Enter untuk baris baru)..."
                                     rows={1}
                                     maxLength={500}
-                                    disabled={isSubmitting}
-                                    className="w-full resize-none min-h-[42px] max-h-[120px] px-3.5 py-2.5 rounded-xl bg-background border border-border/80 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all disabled:opacity-50"
+                                    className="w-full resize-none min-h-[42px] max-h-[120px] px-3.5 py-2.5 rounded-xl bg-background border border-border/80 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
                                 />
                                 <div className="absolute right-2 bottom-1.5 text-[10px] text-muted-foreground/60 select-none pointer-events-none">
                                     {pesanInput.length}/500
