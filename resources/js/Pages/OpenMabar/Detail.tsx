@@ -131,13 +131,6 @@ export default function OpenMabarDetail({
                     <span>Kembali ke Cari Jadwal</span>
                 </Link>
 
-                {/* Notifikasi Flash atau Error */}
-                {flash?.success && (
-                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm mb-6 flex items-center gap-2">
-                        <CheckCircle2 className="size-4 shrink-0" />
-                        <span>{flash.success}</span>
-                    </div>
-                )}
                 {errors?.message && (
                     <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm mb-6 flex items-center gap-2">
                         <XCircle className="size-4 shrink-0" />

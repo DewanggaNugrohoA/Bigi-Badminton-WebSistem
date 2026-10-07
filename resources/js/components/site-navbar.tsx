@@ -165,12 +165,23 @@ export function SiteNavbar() {
                                     <p className="text-sm font-semibold truncate">{user.nama}</p>
                                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                                 </div>
-                                <DropdownMenuItem>
-                                    <Link href="/dashboard" className="w-full flex items-center gap-2">
-                                        <LayoutDashboard className="size-4" />
-                                        <span>Dashboard</span>
-                                    </Link>
-                                </DropdownMenuItem>
+
+                                {user.role === "user" && (
+                                    <>
+                                        <DropdownMenuItem>
+                                            <Link href="/dashboard" className="w-full flex items-center gap-2">
+                                                <LayoutDashboard className="size-4" />
+                                                <span>Dashboard</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            <Link href="/pengaturan/akun" className="w-full flex items-center gap-2">
+                                                <Settings className="size-4" />
+                                                <span>Pengaturan Akun</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
 
                                 {user.role === "admin" && (
                                     <DropdownMenuItem>
@@ -190,12 +201,6 @@ export function SiteNavbar() {
                                     </DropdownMenuItem>
                                 )}
 
-                                <DropdownMenuItem>
-                                    <Link href="/pengaturan/akun" className="w-full flex items-center gap-2">
-                                        <Settings className="size-4" />
-                                        <span>Pengaturan Akun</span>
-                                    </Link>
-                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem variant="destructive">
                                     <Link
@@ -307,14 +312,26 @@ export function SiteNavbar() {
                                             <p className="text-sm font-semibold truncate">{user.nama}</p>
                                             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                                         </div>
-                                        <Link
-                                            href="/dashboard"
-                                            onClick={() => setMobileOpen(false)}
-                                            className="px-3 py-2 rounded-md hover:bg-accent text-sm font-medium flex items-center gap-2"
-                                        >
-                                            <LayoutDashboard className="size-4" />
-                                            <span>Dashboard</span>
-                                        </Link>
+                                        {user.role === "user" && (
+                                            <>
+                                                <Link
+                                                    href="/dashboard"
+                                                    onClick={() => setMobileOpen(false)}
+                                                    className="px-3 py-2 rounded-md hover:bg-accent text-sm font-medium flex items-center gap-2"
+                                                >
+                                                    <LayoutDashboard className="size-4" />
+                                                    <span>Dashboard</span>
+                                                </Link>
+                                                <Link
+                                                    href="/pengaturan/akun"
+                                                    onClick={() => setMobileOpen(false)}
+                                                    className="px-3 py-2 rounded-md hover:bg-accent text-sm font-medium flex items-center gap-2"
+                                                >
+                                                    <Settings className="size-4" />
+                                                    <span>Pengaturan Akun</span>
+                                                </Link>
+                                            </>
+                                        )}
                                         {user.role === "admin" && (
                                             <Link
                                                 href="/admin"

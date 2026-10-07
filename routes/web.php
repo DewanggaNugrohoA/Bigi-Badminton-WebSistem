@@ -39,6 +39,11 @@ Route::middleware('auth')->group(function () {
         // Chat Mabar routes
         Route::get('/open-mabar/{mabar}/chat', [\App\Http\Controllers\ChatMabarController::class, 'index'])->name('open-mabar.chat');
         Route::post('/open-mabar/{mabar}/chat', [\App\Http\Controllers\ChatMabarController::class, 'kirimPesan'])->name('open-mabar.chat.kirim');
+
+        // Pengaturan Akun (UC-10)
+        Route::get('/pengaturan/akun', [\App\Http\Controllers\AkunController::class, 'edit'])->name('pengaturan.akun');
+        Route::put('/pengaturan/akun/profil', [\App\Http\Controllers\AkunController::class, 'updateProfil'])->name('pengaturan.akun.profil');
+        Route::put('/pengaturan/akun/password', [\App\Http\Controllers\AkunController::class, 'updatePassword'])->name('pengaturan.akun.password');
     });
 
     Route::middleware('role:admin')->group(function () {

@@ -1,7 +1,9 @@
-import { Head } from "@inertiajs/react";
-import { ReactNode } from "react";
+import { Head, usePage } from "@inertiajs/react";
+import { ReactNode, useEffect, useRef } from "react";
 import { SiteNavbar } from "@/components/site-navbar";
 import { SiteFooter } from "@/components/site-footer";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface PublicLayoutProps {
@@ -11,12 +13,34 @@ interface PublicLayoutProps {
     className?: string;
 }
 
+interface SharedProps {
+    flash?: {
+        success?: string | null;
+        error?: string | null;
+    };
+    [key: string]: any;
+}
+
 export default function PublicLayout({
     children,
     title,
     showFooter = true,
     className,
 }: PublicLayoutProps) {
+    const { flash } = usePage<SharedProps>().props;
+    const lastFlash = useRef<{ success?: string | null; error?: string | null }>({});
+
+    useEffect(() => {
+        if (flash?.success && flash.success !== lastFlash.current.success) {
+            toast.success(flash.success);
+            lastFlash.current.success = flash.success;
+        }
+        if (flash?.error && flash.error !== lastFlash.current.error) {
+            toast.error(flash.error);
+            lastFlash.current.error = flash.error;
+        }
+    }, [flash]);
+
     return (
         <div
             className={cn(
@@ -36,6 +60,8 @@ export default function PublicLayout({
                 {children}
             </main>
             {showFooter && <SiteFooter />}
+            <Toaster position="top-right" richColors />
         </div>
     );
 }
+

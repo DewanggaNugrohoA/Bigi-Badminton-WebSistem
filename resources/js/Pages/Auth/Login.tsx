@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm, Link, usePage } from '@inertiajs/react';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,7 @@ export default function Login() {
                 <div className="absolute top-6 left-6 z-10">
                     <Link
                         href="/"
+                        aria-label="Kembali ke beranda"
                         className="w-10 h-10 bg-background/40 backdrop-blur-md border border-border/40 rounded-full flex items-center justify-center hover:bg-background/60 transition-all text-foreground"
                     >
                         <ArrowLeft className="w-5 h-5" />
@@ -71,6 +72,7 @@ export default function Login() {
                 <div className="lg:hidden absolute top-6 left-6 z-10">
                     <Link
                         href="/"
+                        aria-label="Kembali ke beranda"
                         className="w-10 h-10 bg-secondary/80 rounded-full flex items-center justify-center hover:bg-secondary transition-all text-foreground"
                     >
                         <ArrowLeft className="w-5 h-5" />

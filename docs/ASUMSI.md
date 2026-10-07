@@ -56,3 +56,22 @@
     - Role `user`: diizinkan bergabung jika status jadwal mabar adalah `disetujui`. Jika berstatus `menunggu` atau `ditolak`, otorisasi ditolak.
     - Role `admin`: diizinkan bergabung sebagai pendengar (hak Read).
     - Role `kasir`: ditolak bergabung (`false`).
+
+## 8. Fase 1F — Dashboard User & Pengaturan Akun (UC-10)
+
+- **Toast Global:**
+  - Menggunakan komponen `sonner` shadcn/ui yang dipasang pada `PublicLayout` mendengarkan shared props `flash.success` dan `flash.error` secara terpusat.
+  - Notifikasi inline ganda di halaman Open Mabar telah dibersihkan agar seluruh aksi terintegrasi dengan toast seragam.
+- **Navigasi Akun Berdasarkan Role:**
+  - Role `user`: Menu akun di navbar memuat tautan ke `/dashboard`, `/pengaturan/akun`, dan `Keluar`.
+  - Role `admin`: Menu akun di navbar hanya memuat tautan ke panel `/admin` dan `Keluar`.
+  - Role `kasir`: Menu akun di navbar hanya memuat tautan ke panel `/kasir` dan `Keluar`.
+- **Halaman Galat (403 & 404):**
+  - Menggunakan komponen Inertia `Pages/Error.tsx` berbahasa Indonesia dengan tombol kembali kontekstual berdasarkan role pengguna (admin ke `/admin`, kasir ke `/kasir`, user ke `/dashboard`, tamu ke `/`).
+- **Dashboard User (`/dashboard`):**
+  - Bersifat read-only: Menampilkan ringkasan status jadwal mabar milik pengguna, daftar reservasi lapangan milik pengguna (eager loaded relasi lapangan & pembayaran), serta mabar mendatang yang diikuti.
+  - User A diisolasi penuh dari melihat data reservasi dan mabar milik User B.
+- **Pengaturan Akun (`/pengaturan/akun`):**
+  - Pengguna hanya memiliki hak CRU pada akunnya sendiri. Tidak ada fungsi hapus akun, 2FA, lupa password, maupun preferensi tema.
+  - Validasi update profil menolak email duplikat milik pengguna lain dan menerima jika email milik sendiri tidak berubah.
+  - Validasi ganti kata sandi mewajibkan verifikasi `current_password` yang cocok.

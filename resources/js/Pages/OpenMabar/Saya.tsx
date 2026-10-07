@@ -115,13 +115,6 @@ export default function OpenMabarSaya({ jadwalSaya, flash }: SayaProps) {
                     </Link>
                 </div>
 
-                {/* Notifikasi Flash */}
-                {flash?.success && (
-                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm mb-6">
-                        {flash.success}
-                    </div>
-                )}
-
                 {/* List Jadwal Saya */}
                 {jadwalSaya.data.length === 0 ? (
                     <div className="border border-dashed border-border/80 rounded-2xl p-12 text-center bg-card/40 my-10">
