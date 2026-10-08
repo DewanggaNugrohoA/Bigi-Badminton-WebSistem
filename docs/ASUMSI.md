@@ -25,6 +25,7 @@
 - Papan skor pada homepage beroperasi murni secara client-side (state lokal React) tanpa request ke server.
 - Section Pilihan Lapangan dan Papan Skor dihapus dari homepage atas keputusan tim.
 - Section Berita & Pengumuman (Informasi Terbaru) dihapus dari homepage atas permintaan tim.
+- Tombol Reservasi via WA di navbar dihapus atas keputusan tim; tombol tetap ada di hero dan footer.
 
 ## 6. Fase 1D — Open Mabar: Cari, Buat, Ikut
 
@@ -75,3 +76,15 @@
   - Pengguna hanya memiliki hak CRU pada akunnya sendiri. Tidak ada fungsi hapus akun, 2FA, lupa password, maupun preferensi tema.
   - Validasi update profil menolak email duplikat milik pengguna lain dan menerima jika email milik sendiri tidak berubah.
   - Validasi ganti kata sandi mewajibkan verifikasi `current_password` yang cocok.
+
+## 9. Revisi Autentikasi No. HP & Verifikasi OTP WhatsApp
+- **Penghapusan Kolom Email pada Pendaftaran & Login User:**
+  - Pendaftaran pengguna (`/register`) tidak lagi meminta input email, hanya nama, nomor WhatsApp (No. HP), dan kata sandi.
+  - Kolom `email` pada tabel `users` dijadikan `nullable()`.
+  - Kolom `no_whatsapp` pada tabel `users` memiliki indeks unik (`unique`).
+  - Halaman login (`/login`) menggunakan nomor WhatsApp sebagai identitas utama pengguna, namun backend tetap mendukung `email` untuk kompatibilitas akun Admin dan Kasir.
+- **Mekanisme Verifikasi OTP WhatsApp:**
+  - Setelah mengisi form pendaftaran, sistem menyimpan data sementara pada tabel `verifikasi_otp` dan membuat 6-digit kode OTP dengan masa berlaku 10 menit.
+  - Layanan WhatsApp Gateway (`App\Services\WhatsAppService`) mengirimkan kode via API (mendukung provider Fonnte/Wablas dengan token di `.env`).
+  - Pada lingkungan pengujian / lokal di mana `WA_GATEWAY_TOKEN` kosong, kode OTP dicatat ke log sistem dan ditampilkan pada flash pesan dev agar pengujian lokal tetap berjalan lancar.
+  - Pengguna melakukan verifikasi pada rute `/register/verifikasi`. Setelah kode cocok, data user resmi dibuat di tabel `users` (`role = user`, `status_akun = aktif`) dan diarahkan ke `/login`.
