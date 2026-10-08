@@ -184,14 +184,14 @@ export default function Home() {
                         initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
                         animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.25 }}
-                        className="relative flex items-center justify-center lg:justify-end shrink-0 w-full lg:w-[420px] xl:w-[460px] mt-8 lg:mt-0"
+                        className="relative flex items-center justify-center lg:justify-end shrink-0 w-full lg:w-80 max-w-md mt-6 lg:mt-0"
                     >
                         <img
                             src="/images/atlet-smash.png"
                             alt="Atlet bulu tangkis melayang melakukan smash di udara"
                             width={887}
                             height={1774}
-                            className="w-full max-w-[260px] sm:max-w-[320px] md:max-w-[360px] lg:max-w-[420px] xl:max-w-[450px] h-auto aspect-[887/1774] object-contain select-none pointer-events-none mx-auto lg:ml-auto"
+                            className="h-[340px] sm:h-[390px] lg:h-[430px] w-auto max-w-full object-contain select-none pointer-events-none mx-auto lg:ml-auto"
                             style={{
                                 maskImage: "linear-gradient(to bottom, black 82%, transparent 98%)",
                                 WebkitMaskImage: "linear-gradient(to bottom, black 82%, transparent 98%)",
