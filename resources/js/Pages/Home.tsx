@@ -58,7 +58,7 @@ export default function Home() {
 
     return (
         <PublicLayout title="Beranda">
-            <section className="relative isolate overflow-hidden pt-32 pb-36 sm:pt-36 sm:pb-44 lg:pt-44 lg:pb-56 px-4 sm:px-6">
+            <section className="relative isolate overflow-hidden pt-28 pb-14 min-[340px]:pt-30 min-[340px]:pb-16 sm:pt-36 sm:pb-36 lg:pt-44 lg:pb-56 px-4 sm:px-6">
                 {/* Dynamic Ambient Background Animation */}
                 <div className="absolute inset-0 -z-10 h-full w-full overflow-hidden pointer-events-none">
                     <div className="absolute inset-0 [background-image:radial-gradient(rgba(100,116,139,0.18)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_80%_70%_at_40%_40%,#000_60%,transparent_100%)] opacity-75" />
@@ -92,10 +92,10 @@ export default function Home() {
                     />
                 </div>
 
-                <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10 lg:gap-14 text-left">
-                    {/* Left Column: Headline, Tagline, & CTAs (Left-aligned & Neat) */}
-                    <div className="flex-1 max-w-2xl text-left">
-                        {/* Main Headline (Left-aligned) */}
+                <div className="max-w-6xl mx-auto grid grid-cols-1 min-[340px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] items-center gap-x-4 sm:gap-x-8 lg:gap-x-12 gap-y-5 sm:gap-y-8 lg:gap-y-0 text-left">
+                    {/* Left Column: Headline & Tagline */}
+                    <div className="col-start-1 row-start-1 text-left min-w-0">
+                        {/* Main Headline */}
                         <motion.h1
                             {...(prefersReducedMotion
                                 ? {}
@@ -104,7 +104,7 @@ export default function Home() {
                                       animate: { opacity: 1, y: 0 },
                                       transition: { duration: 0.5, delay: 0.1 },
                                   })}
-                            className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-[1.12]"
+                            className="text-2xl min-[360px]:text-[26px] min-[390px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.12]"
                         >
                             Main Badminton Lebih Seru di{" "}
                             <span className="text-[var(--brand)] inline-block">
@@ -112,7 +112,7 @@ export default function Home() {
                             </span>
                         </motion.h1>
 
-                        {/* Tagline (Left-aligned) */}
+                        {/* Tagline */}
                         <motion.p
                             {...(prefersReducedMotion
                                 ? {}
@@ -121,62 +121,10 @@ export default function Home() {
                                       animate: { opacity: 1, y: 0 },
                                       transition: { duration: 0.5, delay: 0.2 },
                                   })}
-                            className="mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed"
+                            className="mt-2.5 sm:mt-5 lg:mt-6 text-xs min-[360px]:text-sm sm:text-base lg:text-lg text-muted-foreground leading-snug sm:leading-relaxed"
                         >
                             {APP_CONTENT.tagline}
                         </motion.p>
-
-                        {/* CTA Buttons (Left-aligned) */}
-                        <motion.div
-                            {...(prefersReducedMotion
-                                ? {}
-                                : {
-                                      initial: { opacity: 0, y: 14 },
-                                      animate: { opacity: 1, y: 0 },
-                                      transition: { duration: 0.5, delay: 0.3 },
-                                  })}
-                            className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3.5 w-full sm:w-auto"
-                        >
-                            <motion.div
-                                whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                                whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-                            >
-                                <a
-                                    href={waReservationLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-full sm:w-auto block"
-                                >
-                                    <Button
-                                        size="lg"
-                                        className="w-full sm:w-auto h-11 px-6 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all gap-2 shadow-xs hover:shadow-md"
-                                    >
-                                        <Phone className="size-4" />
-                                        <span>Reservasi via WA</span>
-                                        <ExternalLink className="size-3.5 opacity-80" />
-                                    </Button>
-                                </a>
-                            </motion.div>
-
-                            <motion.div
-                                whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                                whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-                            >
-                                <Link
-                                    href={user ? "/open-mabar" : "/login?redirect=/open-mabar"}
-                                    className="w-full sm:w-auto block"
-                                >
-                                    <Button
-                                        variant="outline"
-                                        size="lg"
-                                        className="w-full sm:w-auto h-11 px-6 text-sm font-semibold border-border/80 bg-card hover:bg-muted/70 hover:text-foreground text-foreground gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
-                                    >
-                                        <Calendar className="size-4 text-[var(--brand)]" />
-                                        <span>Lihat Open Mabar</span>
-                                    </Button>
-                                </Link>
-                            </motion.div>
-                        </motion.div>
                     </div>
 
                     {/* Right Column: Hero Badminton Athlete Image */}
@@ -184,14 +132,14 @@ export default function Home() {
                         initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
                         animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.25 }}
-                        className="relative flex items-center justify-center lg:justify-end shrink-0 w-full lg:w-80 max-w-md mt-6 lg:mt-0"
+                        className="col-start-1 min-[340px]:col-start-2 row-start-2 min-[340px]:row-start-1 lg:row-span-2 flex items-end justify-center min-[340px]:justify-end shrink-0 w-full self-center"
                     >
                         <img
                             src="/images/atlet-smash.png"
                             alt="Atlet bulu tangkis melayang melakukan smash di udara"
                             width={887}
                             height={1774}
-                            className="h-[340px] sm:h-[390px] lg:h-[430px] w-auto max-w-full object-contain select-none pointer-events-none mx-auto lg:ml-auto"
+                            className="h-[180px] min-[360px]:h-[210px] min-[390px]:h-[235px] sm:h-[300px] md:h-[360px] lg:h-[430px] w-auto max-w-full object-contain select-none pointer-events-none drop-shadow-none"
                             style={{
                                 maskImage: "linear-gradient(to bottom, black 82%, transparent 98%)",
                                 WebkitMaskImage: "linear-gradient(to bottom, black 82%, transparent 98%)",
@@ -199,13 +147,67 @@ export default function Home() {
                             loading="eager"
                         />
                     </motion.div>
+
+                    {/* CTA Buttons (Underneath both columns on mobile, row 2 under text on desktop) */}
+                    <motion.div
+                        {...(prefersReducedMotion
+                            ? {}
+                            : {
+                                  initial: { opacity: 0, y: 14 },
+                                  animate: { opacity: 1, y: 0 },
+                                  transition: { duration: 0.5, delay: 0.3 },
+                              })}
+                        className="col-start-1 col-span-1 min-[340px]:col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3 w-full lg:w-auto lg:mt-8"
+                    >
+                        <motion.div
+                            whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
+                            whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
+                            className="w-full sm:w-auto"
+                        >
+                            <a
+                                href={waReservationLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full sm:w-auto block"
+                            >
+                                <Button
+                                    size="lg"
+                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all gap-2 shadow-xs hover:shadow-md flex items-center justify-center"
+                                >
+                                    <Phone className="size-4" />
+                                    <span>Reservasi via WA</span>
+                                    <ExternalLink className="size-3.5 opacity-80" />
+                                </Button>
+                            </a>
+                        </motion.div>
+
+                        <motion.div
+                            whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
+                            whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
+                            className="w-full sm:w-auto"
+                        >
+                            <Link
+                                href={user ? "/open-mabar" : "/login?redirect=/open-mabar"}
+                                className="w-full sm:w-auto block"
+                            >
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold border-border/80 bg-card hover:bg-muted/70 hover:text-foreground text-foreground gap-2 rounded-lg transition-all shadow-xs hover:shadow-md flex items-center justify-center"
+                                >
+                                    <Calendar className="size-4 text-[var(--brand)]" />
+                                    <span>Lihat Open Mabar</span>
+                                </Button>
+                            </Link>
+                        </motion.div>
+                    </motion.div>
                 </div>
             </section>
 
             {/* Facilities Section with Hover Lift Animation */}
-            <section id="fasilitas" className="py-20 px-4 sm:px-6 bg-muted/30 border-t border-border/70">
+            <section id="fasilitas" className="py-14 sm:py-20 px-4 sm:px-6 bg-muted/30 border-t border-border/70">
                 <div className="max-w-6xl mx-auto">
-                    <motion.div {...getAnimProps()} className="text-left max-w-3xl mb-12">
+                    <motion.div {...getAnimProps()} className="text-left max-w-3xl mb-10 sm:mb-12">
                         <span className="text-xs uppercase tracking-widest text-[var(--brand)] font-semibold">
                             FASILITAS & PROFIL
                         </span>
@@ -217,7 +219,7 @@ export default function Home() {
                         </p>
                     </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                         {APP_CONTENT.fasilitas.map((item, idx) => {
                             const IconComponent = facilityIcons[idx % facilityIcons.length];
                             return (
@@ -225,7 +227,7 @@ export default function Home() {
                                     key={idx}
                                     {...getAnimProps(idx * 0.06)}
                                     whileHover={prefersReducedMotion ? {} : { y: -5, transition: { duration: 0.2 } }}
-                                    className="p-6 rounded-xl bg-card border border-border/80 hover:border-[var(--brand)]/40 hover:shadow-md transition-all flex flex-col justify-between group shadow-xs text-left"
+                                    className="p-5 sm:p-6 rounded-xl bg-card border border-border/80 hover:border-[var(--brand)]/40 hover:shadow-md transition-all flex flex-col justify-between group shadow-xs text-left"
                                 >
                                     <div>
                                         <div className="size-10 rounded-lg bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)] mb-5 group-hover:scale-110 transition-transform">
@@ -246,18 +248,18 @@ export default function Home() {
             </section>
 
             {/* Community CTA Section */}
-            <section className="py-20 px-4 sm:px-6 border-t border-border/70">
+            <section className="py-14 sm:py-20 px-4 sm:px-6 border-t border-border/70">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
                         {...getAnimProps()}
-                        className="rounded-2xl p-8 sm:p-12 border border-border/80 bg-gradient-to-br from-card via-card to-[var(--brand)]/5 shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 text-left"
+                        className="rounded-2xl p-6 sm:p-10 lg:p-12 border border-border/80 bg-gradient-to-br from-card via-card to-[var(--brand)]/5 shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8 text-left"
                     >
                         <div className="max-w-2xl text-left">
                             <div className="size-12 rounded-xl bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)] mb-5">
                                 <Users className="size-6" />
                             </div>
 
-                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
+                            <h2 className="text-xl min-[360px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
                                 Gabung Komunitas Open Mabar Bigi
                             </h2>
 
