@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'vite';
+import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -16,6 +16,15 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
+        },
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                entryFileNames: `assets/[name]-[hash]-clean.js`,
+                chunkFileNames: `assets/[name]-[hash]-clean.js`,
+                assetFileNames: `assets/[name]-[hash]-clean.[ext]`,
+            },
         },
     },
     server: {

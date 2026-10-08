@@ -46,15 +46,14 @@ export default function ErrorPage({ status, auth }: ErrorProps) {
         <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 relative isolate selection:bg-[var(--brand)] selection:text-white">
             <Head title={`${status} - ${title}`} />
 
-            {/* Subtle glow background */}
             <div className="absolute inset-0 -z-10 flex items-center justify-center">
                 <div className="w-[320px] h-[320px] sm:w-[480px] sm:h-[480px] rounded-full bg-[var(--brand)]/10 blur-[100px] pointer-events-none" />
             </div>
 
             <div className="max-w-md w-full text-center space-y-6">
-                <div className="inline-flex items-center justify-center size-20 rounded-2xl bg-card border border-border shadow-md text-[var(--brand)]">
+                <div className="inline-flex items-center justify-center size-20 rounded-2xl bg-card border border-border shadow-sm text-[var(--brand)]">
                     {status === 403 ? (
-                        <ShieldAlert className="size-10 text-rose-400" />
+                        <ShieldAlert className="size-10 text-rose-600" />
                     ) : (
                         <FileQuestion className="size-10 text-[var(--brand)]" />
                     )}

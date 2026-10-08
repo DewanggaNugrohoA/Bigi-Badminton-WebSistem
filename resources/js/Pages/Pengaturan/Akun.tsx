@@ -24,10 +24,9 @@ export default function PengaturanAkun({ user }: AkunProps) {
     const [showNewPass, setShowNewPass] = useState(false);
     const [showConfirmPass, setShowConfirmPass] = useState(false);
 
-    /* ── Form Profil ── */
     const profilForm = useForm({
         nama: user.nama,
-        email: user.email,
+        email: user.email || '',
         no_whatsapp: user.no_whatsapp,
     });
 
@@ -36,7 +35,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
         profilForm.put("/pengaturan/akun/profil", { preserveScroll: true });
     };
 
-    /* ── Form Password ── */
     const passForm = useForm({
         current_password: "",
         password: "",
@@ -56,8 +54,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
     return (
         <PublicLayout title="Pengaturan Akun - Bigi Badminton">
             <div className="pt-28 pb-16 px-4 sm:px-6 max-w-2xl mx-auto space-y-8">
-
-                {/* Header */}
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight">Pengaturan Akun</h1>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -65,7 +61,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
                     </p>
                 </div>
 
-                {/* ── Kartu Info Member ── */}
                 <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
                     <ShieldCheck className={`size-5 shrink-0 ${user.status_member === "aktif" ? "text-[var(--brand)]" : "text-muted-foreground"}`} />
                     <div>
@@ -83,7 +78,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
                     </div>
                 </div>
 
-                {/* ── Form Profil ── */}
                 <section aria-labelledby="profil-heading" className="bg-card border border-border/60 rounded-2xl p-6 space-y-5">
                     <div className="flex items-center gap-2 pb-2 border-b border-border">
                         <User className="size-4 text-muted-foreground" />
@@ -91,7 +85,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
                     </div>
 
                     <form onSubmit={submitProfil} className="space-y-4" noValidate>
-                        {/* Nama */}
                         <div className="space-y-1.5">
                             <Label htmlFor="nama">Nama Lengkap</Label>
                             <Input
@@ -113,18 +106,16 @@ export default function PengaturanAkun({ user }: AkunProps) {
                             )}
                         </div>
 
-                        {/* Email */}
                         <div className="space-y-1.5">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">Email (Opsional)</Label>
                             <Input
                                 id="email"
                                 type="email"
                                 name="email"
                                 value={profilForm.data.email}
                                 onChange={(e) => profilForm.setData("email", e.target.value)}
-                                placeholder="nama@email.com"
+                                placeholder="nama@email.com (opsional)"
                                 autoComplete="email"
-                                required
                                 aria-describedby={profilForm.errors.email ? "email-error" : undefined}
                                 aria-invalid={!!profilForm.errors.email}
                             />
@@ -135,7 +126,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
                             )}
                         </div>
 
-                        {/* Nomor WhatsApp */}
                         <div className="space-y-1.5">
                             <Label htmlFor="no_whatsapp">Nomor WhatsApp</Label>
                             <Input
@@ -167,7 +157,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
                     </form>
                 </section>
 
-                {/* ── Form Ganti Kata Sandi ── */}
                 <section aria-labelledby="password-heading" className="bg-card border border-border/60 rounded-2xl p-6 space-y-5">
                     <div className="flex items-center gap-2 pb-2 border-b border-border">
                         <Lock className="size-4 text-muted-foreground" />
@@ -175,7 +164,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
                     </div>
 
                     <form onSubmit={submitPassword} className="space-y-4" noValidate>
-                        {/* Kata Sandi Saat Ini */}
                         <div className="space-y-1.5">
                             <Label htmlFor="current_password">Kata Sandi Saat Ini</Label>
                             <div className="relative">
@@ -208,7 +196,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
                             )}
                         </div>
 
-                        {/* Kata Sandi Baru */}
                         <div className="space-y-1.5">
                             <Label htmlFor="new_password">Kata Sandi Baru</Label>
                             <div className="relative">
@@ -241,7 +228,6 @@ export default function PengaturanAkun({ user }: AkunProps) {
                             )}
                         </div>
 
-                        {/* Konfirmasi Kata Sandi Baru */}
                         <div className="space-y-1.5">
                             <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi Baru</Label>
                             <div className="relative">

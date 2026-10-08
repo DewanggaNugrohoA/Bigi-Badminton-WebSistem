@@ -68,7 +68,6 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
 
                 <div className="bg-card border border-border/70 rounded-2xl p-6 sm:p-8 shadow-sm">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Judul */}
                         <div className="space-y-2">
                             <Label htmlFor="judul" className="text-sm font-semibold">
                                 Judul Mabar <span className="text-rose-500">*</span>
@@ -85,7 +84,6 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                             )}
                         </div>
 
-                        {/* Tanggal, Jam Mulai, Jam Selesai */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="tanggal" className="text-sm font-semibold">
@@ -136,7 +134,6 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                             </div>
                         </div>
 
-                        {/* Gender & Kuota */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="gender" className="text-sm font-semibold">
@@ -146,11 +143,11 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                                     id="gender"
                                     value={data.gender}
                                     onChange={(e) => setData("gender", e.target.value)}
-                                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input"
+                                    className="w-full h-10 px-3 rounded-lg border border-input bg-transparent text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
                                 >
-                                    <option value="campuran">Campuran (Putra & Putri)</option>
-                                    <option value="putra">Putra</option>
-                                    <option value="putri">Putri</option>
+                                    <option value="campuran" className="bg-background text-foreground">Campuran (Putra & Putri)</option>
+                                    <option value="putra" className="bg-background text-foreground">Putra</option>
+                                    <option value="putri" className="bg-background text-foreground">Putri</option>
                                 </select>
                                 {errors.gender && (
                                     <p className="text-xs text-rose-500">{errors.gender}</p>
@@ -176,7 +173,6 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                             </div>
                         </div>
 
-                        {/* Batas Usia Min & Max */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="batas_usia_min" className="text-sm font-semibold">
@@ -213,7 +209,6 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                             </div>
                         </div>
 
-                        {/* Lapangan (Opsional) */}
                         <div className="space-y-2">
                             <Label htmlFor="id_lapangan" className="text-sm font-semibold">
                                 Lapangan (Opsional)
@@ -222,11 +217,11 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                                 id="id_lapangan"
                                 value={data.id_lapangan}
                                 onChange={(e) => setData("id_lapangan", e.target.value)}
-                                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input"
+                                className="w-full h-10 px-3 rounded-lg border border-input bg-transparent text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
                             >
-                                <option value="">-- Belum Ditentukan / Bebas --</option>
+                                <option value="" className="bg-background text-foreground">-- Belum Ditentukan / Bebas --</option>
                                 {lapangan.map((lap) => (
-                                    <option key={lap.id_lapangan} value={lap.id_lapangan}>
+                                    <option key={lap.id_lapangan} value={lap.id_lapangan} className="bg-background text-foreground">
                                         {lap.nama_lapangan}
                                     </option>
                                 ))}
@@ -236,7 +231,6 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                             )}
                         </div>
 
-                        {/* Foto Unggahan (Opsional) */}
                         <div className="space-y-2">
                             <Label htmlFor="foto" className="text-sm font-semibold">
                                 Foto Banner Mabar (Opsional, maks 2 MB)
@@ -272,7 +266,6 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                             )}
                         </div>
 
-                        {/* Deskripsi & Catatan */}
                         <div className="space-y-2">
                             <Label htmlFor="deskripsi" className="text-sm font-semibold">
                                 Deskripsi & Catatan Khusus (Opsional)
@@ -290,9 +283,8 @@ export default function OpenMabarCreate({ lapangan }: CreateProps) {
                             )}
                         </div>
 
-                        {/* Catatan Persetujuan */}
-                        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200">
-                            <Info className="size-4 shrink-0 text-amber-400 mt-0.5" />
+                        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                            <Info className="size-4 shrink-0 text-amber-600 mt-0.5" />
                             <span>
                                 Setelah formulir dikirim, jadwal mabar Anda akan diverifikasi oleh Admin. Anda dapat memantau statusnya di halaman <strong>Jadwal Saya</strong>.
                             </span>

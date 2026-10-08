@@ -105,7 +105,6 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
     return (
         <PublicLayout title="Cari Jadwal Open Mabar - Bigi Badminton">
             <div className="pt-28 pb-16 px-4 sm:px-6 max-w-6xl mx-auto">
-                {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                     <div>
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-[var(--brand)] border border-primary/20 mb-3">
@@ -133,7 +132,6 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                     </div>
                 </div>
 
-                {/* Filter Bar */}
                 <div className="bg-card border border-border/60 rounded-xl p-5 mb-8 shadow-sm">
                     <form onSubmit={handleFilter} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
                         <div className="space-y-1.5">
@@ -203,16 +201,24 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                     </form>
                 </div>
 
-                {/* List Jadwal */}
                 {jadwal.data.length === 0 ? (
-                    <div className="border border-dashed border-border/80 rounded-2xl p-12 text-center bg-card/40 my-10">
-                        <Users className="size-12 mx-auto text-muted-foreground/40 mb-3" />
-                        <h3 className="text-lg font-semibold text-foreground">Belum ada jadwal yang cocok</h3>
-                        <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-                            Tidak menemukan jadwal dengan kriteria yang dicari. Silakan ubah filter atau buat jadwal mabar baru!
-                        </p>
-                        <Link href="/open-mabar/create" className="mt-5 inline-block">
-                            <Button className="bg-[var(--brand)] hover:opacity-90">Buat Jadwal Baru</Button>
+                    <div className="border border-dashed border-border/80 rounded-2xl p-6 sm:p-8 text-left bg-card/60 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xs my-8">
+                        <div className="flex items-start gap-4 text-left">
+                            <div className="size-12 rounded-xl bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center shrink-0 text-[var(--brand)]">
+                                <Users className="size-6" />
+                            </div>
+                            <div className="space-y-1 text-left">
+                                <h3 className="text-base font-semibold text-foreground">Belum Ada Jadwal yang Cocok</h3>
+                                <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
+                                    Tidak menemukan jadwal dengan kriteria pencarian tersebut. Silakan atur ulang filter pencarian atau buat jadwal mabar baru!
+                                </p>
+                            </div>
+                        </div>
+                        <Link href="/open-mabar/create" className="shrink-0 w-full sm:w-auto">
+                            <Button className="w-full sm:w-auto h-10 px-5 gap-2 bg-[var(--brand)] hover:opacity-90 text-white shadow-xs font-semibold">
+                                <PlusCircle className="size-4" />
+                                <span>Buat Jadwal Baru</span>
+                            </Button>
                         </Link>
                     </div>
                 ) : (
@@ -222,50 +228,50 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                             return (
                                 <div
                                     key={item.id_mabar}
-                                    className="bg-card border border-border/60 rounded-xl overflow-hidden hover:border-border transition-all flex flex-col group shadow-sm"
+                                    className="bg-card border border-border/80 rounded-xl overflow-hidden hover:border-[var(--brand)]/40 hover:shadow-md shadow-xs transition-all flex flex-col group text-left"
                                 >
                                     <MabarImage src={item.foto} alt={item.judul} />
 
-                                    <div className="p-5 flex-1 flex flex-col justify-between">
+                                    <div className="p-5 flex-1 flex flex-col justify-between text-left">
                                         <div>
-                                            <div className="flex items-center justify-between gap-2 mb-2">
-                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-foreground border border-border">
+                                            <div className="flex items-center justify-between gap-2 mb-3">
+                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-secondary-foreground">
                                                     {genderLabel[item.gender]}
                                                 </span>
                                                 <span
-                                                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                                                         isPenuh
-                                                            ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                                                            : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                                                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
                                                     }`}
                                                 >
                                                     {isPenuh ? "Penuh" : `Tersedia: ${item.kuota - item.peserta_terdaftar_count} slot`}
                                                 </span>
                                             </div>
 
-                                            <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                                            <h3 className="font-bold text-base text-foreground transition-colors line-clamp-1 mb-3">
                                                 {item.judul}
                                             </h3>
 
-                                            <div className="space-y-1.5 text-xs text-muted-foreground mb-4">
+                                            <div className="space-y-2 text-xs text-muted-foreground mb-4">
                                                 <div className="flex items-center gap-2">
-                                                    <Calendar className="size-3.5 text-primary shrink-0" />
+                                                    <Calendar className="size-3.5 text-muted-foreground shrink-0" />
                                                     <span>{formatTanggal(item.tanggal)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <Clock className="size-3.5 text-primary shrink-0" />
+                                                    <Clock className="size-3.5 text-muted-foreground shrink-0" />
                                                     <span>
                                                         {formatJam(item.jam_mulai)} - {formatJam(item.jam_selesai)} WIB
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <Users className="size-3.5 text-primary shrink-0" />
+                                                    <Users className="size-3.5 text-muted-foreground shrink-0" />
                                                     <span>
                                                         Usia {item.batas_usia_min} - {item.batas_usia_max} th • Terdaftar: {item.peserta_terdaftar_count}/{item.kuota}
                                                     </span>
                                                 </div>
                                                 {item.user && (
-                                                    <div className="flex items-center gap-2 pt-1 border-t border-border/40">
+                                                    <div className="flex items-center gap-2 pt-2 border-t border-border/50">
                                                         <User className="size-3.5 text-muted-foreground shrink-0" />
                                                         <span>Dibuat oleh: {item.user.nama}</span>
                                                     </div>
@@ -273,10 +279,10 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                                             </div>
                                         </div>
 
-                                        <Link href={`/open-mabar/${item.id_mabar}`} className="w-full mt-2 block">
-                                            <Button variant="outline" className="w-full justify-between">
+                                        <Link href={`/open-mabar/${item.id_mabar}`} className="w-full mt-1 block">
+                                            <Button variant="outline" className="w-full justify-between h-10 text-xs font-semibold hover:border-[var(--brand)]/40">
                                                 <span>Lihat Detail</span>
-                                                <ArrowRight className="size-4" />
+                                                <ArrowRight className="size-3.5" />
                                             </Button>
                                         </Link>
                                     </div>
@@ -286,7 +292,6 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                     </div>
                 )}
 
-                {/* Pagination */}
                 {jadwal.last_page > 1 && (
                     <div className="flex items-center justify-center gap-2 mt-10">
                         {jadwal.links.map((link, idx) => {

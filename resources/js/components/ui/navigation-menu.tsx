@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * Navigation Menu, Base UI Navigation Menu foundation (Phase 5).
@@ -21,8 +21,6 @@ import { NavigationMenu as BaseNav } from "@base-ui/react/navigation-menu";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
-
-/* ─── Types ─────────────────────────────────────────────────── */
 
 export type NavigationMenuSize = "default" | "compact";
 export type NavigationMenuAlign = "start" | "center" | "end";
@@ -86,13 +84,9 @@ export type NavigationMenuGroupProps = React.HTMLAttributes<HTMLDivElement>;
 
 export type NavigationMenuGroupHeadingProps = React.HTMLAttributes<HTMLHeadingElement>;
 
-/* ─── Density context ───────────────────────────────────────── */
-
 const NavigationMenuSizeContext =
   React.createContext<NavigationMenuSize>("default");
 const useNavSize = () => React.useContext(NavigationMenuSizeContext);
-
-/* ─── Constants ─────────────────────────────────────────────── */
 
 const EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
@@ -115,8 +109,6 @@ const viewportMotionClass = cn(
   "transition-[width,height] duration-[220ms] ease-[var(--primitive-ease,cubic-bezier(0.23,1,0.32,1))]",
   "motion-reduce:transition-none",
 );
-
-/* ─── <NavigationMenu> ──────────────────────────────────────── */
 
 export const NavigationMenu = React.forwardRef<
   HTMLElement,
@@ -180,8 +172,6 @@ export const NavigationMenu = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuList> ──────────────────────────────────── */
-
 export const NavigationMenuList = React.forwardRef<
   HTMLUListElement,
   NavigationMenuListProps
@@ -200,8 +190,6 @@ export const NavigationMenuList = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuItem> ──────────────────────────────────── */
-
 export const NavigationMenuItem = React.forwardRef<
   HTMLLIElement,
   NavigationMenuItemProps
@@ -214,8 +202,6 @@ export const NavigationMenuItem = React.forwardRef<
     />
   );
 });
-
-/* ─── <NavigationMenuTrigger> ───────────────────────────────── */
 
 export const NavigationMenuTrigger = React.forwardRef<
   HTMLButtonElement,
@@ -258,8 +244,6 @@ export const NavigationMenuTrigger = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuContent> ───────────────────────────────── */
-
 export const NavigationMenuContent = React.forwardRef<
   HTMLDivElement,
   NavigationMenuContentProps
@@ -277,8 +261,6 @@ export const NavigationMenuContent = React.forwardRef<
     </BaseNav.Content>
   );
 });
-
-/* ─── <NavigationMenuLink> ──────────────────────────────────── */
 
 export const NavigationMenuLink = React.forwardRef<
   HTMLAnchorElement,
@@ -326,8 +308,6 @@ export const NavigationMenuLink = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuIcon> ──────────────────────────────────── */
-
 export const NavigationMenuIcon = React.forwardRef<
   HTMLSpanElement,
   NavigationMenuIconProps
@@ -347,8 +327,6 @@ export const NavigationMenuIcon = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuDescription> ───────────────────────────── */
-
 export const NavigationMenuDescription = React.forwardRef<
   HTMLSpanElement,
   NavigationMenuDescriptionProps
@@ -367,8 +345,6 @@ export const NavigationMenuDescription = React.forwardRef<
     />
   );
 });
-
-/* ─── <NavigationMenuSub> (custom, click-toggle) ────────────── */
 
 type NavigationMenuSubContextValue = {
   open: boolean;
@@ -514,9 +490,7 @@ export const NavigationMenuSubContent = React.forwardRef<
       )}
     </AnimatePresence>
   );
-});
-
-/* ─── <NavigationMenuGroup> ─────────────────────────────────── */
+ });
 
 export const NavigationMenuGroup = React.forwardRef<
   HTMLDivElement,
@@ -534,8 +508,6 @@ export const NavigationMenuGroup = React.forwardRef<
     </div>
   );
 });
-
-/* ─── <NavigationMenuGroupHeading> ──────────────────────────── */
 
 export const NavigationMenuGroupHeading = React.forwardRef<
   HTMLHeadingElement,
