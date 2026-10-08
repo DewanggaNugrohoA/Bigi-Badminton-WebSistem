@@ -172,7 +172,7 @@ export default function Home() {
                             >
                                 <Button
                                     size="lg"
-                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all gap-2 shadow-xs hover:shadow-md flex items-center justify-center"
+                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all gap-2 shadow-xs hover:shadow-md flex items-center justify-center"
                                 >
                                     <Phone className="size-4" />
                                     <span>Reservasi via WA</span>
@@ -193,7 +193,7 @@ export default function Home() {
                                 <Button
                                     variant="outline"
                                     size="lg"
-                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold border-border/80 bg-card hover:bg-muted/70 hover:text-foreground text-foreground gap-2 rounded-lg transition-all shadow-xs hover:shadow-md flex items-center justify-center"
+                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 font-unbounded text-xs sm:text-sm font-semibold tracking-wide border-border/80 bg-card hover:bg-muted/70 hover:text-foreground text-foreground gap-2 rounded-lg transition-all shadow-xs hover:shadow-md flex items-center justify-center"
                                 >
                                     <Calendar className="size-4 text-[var(--brand)]" />
                                     <span>Lihat Open Mabar</span>
@@ -208,10 +208,10 @@ export default function Home() {
             <section id="fasilitas" className="pt-8 sm:pt-12 lg:pt-16 pb-14 sm:pb-20 px-4 sm:px-6 bg-muted/30 border-t border-border/70 scroll-mt-20 lg:scroll-mt-24">
                 <div className="max-w-6xl mx-auto">
                     <motion.div {...getAnimProps()} className="text-left max-w-3xl mb-10 sm:mb-12">
-                        <span className="text-xs uppercase tracking-widest text-[var(--brand)] font-semibold">
+                        <span className="font-unbounded text-xs uppercase tracking-widest text-[var(--brand)] font-bold">
                             FASILITAS & PROFIL
                         </span>
-                        <h2 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
+                        <h2 className="mt-2 font-unbounded text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight leading-tight">
                             Kenyamanan Maksimal untuk Setiap Smash
                         </h2>
                         <p className="mt-3 text-muted-foreground text-sm sm:text-base leading-relaxed">
@@ -233,7 +233,7 @@ export default function Home() {
                                         <div className="size-10 rounded-lg bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)] mb-5 group-hover:scale-110 transition-transform">
                                             <IconComponent className="size-5" />
                                         </div>
-                                        <h3 className="text-base font-bold text-foreground transition-colors">
+                                        <h3 className="font-unbounded text-sm sm:text-base font-bold text-foreground transition-colors tracking-tight">
                                             {item.judul}
                                         </h3>
                                         <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
@@ -259,7 +259,7 @@ export default function Home() {
                                 <Users className="size-6" />
                             </div>
 
-                            <h2 className="text-xl min-[360px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
+                            <h2 className="font-unbounded text-xl min-[360px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight leading-tight">
                                 Gabung Komunitas Open Mabar Bigi
                             </h2>
 
@@ -273,7 +273,7 @@ export default function Home() {
                                 <Link href="/open-mabar" className="w-full sm:w-auto">
                                     <Button
                                         size="lg"
-                                        className="w-full sm:w-auto h-11 px-7 text-sm font-semibold bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
+                                        className="w-full sm:w-auto h-11 px-7 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
                                     >
                                         <span>Buka Open Mabar</span>
                                         <ArrowRight className="size-4" />
@@ -283,7 +283,7 @@ export default function Home() {
                                 <Link href="/login?redirect=/open-mabar" className="w-full sm:w-auto">
                                     <Button
                                         size="lg"
-                                        className="w-full sm:w-auto h-11 px-7 text-sm font-semibold bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
+                                        className="w-full sm:w-auto h-11 px-7 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
                                     >
                                         <span>Masuk untuk melihat jadwal</span>
                                         <ArrowRight className="size-4" />

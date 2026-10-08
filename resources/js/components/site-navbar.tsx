@@ -66,7 +66,7 @@ export function SiteNavbar() {
                 {/* Brand / Logo (Kiri) */}
                 <div className="flex-1 flex items-center justify-start">
                     <Link href="/" className="flex items-center gap-2 group">
-                        <span className="font-extrabold text-2xl tracking-tight text-foreground group-hover:text-primary transition-colors">
+                        <span className="font-unbounded font-extrabold text-xl sm:text-2xl tracking-tight text-foreground group-hover:text-primary transition-colors">
                             BIGI <span className="text-[var(--brand)]">BADMINTON</span>
                         </span>
                     </Link>
@@ -231,7 +231,7 @@ export function SiteNavbar() {
                             <SheetContent side="right" className="w-[85vw] max-w-xs flex flex-col justify-between">
                                 <div className="flex flex-col gap-6 mt-6">
                                     <SheetHeader className="text-left">
-                                        <SheetTitle className="text-xl font-extrabold tracking-tight">
+                                        <SheetTitle className="font-unbounded text-lg sm:text-xl font-extrabold tracking-tight">
                                             BIGI <span className="text-[var(--brand)]">BADMINTON</span>
                                         </SheetTitle>
                                     </SheetHeader>
