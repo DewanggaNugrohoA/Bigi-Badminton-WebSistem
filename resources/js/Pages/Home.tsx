@@ -104,7 +104,7 @@ export default function Home() {
                                       animate: { opacity: 1, y: 0 },
                                       transition: { duration: 0.5, delay: 0.1 },
                                   })}
-                            className="text-2xl min-[360px]:text-[26px] min-[390px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.12]"
+                            className="font-unbounded text-2xl min-[360px]:text-[26px] min-[390px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.15]"
                         >
                             Main Badminton Lebih Seru di{" "}
                             <span className="text-[var(--brand)] inline-block">
@@ -121,7 +121,7 @@ export default function Home() {
                                       animate: { opacity: 1, y: 0 },
                                       transition: { duration: 0.5, delay: 0.2 },
                                   })}
-                            className="mt-2.5 sm:mt-5 lg:mt-6 text-xs min-[360px]:text-sm sm:text-base lg:text-lg text-muted-foreground leading-snug sm:leading-relaxed"
+                            className="font-unbounded font-normal mt-2.5 sm:mt-5 lg:mt-6 text-xs min-[360px]:text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed"
                         >
                             {APP_CONTENT.tagline}
                         </motion.p>
