@@ -214,11 +214,8 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
         <PublicLayout title={`Ruang Obrolan - ${mabar.judul}`} showFooter={false}>
             <Head title={`Ruang Obrolan - ${mabar.judul}`} />
 
-            {/* Container luar mengisi 1 layar pas di bawah navbar, tanpa sisa scroll di window */}
-            <div className="flex-1 flex flex-col min-h-0 pt-16 sm:pt-20 pb-2 sm:pb-3 px-3 sm:px-6 max-w-4xl w-full mx-auto">
-                {/* Kartu Chat Utama */}
-                <div className="flex-1 flex flex-col min-h-0 bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden">
-                    {/* Header Chat */}
+            <div className="flex-1 flex flex-col min-h-0 pt-24 sm:pt-28 lg:pt-32 pb-2 sm:pb-3 px-3 sm:px-6 max-w-4xl w-full mx-auto">
+                <div className="flex-1 flex flex-col min-h-0 bg-card border border-border/80 rounded-2xl shadow-sm overflow-hidden">
                     <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-border/80 bg-card/95 backdrop-blur shrink-0 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
                             <Link
@@ -247,7 +244,6 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                             </div>
                         </div>
 
-                        {/* Indikator Status Koneksi Real-time */}
                         <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted/60 border border-border/50">
                             {isConnected ? (
                                 <>
@@ -271,7 +267,6 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                         </div>
                     </div>
 
-                    {/* Area Riwayat Pesan (Scroll Sendiri Hanya pada Kontainer Ini) */}
                     <div
                         ref={messagesContainerRef}
                         className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 space-y-4 bg-muted/10 overscroll-contain"
@@ -325,7 +320,6 @@ export default function ChatMabar({ mabar, messages: initialMessages }: PageProp
                         )}
                     </div>
 
-                    {/* Kotak Input Pesan (Tetap di Bawah Layar) */}
                     <div className="p-3 sm:p-4 border-t border-border/80 bg-card/95 backdrop-blur shrink-0">
                         {errorMessage && (
                             <div className="mb-2 px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
