@@ -58,7 +58,7 @@ export default function Home() {
 
     return (
         <PublicLayout title="Beranda">
-            <section className="relative isolate overflow-hidden pt-28 pb-14 min-[340px]:pt-30 min-[340px]:pb-16 sm:pt-36 sm:pb-36 lg:pt-44 lg:pb-56 px-4 sm:px-6">
+            <section className="relative isolate overflow-hidden pt-28 pb-8 min-[340px]:pt-30 min-[340px]:pb-10 sm:pt-36 sm:pb-12 lg:pt-40 lg:pb-16 px-4 sm:px-6">
                 {/* Dynamic Ambient Background Animation */}
                 <div className="absolute inset-0 -z-10 h-full w-full overflow-hidden pointer-events-none">
                     <div className="absolute inset-0 [background-image:radial-gradient(rgba(100,116,139,0.18)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_80%_70%_at_40%_40%,#000_60%,transparent_100%)] opacity-75" />
@@ -92,9 +92,9 @@ export default function Home() {
                     />
                 </div>
 
-                <div className="max-w-6xl mx-auto grid grid-cols-1 min-[340px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] items-center gap-x-4 sm:gap-x-8 lg:gap-x-12 gap-y-5 sm:gap-y-8 lg:gap-y-0 text-left">
+                <div className="max-w-6xl mx-auto grid grid-cols-1 min-[340px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_auto] items-center gap-x-4 sm:gap-x-8 lg:gap-x-12 gap-y-4 sm:gap-y-5 lg:gap-y-0 text-left">
                     {/* Left Column: Headline & Tagline */}
-                    <div className="col-start-1 row-start-1 text-left min-w-0">
+                    <div className="col-start-1 row-start-1 text-left min-w-0 self-end lg:self-end">
                         {/* Main Headline */}
                         <motion.h1
                             {...(prefersReducedMotion
@@ -139,7 +139,7 @@ export default function Home() {
                             alt="Atlet bulu tangkis melayang melakukan smash di udara"
                             width={887}
                             height={1774}
-                            className="h-[180px] min-[360px]:h-[210px] min-[390px]:h-[235px] sm:h-[300px] md:h-[360px] lg:h-[430px] w-auto max-w-full object-contain select-none pointer-events-none drop-shadow-none"
+                            className="h-[180px] min-[360px]:h-[210px] min-[390px]:h-[235px] sm:h-[300px] md:h-[360px] lg:h-[430px] w-auto max-w-full object-contain select-none pointer-events-none drop-shadow-none -translate-y-4 sm:-translate-y-5 lg:-translate-y-6 -translate-x-4 sm:-translate-x-5 lg:-translate-x-6"
                             style={{
                                 maskImage: "linear-gradient(to bottom, black 82%, transparent 98%)",
                                 WebkitMaskImage: "linear-gradient(to bottom, black 82%, transparent 98%)",
@@ -157,7 +157,7 @@ export default function Home() {
                                   animate: { opacity: 1, y: 0 },
                                   transition: { duration: 0.5, delay: 0.3 },
                               })}
-                        className="col-start-1 col-span-1 min-[340px]:col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3 w-full lg:w-auto lg:mt-8"
+                        className="col-start-1 col-span-1 min-[340px]:col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2 self-start lg:self-start flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3 w-full lg:w-auto lg:mt-6"
                     >
                         <motion.div
                             whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
@@ -205,7 +205,7 @@ export default function Home() {
             </section>
 
             {/* Facilities Section with Hover Lift Animation */}
-            <section id="fasilitas" className="py-14 sm:py-20 px-4 sm:px-6 bg-muted/30 border-t border-border/70">
+            <section id="fasilitas" className="pt-8 sm:pt-12 lg:pt-16 pb-14 sm:pb-20 px-4 sm:px-6 bg-muted/30 border-t border-border/70 scroll-mt-20 lg:scroll-mt-24">
                 <div className="max-w-6xl mx-auto">
                     <motion.div {...getAnimProps()} className="text-left max-w-3xl mb-10 sm:mb-12">
                         <span className="text-xs uppercase tracking-widest text-[var(--brand)] font-semibold">

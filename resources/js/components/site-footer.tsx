@@ -72,7 +72,7 @@ export function SiteFooter() {
             socials={socials}
             legal={[]}
             copyright={`© ${new Date().getFullYear()} ${APP_CONTENT.nama}.`}
-            accent="#f97316"
+            accent="var(--brand, #6633ee)"
         />
     );
 }
