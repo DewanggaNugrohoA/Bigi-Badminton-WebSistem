@@ -23,5 +23,5 @@ class TransaksiPos extends Model
     public function detailTransaksiPos() { return $this->hasMany(DetailTransaksiPos::class, 'id_transaksi'); }
     public function returVoid() { return $this->hasMany(ReturVoid::class, 'id_transaksi'); }
 
-    // TODO: hitungTotal
+    
 }

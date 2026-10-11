@@ -18,5 +18,5 @@ class ShiftKasir extends Model
     public function user() { return $this->belongsTo(User::class, 'id_user'); }
     public function transaksiPos() { return $this->hasMany(TransaksiPos::class, 'id_shift'); }
     
-    // TODO: bukaShift
+    
 }
