@@ -104,7 +104,7 @@ class StaffLoginController extends Controller
         
         return match ($user->role) {
             User::ROLE_ADMIN => redirect()->intended('/admin'),
-            User::ROLE_KASIR => redirect()->intended('/kasir'),
+            User::ROLE_KASIR => redirect()->intended('/'),
             default => redirect('/'),
         };
     }

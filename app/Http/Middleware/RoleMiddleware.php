@@ -25,7 +25,7 @@ class RoleMiddleware
 
         
         if (! $guard) {
-            $guard = ($request->is('admin*') || $request->is('kasir*') || $request->is('staff*')) ? 'staff' : 'web';
+            $guard = ($request->is('admin*') || $request->is('staff*')) ? 'staff' : 'web';
         }
 
         $user = $request->user($guard) ?: $request->user();
