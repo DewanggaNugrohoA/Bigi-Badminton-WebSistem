@@ -11,5 +11,4 @@ class LaporanKeuangan extends Model
     
     protected $fillable = ['periode_awal', 'periode_akhir', 'pendapatan_lapangan', 'pendapatan_pos', 'total_pengeluaran', 'profit_bersih'];
 
-
 }

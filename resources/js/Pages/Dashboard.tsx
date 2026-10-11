@@ -21,6 +21,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { buildWaLink } from "@/lib/content";
+import { BigiMemberBadge } from "@/components/ui/award-badge";
 
 interface UserInfo {
     id_user: number;
@@ -151,7 +152,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
     return (
         <PublicLayout title="Dashboard - Bigi Badminton">
             <div className="pt-28 pb-16 px-4 sm:px-6 max-w-6xl mx-auto space-y-10">
-                {/* User Welcome Card Banner (Left-aligned & Animating) */}
+                
                 <motion.section
                     initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
                     animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
@@ -161,7 +162,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                 >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left">
                         <div className="flex items-start sm:items-center gap-4 text-left">
-                            {/* Avatar Initial Badge */}
+                            
                             <div className="size-14 sm:size-16 rounded-2xl bg-gradient-to-br from-[var(--brand)] to-purple-600 text-white font-extrabold text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-xs">
                                 {getInitial(user.nama)}
                             </div>
@@ -202,19 +203,21 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                             </div>
                         </div>
 
-                        {/* Status Card on Right or Top on Mobile */}
-                        {isMember && user.tanggal_akhir_member && (
-                            <div className="shrink-0 rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/5 p-3.5 text-left">
-                                <p className="text-xs font-semibold text-[var(--brand)]">Masa Aktif Member</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">
-                                    Berlaku s.d. <span className="font-medium text-foreground">{formatTanggal(user.tanggal_akhir_member)}</span>
-                                </p>
+                        
+                        {isMember && (
+                            <div className="shrink-0 flex flex-col items-start sm:items-end gap-1.5">
+                                <BigiMemberBadge link="/pengaturan/akun" />
+                                {user.tanggal_akhir_member && (
+                                    <p className="text-[11px] text-muted-foreground">
+                                        Masa aktif s.d. <span className="font-semibold text-foreground">{formatTanggal(user.tanggal_akhir_member)}</span>
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>
                 </motion.section>
 
-                {/* Ringkasan Mabar & Quick Actions */}
+                
                 <section aria-label="Statistik mabar" className="text-left">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-left">
                         <div>
@@ -254,7 +257,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                         />
                     </div>
 
-                    {/* Tautan cepat */}
+                    
                     <div className="flex flex-wrap items-center gap-2.5 mt-5">
                         <Link href="/open-mabar">
                             <Button variant="outline" size="sm" className="gap-2 text-xs h-10 px-4 font-semibold hover:border-[var(--brand)]/40">
@@ -277,7 +280,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                     </div>
                 </section>
 
-                {/* Reservasi Saya (Strictly Left-aligned) */}
+                
                 <section aria-label="Reservasi saya" className="text-left">
                     <div className="flex items-center justify-between gap-3 mb-4 text-left">
                         <div>
@@ -355,7 +358,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                     )}
                 </section>
 
-                {/* Mabar Mendatang yang Diikuti (Strictly Left-aligned) */}
+                
                 <section aria-label="Mabar mendatang yang diikuti" className="text-left">
                     <div className="flex items-center justify-between gap-3 mb-4 text-left">
                         <div>

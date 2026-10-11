@@ -1,7 +1,7 @@
 import { Head, Link } from "@inertiajs/react";
 import AdminLayout from "@/layouts/admin-layout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/material-design-3-button";
 import { Construction, ArrowLeft } from "lucide-react";
 
 interface PlaceholderProps {
@@ -45,12 +45,13 @@ export default function AdminPlaceholder({
                         </p>
 
                         <div className="flex flex-wrap items-center justify-center gap-3">
-                            <Button variant="outline">
-                                <Link href="/admin" className="inline-flex items-center gap-2">
-                                    <ArrowLeft className="size-4" />
-                                    <span>Kembali ke Dashboard</span>
-                                </Link>
-                            </Button>
+                            <Link
+                                href="/admin"
+                                className={buttonVariants({ variant: "outline", size: "default" })}
+                            >
+                                <ArrowLeft className="size-4" />
+                                <span>Kembali ke Dashboard</span>
+                            </Link>
                         </div>
                     </CardContent>
                 </Card>

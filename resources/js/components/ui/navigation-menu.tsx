@@ -1,21 +1,5 @@
 "use client";
 
-/**
- * Navigation Menu, Base UI Navigation Menu foundation (Phase 5).
- * Shared overlay surface (Portal/Positioner/Popup/Viewport) is rendered
- * by the Root wrapper; per-item Content mounts inside the shared Viewport.
- *
- * Panels use solid `--primitive-surface-overlay` + `--primitive-shadow-overlay`
- * + `--primitive-radius-surface`. Item hover uses `--primitive-surface-hover`,
- * descriptions the muted-foreground role. Positioner: z `--primitive-z-popover`,
- * collisionPadding 12. Viewport transition CSS-driven and RM-gated.
- *
- * D-17: asChild patterns migrated to Base UI's `render` prop.
- *
- * Sub-menu family (Sub / SubTrigger / SubContent) stays custom, Base UI
- * Navigation Menu has no built-in submenu API. Preserved for API compat.
- */
-
 import * as React from "react";
 import { NavigationMenu as BaseNav } from "@base-ui/react/navigation-menu";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -31,11 +15,9 @@ export interface NavigationMenuProps
     "value" | "defaultValue" | "onValueChange" | "delay"
   > {
   size?: NavigationMenuSize;
-  /** Delay in ms before opening a menu on hover. Default 120. */
+  
   delayDuration?: number;
-  /**
-   * @deprecated Base UI owns the hover bridge/close timing; kept for API compat.
-   */
+  
   skipDelayOnSwitch?: boolean;
   value?: string | null;
   defaultValue?: string | null;
@@ -48,18 +30,15 @@ export type NavigationMenuItemProps = React.ComponentPropsWithoutRef<typeof Base
 
 export interface NavigationMenuTriggerProps
   extends React.ComponentPropsWithoutRef<typeof BaseNav.Trigger> {
-  /** Whether to show a chevron indicator. Default true. */
+  
   showChevron?: boolean;
 }
 
 export interface NavigationMenuContentProps
   extends React.ComponentPropsWithoutRef<typeof BaseNav.Content> {
-  /** Force a specific width. Use for mega menus (e.g. "w-[48rem]"). */
+  
   width?: string;
-  /**
-   * @deprecated Base UI Navigation Menu uses a shared Viewport with
-   * automatic alignment; per-content align is not supported.
-   */
+  
   align?: NavigationMenuAlign;
 }
 
@@ -443,8 +422,8 @@ export const NavigationMenuSubContent = React.forwardRef<
   const { open, contentId } = useNavigationMenuSubContext();
   const prefersReducedMotion = useReducedMotion();
 
-  // Destructure HTML-only event handlers that conflict with Framer Motion's
-  // drag types to prevent TS2322 when spreading onto motion.div.
+  
+  
   const {
     onDrag: _onDrag,
     onDragStart: _onDragStart,

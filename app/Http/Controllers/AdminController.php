@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AuditLog;
 use App\Models\DetailReservasi;
 use App\Models\OpenMabar;
 use App\Models\Pembayaran;
@@ -26,18 +25,16 @@ class AdminController extends Controller
             'pendapatan_hari_ini' => 0,
             'reservasi_mendatang' => 0,
             'open_mabar_menunggu' => 0,
-            'kasir_aktif' => 0,
         ];
 
         $jadwalHariIni = [];
-        $aktivitasTerbaru = [];
         $dbConnected = true;
 
         try {
-            // Cek koneksi DB dengan timeout aman
+            
             DB::connection()->getPdo();
 
-            // 1. KPI: Pendapatan Hari Ini = Rental (pembayaran terkonfirmasi hari ini) + POS (penjualan selesai hari ini)
+            
             $pendapatanRental = (float) Pembayaran::where('status_pembayaran', 'terkonfirmasi')
                 ->whereDate('tanggal_pembayaran', $today)
                 ->sum('jumlah');
@@ -48,70 +45,46 @@ class AdminController extends Controller
 
             $kpi['pendapatan_hari_ini'] = $pendapatanRental + $pendapatanPos;
 
-            // 2. KPI: Reservasi Mendatang (terkonfirmasi & tanggal main >= hari ini)
+            
             $kpi['reservasi_mendatang'] = Reservasi::where('status_reservasi', 'terkonfirmasi')
                 ->whereHas('detailReservasi', function ($q) use ($today) {
                     $q->whereDate('tanggal_main', '>=', $today);
                 })
                 ->count();
 
-            // 3. KPI: Open Mabar Menunggu Persetujuan
+            
             $kpi['open_mabar_menunggu'] = OpenMabar::where('status', 'menunggu')->count();
 
-            // 4. KPI: Kasir Aktif (role kasir, status_akun aktif)
-            $kpi['kasir_aktif'] = User::where('role', 'kasir')
-                ->where('status_akun', 'aktif')
-                ->count();
-
-            // 5. Tabel Jadwal Lapangan Hari Ini (Lapangan 1 & 2)
+            
             $jadwalHariIni = DetailReservasi::with([
                 'lapangan:id_lapangan,nama_lapangan',
-                'reservasi:id_reservasi,id_user,status_reservasi',
+                'reservasi:id_reservasi,id_user,nama_pemesan,status_reservasi',
                 'reservasi.user:id_user,nama,no_whatsapp',
             ])
                 ->whereDate('tanggal_main', $today)
                 ->orderBy('jam_mulai', 'asc')
                 ->get()
                 ->map(function ($item) {
+                    $namaTampil = $item->reservasi?->id_user ? ($item->reservasi?->user?->nama ?? 'Pengguna') : ($item->reservasi?->nama_pemesan ?? 'Pengguna');
                     return [
                         'id_detail' => $item->id_detail_reservasi,
                         'nama_lapangan' => $item->lapangan?->nama_lapangan ?? 'Lapangan',
                         'jam_mulai' => substr($item->jam_mulai, 0, 5),
                         'jam_selesai' => substr($item->jam_selesai, 0, 5),
                         'durasi' => $item->durasi,
-                        'nama_pemesan' => $item->reservasi?->user?->nama ?? 'Pengguna',
+                        'nama_pemesan' => $namaTampil,
                         'status_reservasi' => $item->reservasi?->status_reservasi ?? 'terkonfirmasi',
                     ];
                 })
                 ->toArray();
-
-            // 6. Tabel Aktivitas Terbaru (audit_log: limit 8)
-            $aktivitasTerbaru = AuditLog::with('user:id_user,nama,role')
-                ->orderBy('waktu', 'desc')
-                ->limit(8)
-                ->get()
-                ->map(function ($log) {
-                    return [
-                        'id_log' => $log->id_log,
-                        'waktu' => Carbon::parse($log->waktu)->locale('id')->diffForHumans(),
-                        'waktu_lengkap' => Carbon::parse($log->waktu)->format('d/m/Y H:i'),
-                        'pengguna' => $log->user?->nama ?? 'Sistem',
-                        'role' => $log->user?->role ?? 'admin',
-                        'aksi' => $log->aksi,
-                        'objek' => $log->objek,
-                        'keterangan' => $log->keterangan ?? '-',
-                    ];
-                })
-                ->toArray();
         } catch (Throwable $e) {
-            // Jangan memalsukan data jika database mati / tidak terhubung
+            
             $dbConnected = false;
         }
 
         return Inertia::render('Admin/Dashboard', [
             'kpi' => $kpi,
             'jadwalHariIni' => $jadwalHariIni,
-            'aktivitasTerbaru' => $aktivitasTerbaru,
             'dbConnected' => $dbConnected,
             'tanggalSekarang' => $now->locale('id')->isoFormat('dddd, D MMMM Y'),
         ]);

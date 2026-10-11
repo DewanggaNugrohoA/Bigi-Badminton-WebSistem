@@ -11,9 +11,7 @@ use Inertia\Inertia;
 
 class AkunController extends Controller
 {
-    /**
-     * Tampilkan form pengaturan akun.
-     */
+    
     public function edit(Request $request)
     {
         $user = $request->user();
@@ -26,13 +24,13 @@ class AkunController extends Controller
                 'no_whatsapp' => $user->no_whatsapp,
                 'jenis_pelanggan' => $user->jenis_pelanggan,
                 'status_member' => $user->status_member,
+                'tanggal_mulai_member' => $user->tanggal_mulai_member?->format('Y-m-d'),
+                'tanggal_akhir_member' => $user->tanggal_akhir_member?->format('Y-m-d'),
             ],
         ]);
     }
 
-    /**
-     * Perbarui data profil pengguna (nama, email, no_whatsapp).
-     */
+    
     public function updateProfil(Request $request)
     {
         $user = $request->user();
@@ -40,19 +38,25 @@ class AkunController extends Controller
         $validated = $request->validate([
             'nama' => ['required', 'string', 'max:255'],
             'email' => [
-                'required',
+                'nullable',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore($user->id_user, 'id_user'),
             ],
-            'no_whatsapp' => ['required', 'string', 'max:20'],
+            'no_whatsapp' => [
+                'required',
+                'string',
+                'regex:/^08[0-9]{8,11}$/',
+                Rule::unique('users', 'no_whatsapp')->ignore($user->id_user, 'id_user'),
+            ],
         ], [
             'nama.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email ini sudah digunakan oleh akun lain.',
             'no_whatsapp.required' => 'Nomor WhatsApp wajib diisi.',
+            'no_whatsapp.regex' => 'Nomor WhatsApp harus diawali 08 dan terdiri dari 10 hingga 13 digit angka.',
+            'no_whatsapp.unique' => 'Nomor WhatsApp ini sudah digunakan oleh akun lain.',
         ]);
 
         $user->update($validated);
@@ -60,9 +64,7 @@ class AkunController extends Controller
         return redirect()->route('pengaturan.akun')->with('success', 'Profil Berhasil Diperbarui');
     }
 
-    /**
-     * Perbarui kata sandi pengguna.
-     */
+    
     public function updatePassword(Request $request)
     {
         $user = $request->user();

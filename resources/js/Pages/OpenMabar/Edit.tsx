@@ -31,7 +31,7 @@ interface EditProps {
 }
 
 export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
-    // Edit jadwal yang memuat foto: kirim dari form sebagai POST dengan _method=PUT (multipart PUT tidak terbaca PHP)
+    
     const { data, setData, post, processing, errors } = useForm({
         _method: "PUT",
         judul: mabar.judul,
@@ -61,7 +61,7 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Menggunakan POST ke /open-mabar/{id}/edit dengan field _method=PUT untuk file upload
+        
         post(`/open-mabar/${mabar.id_mabar}/edit`);
     };
 

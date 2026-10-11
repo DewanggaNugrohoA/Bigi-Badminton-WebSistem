@@ -5,14 +5,7 @@ import {
     CalendarDays,
     Users,
     BadgePercent,
-    Megaphone,
-    Package,
-    Receipt,
-    Clock,
-    RotateCcw,
     FileSpreadsheet,
-    UserCog,
-    ScrollText,
     Settings,
     Menu,
     LogOut,
@@ -20,7 +13,6 @@ import {
     Moon,
     ChevronLeft,
     ChevronRight,
-    Shield,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -31,10 +23,12 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/material-design-3-button";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+import { PageProps } from "@inertiajs/core";
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -42,7 +36,7 @@ interface AdminLayoutProps {
     breadcrumb?: Array<{ label: string; href?: string }>;
 }
 
-interface SharedProps {
+interface SharedProps extends PageProps {
     auth?: {
         user?: {
             id_user: number;
@@ -55,7 +49,8 @@ interface SharedProps {
         success?: string | null;
         error?: string | null;
     };
-    [key: string]: any;
+    errors: Record<string, string>;
+    [key: string]: unknown;
 }
 
 interface MenuItem {
@@ -64,50 +59,12 @@ interface MenuItem {
     icon: React.ComponentType<{ className?: string }>;
 }
 
-interface MenuGroup {
-    group: string;
-    items: MenuItem[];
-}
-
-const MENU_GROUPS: MenuGroup[] = [
-    {
-        group: "Ringkasan",
-        items: [
-            { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
-        ],
-    },
-    {
-        group: "Operasional",
-        items: [
-            { title: "Reservasi", href: "/admin/reservasi", icon: CalendarDays },
-            { title: "Open Mabar", href: "/admin/open-mabar", icon: Users },
-            { title: "Member", href: "/admin/member", icon: BadgePercent },
-            { title: "Informasi", href: "/admin/informasi", icon: Megaphone },
-        ],
-    },
-    {
-        group: "Penjualan",
-        items: [
-            { title: "Produk", href: "/admin/produk", icon: Package },
-            { title: "Transaksi POS", href: "/admin/transaksi-pos", icon: Receipt },
-            { title: "Shift Kasir", href: "/admin/shift-kasir", icon: Clock },
-            { title: "Void / Retur", href: "/admin/void-retur", icon: RotateCcw },
-        ],
-    },
-    {
-        group: "Laporan",
-        items: [
-            { title: "Laporan", href: "/admin/laporan", icon: FileSpreadsheet },
-        ],
-    },
-    {
-        group: "Pengelolaan",
-        items: [
-            { title: "Akun Kasir", href: "/admin/kasir", icon: UserCog },
-            { title: "Audit Log", href: "/admin/audit-log", icon: ScrollText },
-            { title: "Pengaturan Akun", href: "/admin/pengaturan", icon: Settings },
-        ],
-    },
+const MENU_ITEMS: MenuItem[] = [
+    { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { title: "Reservasi", href: "/admin/reservasi", icon: CalendarDays },
+    { title: "Open Mabar", href: "/admin/open-mabar", icon: Users },
+    { title: "Member", href: "/admin/member", icon: BadgePercent },
+    { title: "Laporan", href: "/admin/laporan", icon: FileSpreadsheet },
 ];
 
 export default function AdminLayout({
@@ -125,7 +82,7 @@ export default function AdminLayout({
 
     const lastFlash = useRef<{ success?: string | null; error?: string | null }>({});
 
-    // Flash notification handling
+    
     useEffect(() => {
         if (flash?.success && flash.success !== lastFlash.current.success) {
             toast.success(flash.success);
@@ -137,7 +94,7 @@ export default function AdminLayout({
         }
     }, [flash]);
 
-    // Theme state initialization & listener
+    
     useEffect(() => {
         const root = document.documentElement;
         setIsDark(root.classList.contains("dark"));
@@ -175,63 +132,52 @@ export default function AdminLayout({
     };
 
     const renderNavItems = (isDrawer = false) => (
-        <div className="flex flex-col gap-6 py-4">
-            {MENU_GROUPS.map((group) => (
-                <div key={group.group} className="flex flex-col gap-1">
-                    {(!collapsed || isDrawer) && (
-                        <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
-                            {group.group}
-                        </span>
-                    )}
-                    <nav className="flex flex-col gap-0.5" aria-label={group.group}>
-                        {group.items.map((item) => {
-                            const active = isItemActive(item.href);
-                            const Icon = item.icon;
-                            return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    onClick={() => {
-                                        if (isDrawer) setMobileOpen(false);
-                                    }}
-                                    aria-current={active ? "page" : undefined}
-                                    className={cn(
-                                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors relative min-h-[40px] select-none",
-                                        active
-                                            ? "bg-[var(--brand)] text-white shadow-xs"
-                                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
-                                        collapsed && !isDrawer && "justify-center px-2"
-                                    )}
-                                    title={collapsed && !isDrawer ? item.title : undefined}
-                                >
-                                    <Icon
-                                        className={cn(
-                                            "size-4.5 shrink-0 transition-transform group-hover:scale-105",
-                                            active ? "text-white" : "text-muted-foreground group-hover:text-foreground"
-                                        )}
-                                    />
-                                    {(!collapsed || isDrawer) && (
-                                        <span className="truncate">{item.title}</span>
-                                    )}
-                                </Link>
-                            );
-                        })}
-                    </nav>
-                </div>
-            ))}
-        </div>
+        <nav className="flex flex-col gap-1 py-3" aria-label="Menu Utama">
+            {MENU_ITEMS.map((item) => {
+                const active = isItemActive(item.href);
+                const Icon = item.icon;
+                return (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => {
+                            if (isDrawer) setMobileOpen(false);
+                        }}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors relative min-h-[40px] select-none",
+                            active
+                                ? "bg-[var(--brand)] text-white shadow-xs"
+                                : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                            collapsed && !isDrawer && "justify-center px-2"
+                        )}
+                        title={collapsed && !isDrawer ? item.title : undefined}
+                    >
+                        <Icon
+                            className={cn(
+                                "size-4.5 shrink-0 transition-transform group-hover:scale-105",
+                                active ? "text-white" : "text-muted-foreground group-hover:text-foreground"
+                            )}
+                        />
+                        {(!collapsed || isDrawer) && (
+                            <span className="truncate">{item.title}</span>
+                        )}
+                    </Link>
+                );
+            })}
+        </nav>
     );
 
     return (
         <div className="min-h-screen flex bg-background text-foreground antialiased selection:bg-[var(--brand)] selection:text-white">
-            {/* Desktop Fixed Sidebar */}
+            
             <aside
                 className={cn(
                     "hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out",
                     collapsed ? "w-20" : "w-64"
                 )}
             >
-                {/* Brand / Logo */}
+                
                 <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border shrink-0">
                     <Link
                         href="/admin"
@@ -255,23 +201,25 @@ export default function AdminLayout({
                         )}
                     </Link>
 
-                    {/* Collapse Button */}
-                    <button
+                    
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-sm"
                         onClick={() => setCollapsed(!collapsed)}
-                        className="size-8 inline-flex items-center justify-center rounded-lg hover:bg-sidebar-accent text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+                        className="text-muted-foreground hover:text-foreground"
                         aria-label={collapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
                     >
                         {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
-                    </button>
+                    </Button>
                 </div>
 
-                {/* Sidebar Navigation */}
+                
                 <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin">
                     {renderNavItems(false)}
                 </div>
 
-                {/* Sidebar Footer Info */}
+                
                 <div className="p-3 border-t border-sidebar-border bg-sidebar/50 shrink-0">
                     {!collapsed ? (
                         <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-card/60 border border-border/50">
@@ -280,8 +228,7 @@ export default function AdminLayout({
                             </div>
                             <div className="flex flex-col min-w-0">
                                 <span className="text-xs font-semibold text-foreground truncate">{user?.nama || "Admin Bigi"}</span>
-                                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                    <Shield className="size-3 text-[var(--brand)]" />
+                                <span className="text-[11px] text-muted-foreground font-medium">
                                     Administrator
                                 </span>
                             </div>
@@ -296,7 +243,7 @@ export default function AdminLayout({
                 </div>
             </aside>
 
-            {/* Mobile Sheet Drawer */}
+            
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetContent side="left" className="w-72 p-0 bg-sidebar border-r border-sidebar-border flex flex-col">
                     <SheetHeader className="h-16 flex flex-row items-center justify-between px-4 border-b border-sidebar-border">
@@ -327,27 +274,29 @@ export default function AdminLayout({
                 </SheetContent>
             </Sheet>
 
-            {/* Main Content Area */}
+            
             <div
                 className={cn(
                     "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out",
                     collapsed ? "lg:pl-20" : "lg:pl-64"
                 )}
             >
-                {/* Sticky Top Header */}
+                
                 <header className="sticky top-0 z-30 h-16 bg-background/85 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                        {/* Mobile Hamburger Button */}
-                        <button
+                        
+                        <Button
                             type="button"
+                            variant="outline"
+                            size="icon"
                             onClick={() => setMobileOpen(true)}
-                            className="lg:hidden size-10 inline-flex items-center justify-center rounded-lg border border-border bg-card hover:bg-muted text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors shrink-0"
+                            className="lg:hidden shrink-0"
                             aria-label="Buka menu navigasi"
                         >
                             <Menu className="size-5" />
-                        </button>
+                        </Button>
 
-                        {/* Breadcrumbs & Title */}
+                        
                         <nav aria-label="Breadcrumb" className="min-w-0">
                             <ol className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground truncate">
                                 <li>
@@ -378,13 +327,15 @@ export default function AdminLayout({
                         </nav>
                     </div>
 
-                    {/* Right Header Actions */}
+                    
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                        {/* Theme Toggle Button */}
-                        <button
+                        
+                        <Button
                             type="button"
+                            variant="outline"
+                            size="icon"
                             onClick={toggleTheme}
-                            className="size-9 sm:size-10 inline-flex items-center justify-center rounded-lg border border-border bg-card hover:bg-muted text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+                            className="size-9 sm:size-10"
                             aria-label={isDark ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
                         >
                             {isDark ? (
@@ -392,9 +343,9 @@ export default function AdminLayout({
                             ) : (
                                 <Moon className="size-4.5 text-slate-700" />
                             )}
-                        </button>
+                        </Button>
 
-                        {/* Profile Dropdown */}
+                        
                         <DropdownMenu>
                             <DropdownMenuTrigger
                                 render={
@@ -415,10 +366,9 @@ export default function AdminLayout({
                             <DropdownMenuContent align="end" className="w-56 p-1">
                                 <DropdownMenuLabel className="p-2">
                                     <div className="font-semibold text-sm text-foreground truncate">{user?.nama || "Administrator"}</div>
-                                    <div className="text-xs text-muted-foreground truncate">{user?.email || "admin@bigi-badminton.com"}</div>
-                                    <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-[var(--brand)] font-medium bg-[var(--brand)]/10 px-2 py-0.5 rounded-full">
-                                        <Shield className="size-3" />
-                                        Admin Panel
+                                    <div className="text-xs text-muted-foreground truncate">{user?.email || "Staf Internal"}</div>
+                                    <div className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                                        Peran: {user?.role || "admin"}
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
@@ -431,7 +381,7 @@ export default function AdminLayout({
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem variant="destructive">
                                     <Link
-                                        href="/logout"
+                                        href="/staff/logout"
                                         method="post"
                                         as="button"
                                         className="flex items-center gap-2 cursor-pointer w-full text-destructive text-left"
@@ -445,13 +395,13 @@ export default function AdminLayout({
                     </div>
                 </header>
 
-                {/* Page Content */}
+                
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
                     {children}
                 </main>
             </div>
 
-            {/* Flash Toaster */}
+            
             <Toaster position="top-right" richColors />
         </div>
     );

@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Http\Requests\Admin;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StorePaketMemberRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user() && $this->user()->role === 'admin';
+    }
+
+    public function rules(): array
+    {
+        return [
+            'jumlah_sesi' => ['required', 'integer', 'min:1', 'max:200'],
+            'tanggal_mulai' => ['required', 'date'],
+            'tanggal_akhir' => ['nullable', 'date', 'after:tanggal_mulai'],
+            'catatan' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'jumlah_sesi.required' => 'Jumlah sesi wajib diisi.',
+            'jumlah_sesi.integer' => 'Jumlah sesi harus berupa angka bulat.',
+            'jumlah_sesi.min' => 'Jumlah sesi minimal 1.',
+            'tanggal_mulai.required' => 'Tanggal mulai paket wajib diisi.',
+            'tanggal_mulai.date' => 'Format tanggal mulai tidak valid.',
+            'tanggal_akhir.date' => 'Format tanggal akhir tidak valid.',
+            'tanggal_akhir.after' => 'Tanggal akhir harus lebih akhir dari tanggal mulai.',
+        ];
+    }
+}

@@ -14,9 +14,10 @@ class Reservasi extends Model
     protected $table = 'reservasi';
     protected $primaryKey = 'id_reservasi';
     
-    protected $fillable = ['id_user', 'tanggal_pemesanan', 'total_biaya', 'status_reservasi'];
+    protected $fillable = ['id_user', 'nama_pemesan', 'no_whatsapp_pemesan', 'id_paket', 'tanggal_pemesanan', 'total_biaya', 'status_reservasi'];
 
     public function user() { return $this->belongsTo(User::class, 'id_user'); }
+    public function paket() { return $this->belongsTo(PaketMember::class, 'id_paket'); }
     public function detailReservasi() { return $this->hasMany(DetailReservasi::class, 'id_reservasi'); }
     public function pembayaran() { return $this->hasMany(Pembayaran::class, 'id_reservasi'); }
 }

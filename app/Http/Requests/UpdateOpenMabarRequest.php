@@ -24,7 +24,7 @@ class UpdateOpenMabarRequest extends FormRequest
             'batas_usia_max' => ['required', 'integer', 'gte:batas_usia_min'],
             'kuota' => ['required', 'integer', 'min:1'],
             'deskripsi' => ['nullable', 'string'],
-            'foto' => ['nullable', 'image', 'max:2048'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
             'id_lapangan' => ['nullable', 'exists:lapangan,id_lapangan'],
         ];
     }

@@ -141,11 +141,8 @@ export default function OpenMabarSaya({ jadwalSaya, flash }: SayaProps) {
                                 key={item.id_mabar}
                                 className="bg-card border border-border/80 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-[var(--brand)]/40 hover:shadow-md shadow-xs transition-all"
                             >
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
-                                    <div className="w-full sm:w-32 h-24 rounded-lg overflow-hidden shrink-0 border border-border/50">
-                                        <MabarImage src={item.foto} alt={item.judul} aspectRatio="h-full w-full" />
-                                    </div>
-                                    <div className="space-y-2 flex-1">
+                                <div className="flex items-start sm:items-center justify-between gap-4 flex-1">
+                                    <div className="space-y-2 flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
                                             {statusBadge(item.status)}
                                             <span className="text-xs text-muted-foreground capitalize">
@@ -175,6 +172,14 @@ export default function OpenMabarSaya({ jadwalSaya, flash }: SayaProps) {
                                             </span>
                                         </div>
                                     </div>
+
+                                    
+                                    <MabarImage
+                                        src={item.foto}
+                                        alt={item.judul}
+                                        variant="avatar"
+                                        className="size-14 shrink-0"
+                                    />
                                 </div>
 
                                 <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto justify-end">
@@ -213,26 +218,38 @@ export default function OpenMabarSaya({ jadwalSaya, flash }: SayaProps) {
                 {jadwalSaya.last_page > 1 && (
                     <div className="flex items-center justify-center gap-2 mt-10">
                         {jadwalSaya.links.map((link, idx) => {
+                            const labelText = link.label
+                                .replace(/&laquo;/g, "")
+                                .replace(/&raquo;/g, "")
+                                .trim();
+                            const displayLabel = labelText.toLowerCase().includes("previous")
+                                ? "Sebelumnya"
+                                : labelText.toLowerCase().includes("next")
+                                ? "Berikutnya"
+                                : labelText;
+
                             if (!link.url) {
                                 return (
                                     <span
                                         key={idx}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
                                         className="px-3 py-1.5 text-xs text-muted-foreground opacity-50 border border-transparent"
-                                    />
+                                    >
+                                        {displayLabel}
+                                    </span>
                                 );
                             }
                             return (
                                 <Link
                                     key={idx}
                                     href={link.url}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
                                     className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                                         link.active
                                             ? "bg-[var(--brand)] text-white border-[var(--brand)]"
                                             : "bg-card border-border hover:bg-accent text-foreground"
                                     }`}
-                                />
+                                >
+                                    {displayLabel}
+                                </Link>
                             );
                         })}
                     </div>

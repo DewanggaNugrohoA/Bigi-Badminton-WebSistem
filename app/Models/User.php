@@ -53,4 +53,5 @@ class User extends Authenticatable
     public function auditLog() { return $this->hasMany(AuditLog::class, 'id_user'); }
     public function returVoidPengaju() { return $this->hasMany(ReturVoid::class, 'id_user'); }
     public function returVoidPenyetuju() { return $this->hasMany(ReturVoid::class, 'id_admin'); }
+    public function paketMember() { return $this->hasMany(PaketMember::class, 'id_user'); }
 }
