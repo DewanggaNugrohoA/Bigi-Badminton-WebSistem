@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class SimpanProdukRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user('staff') !== null && $this->user('staff')->role === 'kasir';
+    }
+
+    public function rules(): array
+    {
+        $idProduk = $this->route('id') ?? $this->input('id_produk');
+
+        return [
+            'nama_produk' => [
+                'required',
+                'string',
+                'min:2',
+                'max:100',
+                Rule::unique('produk', 'nama_produk')->ignore($idProduk, 'id_produk'),
+            ],
+            'kategori' => ['required', 'string', 'max:100'],
+            'harga' => ['required', 'integer', 'min:1'],
+            'stok_minimum' => ['required', 'integer', 'min:0'],
+            'status_produk' => ['required', Rule::in(['aktif', 'nonaktif'])],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nama_produk.required' => 'Nama produk wajib diisi.',
+            'nama_produk.min' => 'Nama produk minimal 2 karakter.',
+            'nama_produk.max' => 'Nama produk maksimal 100 karakter.',
+            'nama_produk.unique' => 'Nama produk sudah digunakan.',
+            'kategori.required' => 'Kategori produk wajib diisi.',
+            'harga.required' => 'Harga produk wajib diisi.',
+            'harga.integer' => 'Harga harus berupa bilangan bulat rupiah.',
+            'harga.min' => 'Harga produk harus lebih dari 0.',
+            'stok_minimum.required' => 'Stok minimum wajib diisi.',
+            'stok_minimum.integer' => 'Stok minimum harus berupa angka bulat.',
+            'stok_minimum.min' => 'Stok minimum tidak boleh kurang dari 0.',
+            'status_produk.required' => 'Status produk wajib dipilih.',
+            'status_produk.in' => 'Status produk hanya boleh aktif atau nonaktif.',
+        ];
+    }
+}

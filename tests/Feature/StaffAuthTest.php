@@ -86,7 +86,7 @@ class StaffAuthTest extends TestCase
             'email' => 'staffkasir@bigi.internal',
             'password' => 'KasirPass123!',
         ]);
-        $resKasir->assertRedirect('/');
+        $resKasir->assertRedirect('/kasir');
         $this->assertAuthenticatedAs($this->kasirUser, 'staff');
     }
 

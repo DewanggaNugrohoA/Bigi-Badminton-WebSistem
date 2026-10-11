@@ -71,7 +71,7 @@ class Fase1ATest extends TestCase
             'email' => $this->kasirUser->email,
             'password' => 'secret123',
         ]);
-        $responseKasir->assertRedirect('/');
+        $responseKasir->assertRedirect('/kasir');
 
         \Illuminate\Support\Facades\Auth::guard('staff')->logout();
 
@@ -104,12 +104,16 @@ class Fase1ATest extends TestCase
         ]);
     }
 
-    public function test_user_accessing_admin_returns_403_or_redirect(): void
+    public function test_user_accessing_admin_or_kasir_returns_403(): void
     {
         $user = $this->regularUser;
 
+        
         $responseAdmin = $this->actingAs($user, 'web')->get('/admin');
         $responseAdmin->assertRedirect('/staff/login');
+
+        $responseKasir = $this->actingAs($user, 'web')->get('/kasir');
+        $responseKasir->assertRedirect('/staff/login');
     }
 
     public function test_registration_creates_user_with_role_user_after_otp_verification(): void

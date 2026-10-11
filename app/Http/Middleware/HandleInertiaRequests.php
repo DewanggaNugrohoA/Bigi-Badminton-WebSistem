@@ -21,7 +21,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         
-        $isStaffArea = $request->is('admin*');
+        $isStaffArea = $request->is('admin*') || $request->is('kasir*');
         $user = $isStaffArea
             ? ($request->user('staff') ?: null)
             : ($request->user('web') ?: null);

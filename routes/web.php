@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\KasirController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -86,5 +87,28 @@ Route::middleware('auth:staff')->group(function () {
 
         
         Route::get('/admin/pengaturan', [AdminController::class, 'placeholder'])->name('admin.pengaturan');
+    });
+
+    Route::middleware('role:kasir,staff')->group(function () {
+        Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.dashboard');
+        Route::get('/kasir/shift', [KasirController::class, 'shift'])->name('kasir.shift');
+        Route::post('/kasir/shift/buka', [KasirController::class, 'bukaShift'])->name('kasir.shift.buka');
+        Route::post('/kasir/shift/tutup', [KasirController::class, 'tutupShift'])->name('kasir.shift.tutup');
+        Route::post('/kasir/checkout', [KasirController::class, 'checkout'])->name('kasir.checkout');
+        Route::get('/kasir/struk/{id}', [KasirController::class, 'struk'])->name('kasir.struk');
+        Route::get('/kasir/riwayat', [KasirController::class, 'riwayat'])->name('kasir.riwayat');
+
+        Route::get('/kasir/produk', [KasirController::class, 'produkIndex'])->name('kasir.produk.index');
+        Route::post('/kasir/produk', [KasirController::class, 'produkStore'])->name('kasir.produk.store');
+        Route::put('/kasir/produk/{id}', [KasirController::class, 'produkUpdate'])->name('kasir.produk.update');
+
+        Route::get('/kasir/restock', [KasirController::class, 'restockIndex'])->name('kasir.restock.index');
+        Route::post('/kasir/restock', [KasirController::class, 'restockStore'])->name('kasir.restock.store');
+
+        Route::get('/kasir/opname', [KasirController::class, 'opnameIndex'])->name('kasir.opname.index');
+        Route::post('/kasir/opname', [KasirController::class, 'opnameStore'])->name('kasir.opname.store');
+
+        Route::get('/kasir/void', [KasirController::class, 'voidIndex'])->name('kasir.void.index');
+        Route::post('/kasir/void', [KasirController::class, 'voidStore'])->name('kasir.void.store');
     });
 });
