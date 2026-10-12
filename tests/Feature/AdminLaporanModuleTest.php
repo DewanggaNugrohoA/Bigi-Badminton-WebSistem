@@ -480,6 +480,7 @@ class AdminLaporanModuleTest extends TestCase
                 'Stok Opname',
                 'Stok Menipis',
                 'Pemain',
+                'Lapangan',
             ], $spreadsheet->getSheetNames());
 
             $sheetRingkasan = $spreadsheet->getSheetByName('Ringkasan');

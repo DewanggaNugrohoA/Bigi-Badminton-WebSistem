@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StorePemeriksaanLapanganRequest;
+use App\Models\Lapangan;
 use App\Models\Pembayaran;
 use App\Models\Produk;
 use App\Models\Reservasi;
@@ -11,6 +13,10 @@ use App\Models\ReturVoid;
 use App\Models\ShiftKasir;
 use App\Models\StockOpname;
 use App\Models\TransaksiPos;
+use App\Models\User;
+use App\Services\LaporanEksporService;
+use App\Services\LaporanLapanganService;
+use App\Services\LaporanPemainService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +24,7 @@ use Inertia\Inertia;
 
 class LaporanController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, LaporanLapanganService $lapanganService)
     {
         $defaultStart = Carbon::now('Asia/Jakarta')->startOfMonth()->format('Y-m-d');
         $defaultEnd = Carbon::now('Asia/Jakarta')->format('Y-m-d');
@@ -193,6 +199,19 @@ class LaporanController extends Controller
             return $item;
         });
 
+        // Lapangan Props
+        $idLapanganFilter = $request->query('id_lapangan') ? (int) $request->query('id_lapangan') : null;
+        $pageLapangan = (int) $request->query('page_lapangan', 1);
+        $riwayatLapangan = $lapanganService->getRiwayatPemeriksaan(
+            $startDate,
+            $endDate,
+            $idLapanganFilter,
+            10,
+            $pageLapangan
+        );
+        $ringkasanLapangan = $lapanganService->getRingkasanKondisiTerakhir();
+        $masterLapangan = Lapangan::orderBy('id_lapangan', 'asc')->get(['id_lapangan', 'nama_lapangan', 'status_lapangan']);
+
         return Inertia::render('Admin/Laporan/Index', [
             'ringkasan' => [
                 'pendapatan_pos' => $pendapatanPos,
@@ -208,6 +227,9 @@ class LaporanController extends Controller
             ],
             'ringkasanPemain' => $ringkasanPemain,
             'daftarPemain' => $daftarPemain,
+            'ringkasanLapangan' => $ringkasanLapangan,
+            'riwayatLapangan' => $riwayatLapangan,
+            'masterLapangan' => $masterLapangan,
             'posHarian' => $posHarian,
             'rekapShift' => $rekapShift,
             'riwayatVoidRetur' => $riwayatVoidRetur,
@@ -218,11 +240,19 @@ class LaporanController extends Controller
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'search_pemain' => $searchPemain ?? '',
+                'id_lapangan' => $idLapanganFilter ? (string) $idLapanganFilter : '',
             ],
         ]);
     }
 
-    public function ekspor(Request $request, \App\Services\LaporanEksporService $eksporService)
+    public function storePemeriksaan(StorePemeriksaanLapanganRequest $request, LaporanLapanganService $lapanganService)
+    {
+        $lapanganService->simpanPemeriksaan($request->validated(), $request->user());
+
+        return redirect()->back()->with('success', 'Catatan pemeriksaan kondisi lapangan berhasil disimpan.');
+    }
+
+    public function ekspor(Request $request, LaporanEksporService $eksporService)
     {
         $defaultStart = Carbon::now('Asia/Jakarta')->startOfMonth()->format('Y-m-d');
         $defaultEnd = Carbon::now('Asia/Jakarta')->format('Y-m-d');
@@ -249,7 +279,9 @@ class LaporanController extends Controller
             ])->with('error', 'Rentang tanggal laporan maksimal 366 hari.');
         }
 
-        $spreadsheet = $eksporService->generateExcel($startDate, $endDate, $request->user());
+        $idLapangan = $request->query('id_lapangan') ? (int) $request->query('id_lapangan') : null;
+
+        $spreadsheet = $eksporService->generateExcel($startDate, $endDate, $request->user(), $idLapangan);
 
         $startStr = $startCarbon->format('Ymd');
         $endStr = $endCarbon->format('Ymd');
@@ -264,3 +296,4 @@ class LaporanController extends Controller
         ]);
     }
 }
+

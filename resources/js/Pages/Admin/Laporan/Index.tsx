@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/material-design-3-button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
     Table,
@@ -125,6 +128,59 @@ interface RingkasanPemain {
     jumlah_open_mabar: number;
 }
 
+interface RingkasanLapanganItem {
+    id_lapangan: number;
+    nama_lapangan: string;
+    status_lapangan: string;
+    tanggal_terakhir: string | null;
+    diperiksa_oleh: string | null;
+    komponen_tidak_baik: Array<{
+        komponen: string;
+        key: string;
+        kondisi: string;
+        kondisi_label: string;
+    }>;
+    pemeriksaan_terakhir: {
+        id: number;
+        tanggal_pemeriksaan: string;
+        karpet_vinil: string;
+        net: string;
+        tiang: string;
+        lampu: string;
+        lantai: string;
+        dinding: string;
+        catatan: string | null;
+    } | null;
+}
+
+interface RiwayatLapanganItem {
+    id: number;
+    id_lapangan: number;
+    tanggal_pemeriksaan: string;
+    diperiksa_oleh: number;
+    karpet_vinil: string;
+    net: string;
+    tiang: string;
+    lampu: string;
+    lantai: string;
+    dinding: string;
+    catatan: string | null;
+    lapangan?: {
+        id_lapangan: number;
+        nama_lapangan: string;
+    };
+    pemeriksa?: {
+        id_user: number;
+        nama: string;
+    };
+}
+
+interface MasterLapanganItem {
+    id_lapangan: number;
+    nama_lapangan: string;
+    status_lapangan: string;
+}
+
 interface Props {
     ringkasan: {
         pendapatan_pos: number;
@@ -146,6 +202,9 @@ interface Props {
     };
     ringkasanPemain?: RingkasanPemain;
     daftarPemain?: PaginatedData<PemainItem>;
+    ringkasanLapangan?: RingkasanLapanganItem[];
+    riwayatLapangan?: PaginatedData<RiwayatLapanganItem>;
+    masterLapangan?: MasterLapanganItem[];
     posHarian: PaginatedData<PosHarianItem>;
     rekapShift: PaginatedData<ShiftItem>;
     riwayatVoidRetur: PaginatedData<ReturVoidItem>;
@@ -156,6 +215,7 @@ interface Props {
         start_date: string;
         end_date: string;
         search_pemain?: string;
+        id_lapangan?: string;
     };
 }
 
@@ -163,6 +223,9 @@ export default function LaporanIndex({
     ringkasan,
     ringkasanPemain,
     daftarPemain,
+    ringkasanLapangan = [],
+    riwayatLapangan,
+    masterLapangan = [],
     posHarian,
     rekapShift,
     riwayatVoidRetur,
@@ -175,7 +238,24 @@ export default function LaporanIndex({
     const [startDate, setStartDate] = useState(filters.start_date || "");
     const [endDate, setEndDate] = useState(filters.end_date || "");
     const [searchPemain, setSearchPemain] = useState(filters.search_pemain || "");
+    const [filterLapangan, setFilterLapangan] = useState(filters.id_lapangan || "");
     const [dateError, setDateError] = useState("");
+
+    // Form input pemeriksaan lapangan
+    const todayStr = new Date().toISOString().split("T")[0];
+    const [formLapanganId, setFormLapanganId] = useState<string>(
+        masterLapangan.length > 0 ? String(masterLapangan[0].id_lapangan) : ""
+    );
+    const [formTanggal, setFormTanggal] = useState<string>(todayStr);
+    const [formKarpet, setFormKarpet] = useState<string>("baik");
+    const [formNet, setFormNet] = useState<string>("baik");
+    const [formTiang, setFormTiang] = useState<string>("baik");
+    const [formLampu, setFormLampu] = useState<string>("baik");
+    const [formLantai, setFormLantai] = useState<string>("baik");
+    const [formDinding, setFormDinding] = useState<string>("baik");
+    const [formCatatan, setFormCatatan] = useState<string>("");
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     const totalPendapatan = (ringkasan?.pendapatan_pos || 0) + (ringkasan?.pendapatan_sewa_lapangan || 0);
 
@@ -194,6 +274,7 @@ export default function LaporanIndex({
                 start_date: startDate,
                 end_date: endDate,
                 search_pemain: searchPemain || undefined,
+                id_lapangan: filterLapangan || undefined,
             },
             { preserveState: true }
         );
@@ -207,6 +288,21 @@ export default function LaporanIndex({
                 start_date: startDate,
                 end_date: endDate,
                 search_pemain: searchPemain || undefined,
+                id_lapangan: filterLapangan || undefined,
+            },
+            { preserveState: true }
+        );
+    };
+
+    const handleFilterLapanganChange = (val: string) => {
+        setFilterLapangan(val);
+        router.get(
+            "/admin/laporan",
+            {
+                start_date: startDate,
+                end_date: endDate,
+                search_pemain: searchPemain || undefined,
+                id_lapangan: val || undefined,
             },
             { preserveState: true }
         );
@@ -217,7 +313,60 @@ export default function LaporanIndex({
         setStartDate("");
         setEndDate("");
         setSearchPemain("");
+        setFilterLapangan("");
         router.get("/admin/laporan", {}, { preserveState: true });
+    };
+
+    const handleSubmitPemeriksaan = (e: React.FormEvent) => {
+        e.preventDefault();
+        setFormErrors({});
+
+        if (!formLapanganId) {
+            setFormErrors((prev) => ({ ...prev, id_lapangan: "Lapangan wajib dipilih." }));
+            return;
+        }
+
+        if (!formTanggal) {
+            setFormErrors((prev) => ({ ...prev, tanggal_pemeriksaan: "Tanggal pemeriksaan wajib diisi." }));
+            return;
+        }
+
+        setIsSubmitting(true);
+        router.post(
+            "/admin/laporan/pemeriksaan-lapangan",
+            {
+                id_lapangan: formLapanganId,
+                tanggal_pemeriksaan: formTanggal,
+                karpet_vinil: formKarpet,
+                net: formNet,
+                tiang: formTiang,
+                lampu: formLampu,
+                lantai: formLantai,
+                dinding: formDinding,
+                catatan: formCatatan || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success("Catatan pemeriksaan kondisi lapangan berhasil disimpan.");
+                    setFormCatatan("");
+                    setFormKarpet("baik");
+                    setFormNet("baik");
+                    setFormTiang("baik");
+                    setFormLampu("baik");
+                    setFormLantai("baik");
+                    setFormDinding("baik");
+                    setFormErrors({});
+                },
+                onError: (errs) => {
+                    setFormErrors(errs);
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                },
+            }
+        );
     };
 
     const handlePrint = () => {
@@ -266,7 +415,7 @@ export default function LaporanIndex({
                         </div>
                         <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                             <a
-                                href={`/admin/laporan/ekspor?start_date=${encodeURIComponent(filters.start_date || "")}&end_date=${encodeURIComponent(filters.end_date || "")}`}
+                                href={`/admin/laporan/ekspor?start_date=${encodeURIComponent(filters.start_date || "")}&end_date=${encodeURIComponent(filters.end_date || "")}${filterLapangan ? `&id_lapangan=${encodeURIComponent(filterLapangan)}` : ""}`}
                                 className="inline-flex items-center justify-center border border-border bg-transparent text-foreground hover:bg-secondary/40 h-9 px-3 text-xs font-medium rounded-xl transition-colors cursor-pointer"
                                 aria-label="Unduh Laporan Format Excel"
                             >
@@ -555,11 +704,408 @@ export default function LaporanIndex({
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="lapangan" className="pt-6">
-                        <div className="py-12 text-center border-t border-border">
-                            <p className="text-xs text-muted-foreground">Segera hadir</p>
+                    <TabsContent value="lapangan" className="space-y-10 pt-4">
+                        {/* 1. Ringkasan Kondisi Terakhir Lapangan */}
+                        <div className="border border-border p-5 sm:p-6 bg-card rounded-md">
+                            <div className="border-b border-border pb-3 mb-4">
+                                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Ringkasan Kondisi Terakhir Lapangan
+                                </h2>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-border hover:bg-transparent">
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Lapangan</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Status</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Pemeriksaan Terakhir</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Komponen Perlu Perhatian</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Pemeriksa</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {ringkasanLapangan.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center py-6 text-xs text-muted-foreground">
+                                                    Belum ada data lapangan.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            ringkasanLapangan.map((item) => (
+                                                <TableRow key={item.id_lapangan} className="border-border text-xs">
+                                                    <TableCell className="font-medium text-foreground">
+                                                        {item.nama_lapangan}
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground capitalize">
+                                                        {item.status_lapangan}
+                                                    </TableCell>
+                                                    <TableCell className="tabular-nums text-muted-foreground">
+                                                        {item.tanggal_terakhir ? formatTanggal(item.tanggal_terakhir) : "Belum diperiksa"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {item.komponen_tidak_baik.length === 0 ? (
+                                                            <span className="text-muted-foreground">Semua kondisi baik</span>
+                                                        ) : (
+                                                            <span className="text-destructive font-medium">
+                                                                {item.komponen_tidak_baik
+                                                                    .map((k) => `${k.komponen} (${k.kondisi_label})`)
+                                                                    .join(", ")}
+                                                            </span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground">
+                                                        {item.diperiksa_oleh || "-"}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+
+                        {/* 2. Form Input Pemeriksaan Rutin */}
+                        <div className="border border-border p-5 sm:p-6 bg-card rounded-md">
+                            <div className="border-b border-border pb-3 mb-5">
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Catat Pemeriksaan Kondisi Lapangan
+                                </h3>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">
+                                    Formulir pencatatan riwayat kondisi fisik lapangan. Catatan ini murni riwayat dan tidak mengubah status lapangan secara otomatis.
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleSubmitPemeriksaan} className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label htmlFor="lapangan_id" className="text-xs font-medium text-foreground">
+                                            Pilih Lapangan <span className="text-destructive">*</span>
+                                        </Label>
+                                        <Select
+                                            id="lapangan_id"
+                                            value={formLapanganId}
+                                            onChange={(e) => setFormLapanganId(e.target.value)}
+                                            error={!!formErrors.id_lapangan}
+                                            className="text-xs rounded-md"
+                                        >
+                                            <option value="">-- Pilih Lapangan --</option>
+                                            {masterLapangan.map((lap) => (
+                                                <option key={lap.id_lapangan} value={lap.id_lapangan}>
+                                                    {lap.nama_lapangan} ({lap.status_lapangan})
+                                                </option>
+                                            ))}
+                                        </Select>
+                                        {formErrors.id_lapangan && (
+                                            <p className="text-[11px] text-destructive">{formErrors.id_lapangan}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label htmlFor="tgl_periksa" className="text-xs font-medium text-foreground">
+                                            Tanggal Pemeriksaan <span className="text-destructive">*</span>
+                                        </Label>
+                                        <Input
+                                            id="tgl_periksa"
+                                            type="date"
+                                            max={todayStr}
+                                            value={formTanggal}
+                                            onChange={(e) => setFormTanggal(e.target.value)}
+                                            className="h-9 text-xs rounded-md"
+                                        />
+                                        {formErrors.tanggal_pemeriksaan && (
+                                            <p className="text-[11px] text-destructive">{formErrors.tanggal_pemeriksaan}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-border/50 pt-3">
+                                    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-3">
+                                        Kondisi Komponen
+                                    </Label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label htmlFor="karpet_vinil" className="text-xs text-foreground">
+                                                Karpet / Vinil <span className="text-destructive">*</span>
+                                            </Label>
+                                            <Select
+                                                id="karpet_vinil"
+                                                value={formKarpet}
+                                                onChange={(e) => setFormKarpet(e.target.value)}
+                                                className="text-xs rounded-md"
+                                            >
+                                                <option value="baik">Baik</option>
+                                                <option value="rusak_ringan">Rusak Ringan</option>
+                                                <option value="rusak_sedang">Rusak Sedang</option>
+                                                <option value="rusak_berat">Rusak Berat</option>
+                                            </Select>
+                                            {formErrors.karpet_vinil && (
+                                                <p className="text-[11px] text-destructive">{formErrors.karpet_vinil}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label htmlFor="net" className="text-xs text-foreground">
+                                                Net <span className="text-destructive">*</span>
+                                            </Label>
+                                            <Select
+                                                id="net"
+                                                value={formNet}
+                                                onChange={(e) => setFormNet(e.target.value)}
+                                                className="text-xs rounded-md"
+                                            >
+                                                <option value="baik">Baik</option>
+                                                <option value="rusak_ringan">Rusak Ringan</option>
+                                                <option value="rusak_sedang">Rusak Sedang</option>
+                                                <option value="rusak_berat">Rusak Berat</option>
+                                            </Select>
+                                            {formErrors.net && (
+                                                <p className="text-[11px] text-destructive">{formErrors.net}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label htmlFor="tiang" className="text-xs text-foreground">
+                                                Tiang <span className="text-destructive">*</span>
+                                            </Label>
+                                            <Select
+                                                id="tiang"
+                                                value={formTiang}
+                                                onChange={(e) => setFormTiang(e.target.value)}
+                                                className="text-xs rounded-md"
+                                            >
+                                                <option value="baik">Baik</option>
+                                                <option value="rusak_ringan">Rusak Ringan</option>
+                                                <option value="rusak_sedang">Rusak Sedang</option>
+                                                <option value="rusak_berat">Rusak Berat</option>
+                                            </Select>
+                                            {formErrors.tiang && (
+                                                <p className="text-[11px] text-destructive">{formErrors.tiang}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label htmlFor="lampu" className="text-xs text-foreground">
+                                                Lampu <span className="text-destructive">*</span>
+                                            </Label>
+                                            <Select
+                                                id="lampu"
+                                                value={formLampu}
+                                                onChange={(e) => setFormLampu(e.target.value)}
+                                                className="text-xs rounded-md"
+                                            >
+                                                <option value="baik">Baik</option>
+                                                <option value="rusak_ringan">Rusak Ringan</option>
+                                                <option value="rusak_sedang">Rusak Sedang</option>
+                                                <option value="rusak_berat">Rusak Berat</option>
+                                            </Select>
+                                            {formErrors.lampu && (
+                                                <p className="text-[11px] text-destructive">{formErrors.lampu}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label htmlFor="lantai" className="text-xs text-foreground">
+                                                Lantai <span className="text-destructive">*</span>
+                                            </Label>
+                                            <Select
+                                                id="lantai"
+                                                value={formLantai}
+                                                onChange={(e) => setFormLantai(e.target.value)}
+                                                className="text-xs rounded-md"
+                                            >
+                                                <option value="baik">Baik</option>
+                                                <option value="rusak_ringan">Rusak Ringan</option>
+                                                <option value="rusak_sedang">Rusak Sedang</option>
+                                                <option value="rusak_berat">Rusak Berat</option>
+                                            </Select>
+                                            {formErrors.lantai && (
+                                                <p className="text-[11px] text-destructive">{formErrors.lantai}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label htmlFor="dinding" className="text-xs text-foreground">
+                                                Dinding <span className="text-destructive">*</span>
+                                            </Label>
+                                            <Select
+                                                id="dinding"
+                                                value={formDinding}
+                                                onChange={(e) => setFormDinding(e.target.value)}
+                                                className="text-xs rounded-md"
+                                            >
+                                                <option value="baik">Baik</option>
+                                                <option value="rusak_ringan">Rusak Ringan</option>
+                                                <option value="rusak_sedang">Rusak Sedang</option>
+                                                <option value="rusak_berat">Rusak Berat</option>
+                                            </Select>
+                                            {formErrors.dinding && (
+                                                <p className="text-[11px] text-destructive">{formErrors.dinding}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-1.5 pt-1">
+                                    <Label htmlFor="catatan" className="text-xs text-foreground">
+                                        Catatan Pemeriksaan (Opsional)
+                                    </Label>
+                                    <Textarea
+                                        id="catatan"
+                                        rows={3}
+                                        value={formCatatan}
+                                        onChange={(e) => setFormCatatan(e.target.value)}
+                                        placeholder="Tuliskan catatan khusus terkait kerusakan, perbaikan yang dibutuhkan, dll."
+                                        maxLength={1000}
+                                        className="text-xs rounded-md"
+                                    />
+                                    {formErrors.catatan && (
+                                        <p className="text-[11px] text-destructive">{formErrors.catatan}</p>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-end pt-2">
+                                    <Button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="h-9 px-4 text-xs font-medium cursor-pointer rounded-md"
+                                    >
+                                        {isSubmitting ? "Menyimpan..." : "Simpan Pemeriksaan"}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+
+                        {/* 3. Tabel Riwayat Pemeriksaan */}
+                        <div className="border border-border p-5 sm:p-6 bg-card rounded-md">
+                            <div className="border-b border-border pb-3 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                        Riwayat Pemeriksaan Lapangan
+                                    </h3>
+                                    <span className="text-[11px] text-muted-foreground tabular-nums">
+                                        {riwayatLapangan?.total ?? 0} catatan pemeriksaan
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="filter_lapangan" className="text-xs text-muted-foreground shrink-0">
+                                        Filter Lapangan:
+                                    </Label>
+                                    <Select
+                                        id="filter_lapangan"
+                                        value={filterLapangan}
+                                        onChange={(e) => handleFilterLapanganChange(e.target.value)}
+                                        className="h-8 text-xs w-44 rounded-md"
+                                    >
+                                        <option value="">Semua Lapangan</option>
+                                        {masterLapangan.map((lap) => (
+                                            <option key={lap.id_lapangan} value={lap.id_lapangan}>
+                                                {lap.nama_lapangan}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-border hover:bg-transparent">
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Tanggal</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Lapangan</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Karpet/Vinil</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Net</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Tiang</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Lampu</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Lantai</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Dinding</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Catatan</TableHead>
+                                            <TableHead className="text-xs font-semibold text-muted-foreground h-9">Pemeriksa</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {!riwayatLapangan || riwayatLapangan.data.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={10} className="text-center py-6 text-xs text-muted-foreground">
+                                                    Tidak ada riwayat pemeriksaan pada periode dan filter ini.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            riwayatLapangan.data.map((item) => {
+                                                const renderKondisi = (val: string) => {
+                                                    const labelMap: Record<string, string> = {
+                                                        baik: "Baik",
+                                                        rusak_ringan: "Rusak Ringan",
+                                                        rusak_sedang: "Rusak Sedang",
+                                                        rusak_berat: "Rusak Berat",
+                                                    };
+                                                    const label = labelMap[val] || val;
+                                                    if (val === "baik") {
+                                                        return <span className="text-muted-foreground">{label}</span>;
+                                                    }
+                                                    return <span className="text-destructive font-medium">{label}</span>;
+                                                };
+
+                                                return (
+                                                    <TableRow key={item.id} className="border-border text-xs">
+                                                        <TableCell className="tabular-nums text-foreground whitespace-nowrap">
+                                                            {formatTanggal(item.tanggal_pemeriksaan)}
+                                                        </TableCell>
+                                                        <TableCell className="font-medium text-foreground whitespace-nowrap">
+                                                            {item.lapangan?.nama_lapangan ?? `Lapangan #${item.id_lapangan}`}
+                                                        </TableCell>
+                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.karpet_vinil)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.net)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.tiang)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.lampu)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.lantai)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.dinding)}</TableCell>
+                                                        <TableCell className="max-w-[200px] truncate text-muted-foreground" title={item.catatan || ""}>
+                                                            {item.catatan || "-"}
+                                                        </TableCell>
+                                                        <TableCell className="text-muted-foreground whitespace-nowrap">
+                                                            {item.pemeriksa?.nama ?? "-"}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {/* Paginasi Riwayat Lapangan */}
+                            {riwayatLapangan && riwayatLapangan.last_page > 1 && (
+                                <div className="border-t border-border pt-4 mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>
+                                        Halaman {riwayatLapangan.current_page} dari {riwayatLapangan.last_page}
+                                    </span>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!riwayatLapangan.prev_page_url}
+                                            onClick={() => riwayatLapangan.prev_page_url && router.get(riwayatLapangan.prev_page_url)}
+                                            className="h-7 px-2 text-xs cursor-pointer rounded-md"
+                                        >
+                                            Sebelumnya
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!riwayatLapangan.next_page_url}
+                                            onClick={() => riwayatLapangan.next_page_url && router.get(riwayatLapangan.next_page_url)}
+                                            className="h-7 px-2 text-xs cursor-pointer rounded-md"
+                                        >
+                                            Berikutnya
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </TabsContent>
+
 
                     <TabsContent value="keuangan" className="space-y-10 pt-4">
                         <div className="border border-border p-5 sm:p-6 bg-card">

@@ -86,6 +86,7 @@ Route::middleware('auth:staff')->group(function () {
 
         // Laporan
         Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan');
+        Route::post('/admin/laporan/pemeriksaan-lapangan', [\App\Http\Controllers\Admin\LaporanController::class, 'storePemeriksaan'])->name('admin.laporan.pemeriksaan-lapangan.store');
         Route::get('/admin/laporan/ekspor', [\App\Http\Controllers\Admin\LaporanController::class, 'ekspor'])->name('admin.laporan.ekspor');
 
         // Pengaturan

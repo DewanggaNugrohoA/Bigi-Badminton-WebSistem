@@ -40,7 +40,7 @@ class LaporanEksporService
         return $str;
     }
 
-    public function generateExcel(string $startDate, string $endDate, User $adminUser): Spreadsheet
+    public function generateExcel(string $startDate, string $endDate, User $adminUser, ?int $idLapangan = null): Spreadsheet
     {
         $posSelesai = TransaksiPos::query()
             ->whereDate('tanggal', '>=', $startDate)
@@ -147,6 +147,7 @@ class LaporanEksporService
         $this->buildSheetOpname($spreadsheet, $startDate, $endDate);
         $this->buildSheetStokMenipis($spreadsheet);
         $this->buildSheetPemain($spreadsheet, $startDate, $endDate);
+        $this->buildSheetLapangan($spreadsheet, $startDate, $endDate, $idLapangan);
 
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -721,5 +722,61 @@ class LaporanEksporService
 
         $this->autoFitColumns($sheet, $cols);
     }
+
+    private function buildSheetLapangan(Spreadsheet $spreadsheet, string $startDate, string $endDate, ?int $idLapangan = null): void
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('Lapangan');
+
+        $headers = [
+            'Tanggal',
+            'Lapangan',
+            'Karpet / Vinil',
+            'Net',
+            'Tiang',
+            'Lampu',
+            'Lantai',
+            'Dinding',
+            'Catatan',
+            'Pemeriksa',
+        ];
+
+        $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+        foreach ($headers as $idx => $h) {
+            $sheet->setCellValue($cols[$idx] . '1', $h);
+        }
+
+        $this->applySheetStyles($sheet, 'J', 1);
+
+        $lapanganService = new LaporanLapanganService();
+        $riwayatList = $lapanganService->getSemuaRiwayatPemeriksaan($startDate, $endDate, $idLapangan);
+
+        $kondisiLabels = \App\Models\PemeriksaanLapangan::DAFTAR_KONDISI;
+
+        $row = 2;
+        foreach ($riwayatList as $item) {
+            $sheet->setCellValueExplicit("A{$row}", $item->tanggal_pemeriksaan->format('d/m/Y'), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("B{$row}", $this->sanitizeText($item->lapangan?->nama_lapangan ?? '-'), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("C{$row}", $this->sanitizeText($kondisiLabels[$item->karpet_vinil] ?? $item->karpet_vinil), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("D{$row}", $this->sanitizeText($kondisiLabels[$item->net] ?? $item->net), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("E{$row}", $this->sanitizeText($kondisiLabels[$item->tiang] ?? $item->tiang), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("F{$row}", $this->sanitizeText($kondisiLabels[$item->lampu] ?? $item->lampu), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("G{$row}", $this->sanitizeText($kondisiLabels[$item->lantai] ?? $item->lantai), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("H{$row}", $this->sanitizeText($kondisiLabels[$item->dinding] ?? $item->dinding), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("I{$row}", $this->sanitizeText($item->catatan ?? '-'), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("J{$row}", $this->sanitizeText($item->pemeriksa?->nama ?? '-'), DataType::TYPE_STRING);
+
+            $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("B{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("C{$row}:H{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("I{$row}:J{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+            $row++;
+        }
+
+        $this->autoFitColumns($sheet, $cols);
+    }
 }
+
 
