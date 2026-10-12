@@ -177,6 +177,22 @@ class LaporanController extends Controller
             ->orderBy('stok', 'asc')
             ->get(['id_produk', 'nama_produk', 'kategori', 'stok', 'stok_minimum']);
 
+        $pemainService = new \App\Services\LaporanPemainService();
+        $ringkasanPemain = $pemainService->getRingkasan($startDate, $endDate);
+        $searchPemain = $request->query('search_pemain');
+        $pagePemain = (int) $request->query('page_pemain', 1);
+        $daftarPemain = $pemainService->getPaginatedPemain($startDate, $endDate, $searchPemain, 15, $pagePemain);
+
+        $currentUser = $request->user();
+        $isAdmin = $currentUser && $currentUser->role === \App\Models\User::ROLE_ADMIN;
+
+        $daftarPemain->getCollection()->transform(function ($item) use ($isAdmin) {
+            if (! $isAdmin) {
+                $item['no_whatsapp'] = null;
+            }
+            return $item;
+        });
+
         return Inertia::render('Admin/Laporan/Index', [
             'ringkasan' => [
                 'pendapatan_pos' => $pendapatanPos,
@@ -190,6 +206,8 @@ class LaporanController extends Controller
                 'total_selisih_kas_shift' => $totalSelisihKasShift,
                 'pembayaran_sewa_breakdown' => $pembayaranSewaBreakdown,
             ],
+            'ringkasanPemain' => $ringkasanPemain,
+            'daftarPemain' => $daftarPemain,
             'posHarian' => $posHarian,
             'rekapShift' => $rekapShift,
             'riwayatVoidRetur' => $riwayatVoidRetur,
@@ -199,6 +217,7 @@ class LaporanController extends Controller
             'filters' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
+                'search_pemain' => $searchPemain ?? '',
             ],
         ]);
     }

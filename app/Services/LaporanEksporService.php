@@ -146,6 +146,7 @@ class LaporanEksporService
         $this->buildSheetRestock($spreadsheet, $startDate, $endDate);
         $this->buildSheetOpname($spreadsheet, $startDate, $endDate);
         $this->buildSheetStokMenipis($spreadsheet);
+        $this->buildSheetPemain($spreadsheet, $startDate, $endDate);
 
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -658,4 +659,67 @@ class LaporanEksporService
 
         $this->autoFitColumns($sheet, $cols);
     }
+
+    private function buildSheetPemain(Spreadsheet $spreadsheet, string $startDate, string $endDate): void
+    {
+        $sheet = new Worksheet($spreadsheet, 'Pemain');
+        $spreadsheet->addSheet($sheet);
+
+        $headers = [
+            'Nama',
+            'WhatsApp',
+            'Jenis',
+            'Sisa Sesi Paket',
+            'Kunjungan (Periode)',
+            'Open Mabar Dibuat',
+            'Open Mabar Diikuti',
+            'Kunjungan Terakhir',
+        ];
+        $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        foreach ($headers as $idx => $h) {
+            $sheet->setCellValue($cols[$idx] . '1', $h);
+        }
+
+        $this->applySheetStyles($sheet, 'H', 1);
+
+        $pemainService = new LaporanPemainService();
+        $pemainList = $pemainService->getSemuaPemain($startDate, $endDate, null);
+
+        $row = 2;
+        foreach ($pemainList as $p) {
+            $sheet->setCellValueExplicit("A{$row}", $this->sanitizeText($p['nama']), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("B{$row}", $this->sanitizeText($p['no_whatsapp'] ?? '-'), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("C{$row}", $this->sanitizeText($p['jenis_label']), DataType::TYPE_STRING);
+
+            if ($p['sisa_sesi_paket'] !== null) {
+                $sheet->setCellValueExplicit("D{$row}", (int) $p['sisa_sesi_paket'], DataType::TYPE_NUMERIC);
+                $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('#,##0');
+            } else {
+                $sheet->setCellValueExplicit("D{$row}", '-', DataType::TYPE_STRING);
+            }
+
+            $sheet->setCellValueExplicit("E{$row}", (int) $p['kunjungan_periode'], DataType::TYPE_NUMERIC);
+            $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('#,##0');
+
+            $sheet->setCellValueExplicit("F{$row}", (int) $p['open_mabar_dibuat'], DataType::TYPE_NUMERIC);
+            $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('#,##0');
+
+            $sheet->setCellValueExplicit("G{$row}", (int) $p['open_mabar_diikuti'], DataType::TYPE_NUMERIC);
+            $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode('#,##0');
+
+            $kunjunganTerakhirStr = $p['kunjungan_terakhir']
+                ? Carbon::parse($p['kunjungan_terakhir'])->format('d/m/Y')
+                : '-';
+            $sheet->setCellValueExplicit("H{$row}", $kunjunganTerakhirStr, DataType::TYPE_STRING);
+
+            $sheet->getStyle("C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("D{$row}:G{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("H{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            $row++;
+        }
+
+        $this->autoFitColumns($sheet, $cols);
+    }
 }
+

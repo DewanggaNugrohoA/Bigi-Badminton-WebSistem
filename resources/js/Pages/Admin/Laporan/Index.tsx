@@ -101,6 +101,30 @@ interface PaginatedData<T> {
     total: number;
 }
 
+interface PemainItem {
+    key: string;
+    id_user: number | null;
+    nama: string;
+    no_whatsapp: string | null;
+    norm_wa: string;
+    jenis_label: "Member" | "Reguler" | "Tanpa akun";
+    sisa_sesi_paket: number | null;
+    kunjungan_periode: number;
+    open_mabar_dibuat: number;
+    open_mabar_diikuti: number;
+    kunjungan_terakhir: string | null;
+    is_walkin: boolean;
+}
+
+interface RingkasanPemain {
+    pemain_terdaftar_aktif: number;
+    member_aktif: number;
+    pemain_berkunjung_periode: number;
+    total_kunjungan: number;
+    total_sesi_paket_terpakai: number;
+    jumlah_open_mabar: number;
+}
+
 interface Props {
     ringkasan: {
         pendapatan_pos: number;
@@ -120,6 +144,8 @@ interface Props {
             lunas: number;
         };
     };
+    ringkasanPemain?: RingkasanPemain;
+    daftarPemain?: PaginatedData<PemainItem>;
     posHarian: PaginatedData<PosHarianItem>;
     rekapShift: PaginatedData<ShiftItem>;
     riwayatVoidRetur: PaginatedData<ReturVoidItem>;
@@ -129,11 +155,14 @@ interface Props {
     filters: {
         start_date: string;
         end_date: string;
+        search_pemain?: string;
     };
 }
 
 export default function LaporanIndex({
     ringkasan,
+    ringkasanPemain,
+    daftarPemain,
     posHarian,
     rekapShift,
     riwayatVoidRetur,
@@ -142,9 +171,10 @@ export default function LaporanIndex({
     stokMenipis,
     filters,
 }: Props) {
-    const { auth } = usePage<{ auth: { user: { nama: string } } }>().props;
+    const { auth } = usePage<{ auth: { user: { nama: string; role: string } } }>().props;
     const [startDate, setStartDate] = useState(filters.start_date || "");
     const [endDate, setEndDate] = useState(filters.end_date || "");
+    const [searchPemain, setSearchPemain] = useState(filters.search_pemain || "");
     const [dateError, setDateError] = useState("");
 
     const totalPendapatan = (ringkasan?.pendapatan_pos || 0) + (ringkasan?.pendapatan_sewa_lapangan || 0);
@@ -163,6 +193,20 @@ export default function LaporanIndex({
             {
                 start_date: startDate,
                 end_date: endDate,
+                search_pemain: searchPemain || undefined,
+            },
+            { preserveState: true }
+        );
+    };
+
+    const handleSearchPemainSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get(
+            "/admin/laporan",
+            {
+                start_date: startDate,
+                end_date: endDate,
+                search_pemain: searchPemain || undefined,
             },
             { preserveState: true }
         );
@@ -172,6 +216,7 @@ export default function LaporanIndex({
         setDateError("");
         setStartDate("");
         setEndDate("");
+        setSearchPemain("");
         router.get("/admin/laporan", {}, { preserveState: true });
     };
 
@@ -315,9 +360,191 @@ export default function LaporanIndex({
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="pemain" className="pt-6">
-                        <div className="py-12 text-center border-t border-border">
-                            <p className="text-xs text-muted-foreground">Segera hadir</p>
+                    <TabsContent value="pemain" className="space-y-10 pt-4">
+                        <div className="border border-border p-5 sm:p-6 bg-card">
+                            <div className="border-b border-border pb-3 mb-4">
+                                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Ringkasan Aktivitas Pemain
+                                </h2>
+                            </div>
+
+                            <div className="space-y-3 text-xs divide-y divide-border/40">
+                                <div className="flex justify-between py-2 items-center">
+                                    <span className="text-foreground">Jumlah Pemain Terdaftar Aktif</span>
+                                    <span className="tabular-nums font-medium text-foreground">
+                                        {ringkasanPemain?.pemain_terdaftar_aktif ?? 0}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-2 items-center">
+                                    <span className="text-foreground">Member Aktif</span>
+                                    <span className="tabular-nums font-medium text-foreground">
+                                        {ringkasanPemain?.member_aktif ?? 0}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-2 items-center">
+                                    <span className="text-foreground">Pemain yang Berkunjung pada Periode</span>
+                                    <span className="tabular-nums font-medium text-foreground">
+                                        {ringkasanPemain?.pemain_berkunjung_periode ?? 0}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-2 items-center">
+                                    <span className="text-foreground">Total Kunjungan</span>
+                                    <span className="tabular-nums font-medium text-foreground">
+                                        {ringkasanPemain?.total_kunjungan ?? 0}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-2 items-center">
+                                    <span className="text-foreground">Total Sesi Paket Terpakai pada Periode</span>
+                                    <span className="tabular-nums font-medium text-foreground">
+                                        {ringkasanPemain?.total_sesi_paket_terpakai ?? 0}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-2 items-center">
+                                    <span className="text-foreground">Jumlah Open Mabar pada Periode</span>
+                                    <span className="tabular-nums font-medium text-foreground">
+                                        {ringkasanPemain?.jumlah_open_mabar ?? 0}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className="border-b border-border pb-2 mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                        Daftar Kunjungan & Aktivitas Pemain
+                                    </h3>
+                                    <span className="text-[11px] text-muted-foreground tabular-nums">
+                                        {daftarPemain?.total ?? 0} entri terdaftar & walk-in
+                                    </span>
+                                </div>
+
+                                <form onSubmit={handleSearchPemainSubmit} className="flex items-center gap-2">
+                                    <Input
+                                        type="text"
+                                        placeholder="Cari nama atau nomor..."
+                                        value={searchPemain}
+                                        onChange={(e) => setSearchPemain(e.target.value)}
+                                        className="h-10 text-xs w-48 sm:w-64"
+                                        aria-label="Pencarian nama atau nomor WhatsApp pemain"
+                                    />
+                                    <Button
+                                        type="submit"
+                                        variant="default"
+                                        className="h-10 text-xs font-medium cursor-pointer"
+                                    >
+                                        Cari
+                                    </Button>
+                                    {filters.search_pemain && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setSearchPemain("");
+                                                router.get(
+                                                    "/admin/laporan",
+                                                    {
+                                                        start_date: startDate,
+                                                        end_date: endDate,
+                                                    },
+                                                    { preserveState: true }
+                                                );
+                                            }}
+                                            className="h-10 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                                        >
+                                            Reset
+                                        </Button>
+                                    )}
+                                </form>
+                            </div>
+
+                            <div className="overflow-x-auto max-w-full border border-border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-b border-border bg-muted/30">
+                                            <TableHead className="whitespace-nowrap text-xs text-muted-foreground font-semibold">Nama</TableHead>
+                                            <TableHead className="whitespace-nowrap text-xs text-muted-foreground font-semibold">WhatsApp</TableHead>
+                                            <TableHead className="whitespace-nowrap text-xs text-muted-foreground font-semibold text-center">Jenis</TableHead>
+                                            <TableHead className="whitespace-nowrap text-xs text-muted-foreground font-semibold text-right">Sisa Sesi Paket</TableHead>
+                                            <TableHead className="whitespace-nowrap text-xs text-muted-foreground font-semibold text-right">Kunjungan</TableHead>
+                                            <TableHead className="whitespace-nowrap text-xs text-muted-foreground font-semibold text-right">Mabar Dibuat</TableHead>
+                                            <TableHead className="whitespace-nowrap text-xs text-muted-foreground font-semibold text-right">Mabar Diikuti</TableHead>
+                                            <TableHead className="whitespace-nowrap text-xs text-muted-foreground font-semibold text-center">Kunjungan Terakhir</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {!daftarPemain || daftarPemain.data.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={8} className="text-center py-6 text-xs text-muted-foreground">
+                                                    Tidak ada data pemain pada periode ini.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            daftarPemain.data.map((item) => (
+                                                <TableRow key={item.key} className="border-b border-border/60">
+                                                    <TableCell className="text-xs whitespace-nowrap font-medium text-foreground">
+                                                        {item.nama}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs whitespace-nowrap tabular-nums text-foreground">
+                                                        {item.no_whatsapp ? item.no_whatsapp : "-"}
+                                                    </TableCell>
+                                                    <TableCell className="text-center whitespace-nowrap">
+                                                        <Badge
+                                                            variant={item.jenis_label === "Member" ? "success" : item.jenis_label === "Reguler" ? "info" : "neutral"}
+                                                            className="text-[11px] py-0 px-2"
+                                                        >
+                                                            {item.jenis_label}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                        {item.sisa_sesi_paket !== null ? item.sisa_sesi_paket : "-"}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground">
+                                                        {item.kunjungan_periode}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                        {item.open_mabar_dibuat}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                        {item.open_mabar_diikuti}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-center whitespace-nowrap text-foreground">
+                                                        {item.kunjungan_terakhir ? formatTanggal(item.kunjungan_terakhir) : "-"}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {daftarPemain && daftarPemain.last_page > 1 && (
+                                <div className="print:hidden flex items-center justify-between pt-2 text-xs">
+                                    <span className="text-muted-foreground text-[11px]">
+                                        Halaman {daftarPemain.current_page} dari {daftarPemain.last_page}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!daftarPemain.prev_page_url}
+                                            onClick={() => daftarPemain.prev_page_url && router.get(daftarPemain.prev_page_url)}
+                                            className="h-7 px-2 text-xs cursor-pointer"
+                                        >
+                                            Sebelumnya
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!daftarPemain.next_page_url}
+                                            onClick={() => daftarPemain.next_page_url && router.get(daftarPemain.next_page_url)}
+                                            className="h-7 px-2 text-xs cursor-pointer"
+                                        >
+                                            Berikutnya
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </TabsContent>
 
