@@ -19,7 +19,6 @@ use Inertia\Response;
 
 class MemberController extends Controller
 {
-    
     protected function logAudit(int $idAdmin, string $aksi, string $objek, ?string $keterangan = null): void
     {
         AuditLog::create([
@@ -31,37 +30,39 @@ class MemberController extends Controller
         ]);
     }
 
-    
     public function index(Request $request): Response
     {
         $search = $request->input('search');
-        $filter = $request->input('filter', 'semua'); 
+        $filter = $request->input('filter', 'semua');
         $today = Carbon::today('Asia/Jakarta');
 
-        $query = User::where('role', User::ROLE_USER)
+        $query = User::query()
+            ->where('role', User::ROLE_USER)
             ->with([
                 'paketMember' => function ($q) {
                     $q->with([
-                        'reservasi.detailReservasi',
-                        'penyesuaian.admin:id_user,nama',
+                        'penyesuaian.admin:id_user,nama,role',
+                        'reservasi',
                     ])->orderBy('id_paket', 'desc');
                 },
             ]);
 
-        
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('no_whatsapp', 'like', "%{$search}%");
+                    ->orWhere('no_whatsapp', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        
         if ($filter === 'aktif') {
             $query->where('jenis_pelanggan', User::JENIS_PELANGGAN_MEMBER)
                 ->where('status_member', User::STATUS_MEMBER_AKTIF);
         } elseif ($filter === 'bukan_member') {
-            $query->where('jenis_pelanggan', User::JENIS_PELANGGAN_REGULER);
+            $query->where(function ($q) {
+                $q->where('jenis_pelanggan', '!=', User::JENIS_PELANGGAN_MEMBER)
+                    ->orWhereNull('jenis_pelanggan');
+            });
         } elseif ($filter === 'kedaluwarsa') {
             $query->where('jenis_pelanggan', User::JENIS_PELANGGAN_MEMBER)
                 ->where(function ($q) use ($today) {
@@ -70,11 +71,9 @@ class MemberController extends Controller
                 });
         }
 
-        $users = $query->orderBy('nama', 'asc')->paginate(15)->withQueryString();
+        $customers = $query->orderBy('nama', 'asc')->paginate(15)->withQueryString();
 
-        
-        $transformed = $users->through(function ($u) use ($today) {
-            
+        $transformed = $customers->through(function ($u) use ($today) {
             $activePaket = $u->paketMember->first(function ($p) use ($today) {
                 if ($p->status === PaketMember::STATUS_DIBATALKAN) {
                     return false;
@@ -85,64 +84,75 @@ class MemberController extends Controller
                 return $p->sisa_sesi > 0;
             });
 
-            
             $isExpired = $u->tanggal_akhir_member && Carbon::parse($u->tanggal_akhir_member)->startOfDay()->lt($today);
             $statusLabel = 'Bukan Member';
             if ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER) {
                 if ($u->status_member === User::STATUS_MEMBER_AKTIF && ! $isExpired) {
                     $statusLabel = 'Member Aktif';
                 } elseif ($isExpired) {
-                    $statusLabel = 'Kedaluwarsa';
+                    $statusLabel = 'Member Kedaluwarsa';
                 } else {
-                    $statusLabel = 'Tidak Aktif';
+                    $statusLabel = 'Member Tidak Aktif';
                 }
             }
 
-            
-            $daftarPaket = $u->paketMember->map(function ($p) {
-                $riwayatReservasi = $p->reservasi->map(function ($res) use ($u) {
-                    $namaTampil = $res->id_user ? $u->nama : ($res->nama_pemesan ?? $u->nama);
-                    return [
-                        'id_reservasi' => $res->id_reservasi,
-                        'nama_pemesan' => $namaTampil,
-                        'tanggal_pemesanan' => $res->tanggal_pemesanan,
-                        'status_reservasi' => $res->status_reservasi,
-                        'total_biaya' => (float) $res->total_biaya,
-                        'jumlah_sesi' => $res->detailReservasi->count(),
-                        'jadwal' => $res->detailReservasi->map(function ($d) {
-                            return [
-                                'tanggal_main' => $d->tanggal_main,
-                                'jam_mulai' => substr($d->jam_mulai, 0, 5),
-                                'jam_selesai' => substr($d->jam_selesai, 0, 5),
-                            ];
-                        }),
-                    ];
-                });
+            $daftarPaket = $u->paketMember->map(function ($p) use ($u) {
+                $riwayat = [];
 
-                $riwayatPenyesuaian = $p->penyesuaian->map(function ($peny) {
-                    return [
-                        'id' => $peny->id,
-                        'selisih' => $peny->selisih,
-                        'alasan' => $peny->alasan,
-                        'admin_nama' => $peny->admin?->nama ?? 'Admin',
-                        'created_at' => $peny->created_at?->format('d/m/Y H:i'),
+                foreach ($p->reservasi as $res) {
+                    $riwayat[] = [
+                        'id_unique' => "res_{$res->id_reservasi}",
+                        'waktu_sort' => $res->created_at ? $res->created_at->toDateTimeString() : '',
+                        'tanggal_display' => $res->tanggal_main ? $res->tanggal_main->format('d/m/Y') : '-',
+                        'tipe' => 'reservasi',
+                        'tipe_label' => 'Sewa Lapangan',
+                        'selisih' => -1,
+                        'keterangan' => "Reservasi #{$res->id_reservasi} ({$res->jam_mulai} - {$res->jam_selesai})",
+                        'dicatat_oleh' => 'Sistem Reservasi',
                     ];
+                }
+
+                foreach ($p->penyesuaian as $adj) {
+                    $tanggalAdj = $adj->tanggal_main
+                        ? $adj->tanggal_main->format('d/m/Y')
+                        : ($adj->created_at ? $adj->created_at->format('d/m/Y') : '-');
+
+                    $tipeLabel = $adj->selisih < 0 ? 'Pemakaian Sesi' : 'Penambahan Sesi';
+                    $dicatatOleh = $adj->admin ? $adj->admin->nama : 'Petugas';
+
+                    $riwayat[] = [
+                        'id_unique' => "adj_{$adj->id_penyesuaian}",
+                        'waktu_sort' => $adj->created_at ? $adj->created_at->toDateTimeString() : '',
+                        'tanggal_display' => $tanggalAdj,
+                        'tipe' => $adj->selisih < 0 ? 'pemakaian' : 'penambahan',
+                        'tipe_label' => $tipeLabel,
+                        'selisih' => $adj->selisih,
+                        'keterangan' => $adj->alasan ?: '-',
+                        'dicatat_oleh' => $dicatatOleh,
+                    ];
+                }
+
+                usort($riwayat, function ($a, $b) {
+                    return strcmp($b['waktu_sort'], $a['waktu_sort']);
                 });
 
                 return [
                     'id_paket' => $p->id_paket,
                     'jumlah_sesi' => $p->jumlah_sesi,
                     'sesi_terpakai' => $p->sesi_terpakai,
-                    'total_penyesuaian' => $p->total_penyesuaian,
                     'sisa_sesi' => $p->sisa_sesi,
-                    'tanggal_mulai' => $p->tanggal_mulai?->format('Y-m-d'),
-                    'tanggal_akhir' => $p->tanggal_akhir?->format('Y-m-d'),
+                    'tanggal_mulai' => $p->tanggal_mulai ? $p->tanggal_mulai->format('Y-m-d') : null,
+                    'tanggal_akhir' => $p->tanggal_akhir ? $p->tanggal_akhir->format('Y-m-d') : null,
+                    'periode_teks' => $p->tanggal_mulai
+                        ? ($p->tanggal_akhir
+                            ? "{$p->tanggal_mulai->format('d/m/Y')} s/d {$p->tanggal_akhir->format('d/m/Y')}"
+                            : "Mulai {$p->tanggal_mulai->format('d/m/Y')} (Tanpa kedaluwarsa)")
+                        : '-',
                     'status' => $p->status,
-                    'status_dinamis' => $p->status_dinamis,
+                    'status_label' => $p->status_label,
                     'catatan' => $p->catatan,
-                    'created_at' => $p->created_at?->format('d/m/Y H:i'),
-                    'reservasi' => $riwayatReservasi,
-                    'penyesuaian' => $riwayatPenyesuaian,
+                    'created_at' => $p->created_at ? $p->created_at->format('d/m/Y H:i') : '-',
+                    'riwayat_transaksi' => $riwayat,
                 ];
             });
 
@@ -158,9 +168,9 @@ class MemberController extends Controller
                 'tanggal_akhir_member' => $u->tanggal_akhir_member?->format('Y-m-d'),
                 'masa_berlaku_teks' => $u->tanggal_mulai_member && $u->tanggal_akhir_member
                     ? "{$u->tanggal_mulai_member->format('d/m/Y')} s/d {$u->tanggal_akhir_member->format('d/m/Y')}"
-                    : '-',
+                    : ($u->tanggal_mulai_member ? "Mulai {$u->tanggal_mulai_member->format('d/m/Y')}" : '-'),
                 'sisa_sesi_aktif' => $activePaket ? $activePaket->sisa_sesi : 0,
-                'paket_aktif_id' => $activePaket?->id_paket,
+                'paket_aktif_id' => $activePaket ? $activePaket->id_paket : null,
                 'paket_list' => $daftarPaket,
             ];
         });
@@ -174,13 +184,11 @@ class MemberController extends Controller
         ]);
     }
 
-    
     public function updateStatus(UpdateMemberStatusRequest $request, int $userId)
     {
         $user = User::where('role', User::ROLE_USER)->findOrFail($userId);
         $adminId = $request->user()->id_user;
 
-        
         $validated = $request->only([
             'jenis_pelanggan',
             'status_member',
@@ -207,7 +215,6 @@ class MemberController extends Controller
         return redirect()->back()->with('success', "Status keanggotaan {$user->nama} berhasil diperbarui.");
     }
 
-    
     public function storePaket(StorePaketMemberRequest $request, int $userId)
     {
         $user = User::where('role', User::ROLE_USER)->findOrFail($userId);
@@ -232,33 +239,44 @@ class MemberController extends Controller
         return redirect()->back()->with('success', "Paket sesi ({$paket->jumlah_sesi} sesi) berhasil ditambahkan untuk {$user->nama}.");
     }
 
-    
     public function adjustPaket(StorePenyesuaianPaketRequest $request, int $paketId)
     {
         $paket = PaketMember::with('user')->findOrFail($paketId);
         $adminId = $request->user()->id_user;
 
-        DB::transaction(function () use ($paket, $request, $adminId) {
+        $tanggalMain = null;
+        if ($request->filled('tanggal_main')) {
+            $tanggalMain = $request->tanggal_main;
+        } elseif ($request->filled('tanggal')) {
+            $tanggalMain = $request->tanggal;
+        }
+
+        DB::transaction(function () use ($paket, $request, $adminId, $tanggalMain) {
             PenyesuaianPaket::create([
                 'id_paket' => $paket->id_paket,
                 'selisih' => (int) $request->selisih,
+                'tanggal_main' => $tanggalMain,
                 'alasan' => $request->alasan,
                 'id_admin' => $adminId,
             ]);
 
             $tanda = $request->selisih > 0 ? "+{$request->selisih}" : (string) $request->selisih;
+            $aksiTeks = $request->selisih < 0 ? 'Pemakaian sesi' : 'Penambahan sesi';
             $this->logAudit(
                 $adminId,
                 'PENYESUAIAN_PAKET_MEMBER',
                 "Paket Member #{$paket->id_paket}",
-                "Penyesuaian sesi {$tanda} untuk {$paket->user->nama}. Alasan: {$request->alasan}"
+                "{$aksiTeks} ({$tanda} sesi) untuk {$paket->user->nama}. Alasan: {$request->alasan}"
             );
         });
 
-        return redirect()->back()->with('success', 'Penyesuaian sesi paket berhasil disimpan.');
+        $pesan = $request->selisih < 0
+            ? 'Pemakaian ' . abs((int) $request->selisih) . ' sesi berhasil dicatat.'
+            : 'Penambahan ' . (int) $request->selisih . ' sesi berhasil disimpan.';
+
+        return redirect()->back()->with('success', $pesan);
     }
 
-    
     public function cancelPaket(CancelPaketMemberRequest $request, int $paketId)
     {
         $paket = PaketMember::with('user')->findOrFail($paketId);

@@ -76,17 +76,19 @@ Route::middleware('auth:staff')->group(function () {
         Route::get('/admin/open-mabar/{id}/conflict', [\App\Http\Controllers\Admin\OpenMabarController::class, 'checkConflict'])->name('admin.open-mabar.conflict');
         Route::post('/admin/open-mabar/{id}/approve', [\App\Http\Controllers\Admin\OpenMabarController::class, 'approve'])->name('admin.open-mabar.approve');
         Route::post('/admin/open-mabar/{id}/reject', [\App\Http\Controllers\Admin\OpenMabarController::class, 'reject'])->name('admin.open-mabar.reject');
+
+        // Member
         Route::get('/admin/member', [\App\Http\Controllers\Admin\MemberController::class, 'index'])->name('admin.member');
         Route::put('/admin/member/{user}/status', [\App\Http\Controllers\Admin\MemberController::class, 'updateStatus'])->name('admin.member.update-status');
         Route::post('/admin/member/{user}/paket', [\App\Http\Controllers\Admin\MemberController::class, 'storePaket'])->name('admin.member.store-paket');
         Route::post('/admin/member/paket/{paket}/adjust', [\App\Http\Controllers\Admin\MemberController::class, 'adjustPaket'])->name('admin.member.adjust-paket');
         Route::post('/admin/member/paket/{paket}/cancel', [\App\Http\Controllers\Admin\MemberController::class, 'cancelPaket'])->name('admin.member.cancel-paket');
 
-        
+        // Laporan
         Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan');
         Route::get('/admin/laporan/ekspor', [\App\Http\Controllers\Admin\LaporanController::class, 'ekspor'])->name('admin.laporan.ekspor');
 
-        
+        // Pengaturan
         Route::get('/admin/pengaturan', [AdminController::class, 'placeholder'])->name('admin.pengaturan');
     });
 

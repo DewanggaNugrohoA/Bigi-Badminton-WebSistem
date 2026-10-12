@@ -14,7 +14,7 @@ import {
     TableRow,
     TableCell,
 } from "@/components/ui/table";
-import { Search, UserCheck, Package, Plus, ChevronLeft, ChevronRight, UserCog } from "lucide-react";
+import { Search, Package, Plus, UserCog } from "lucide-react";
 import SetMemberModal from "./partials/SetMemberModal";
 import TambahPaketModal from "./partials/TambahPaketModal";
 import PaketDetailModal from "./partials/PaketDetailModal";
@@ -63,8 +63,12 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
     const [filter, setFilter] = useState(filters.filter || "semua");
 
     const [selectedUserForStatus, setSelectedUserForStatus] = useState<CustomerItem | null>(null);
-    const [selectedUserForDetail, setSelectedUserForDetail] = useState<CustomerItem | null>(null);
+    const [selectedUserIdForDetail, setSelectedUserIdForDetail] = useState<number | null>(null);
     const [selectedUserForTambahPaket, setSelectedUserForTambahPaket] = useState<CustomerItem | null>(null);
+
+    const selectedUserForDetail = selectedUserIdForDetail
+        ? customers.data.find((c) => c.id_user === selectedUserIdForDetail) || null
+        : null;
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,9 +98,8 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
         >
             <Head title="Manajemen Member & Paket Sesi" />
 
-            <div className="space-y-6">
-                
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                             Kelola Member & Paket Sesi
@@ -107,12 +110,11 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                     </div>
                 </div>
 
-                
                 <Card className="border-border bg-card">
-                    <CardContent className="p-4 sm:p-5">
+                    <CardContent className="p-3 sm:p-5">
                         <form
                             onSubmit={handleSearchSubmit}
-                            className="flex flex-col md:flex-row md:items-center gap-3"
+                            className="flex flex-col md:flex-row md:items-center gap-2 sm:gap-3"
                         >
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
@@ -120,7 +122,7 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                     placeholder="Cari nama pelanggan atau nomor WhatsApp..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="pl-9 text-xs sm:text-sm"
+                                    className="pl-9 text-xs sm:text-sm h-9 sm:h-10"
                                 />
                             </div>
 
@@ -128,7 +130,7 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                 <Select
                                     value={filter}
                                     onChange={(e) => handleFilterChange(e.target.value)}
-                                    className="w-48 text-xs sm:text-sm"
+                                    className="w-full sm:w-48 text-xs sm:text-sm h-9 sm:h-10"
                                 >
                                     <option value="semua">Semua Pelanggan</option>
                                     <option value="aktif">Member Aktif</option>
@@ -136,7 +138,7 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                     <option value="kedaluwarsa">Member Kedaluwarsa</option>
                                 </Select>
 
-                                <Button type="submit" variant="secondary" className="text-xs sm:text-sm">
+                                <Button type="submit" variant="secondary" className="text-xs sm:text-sm shrink-0 h-9 sm:h-10">
                                     Cari
                                 </Button>
                             </div>
@@ -144,25 +146,25 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                     </CardContent>
                 </Card>
 
-                
                 <Card className="border-border bg-card overflow-hidden">
-                    <CardHeader className="p-4 sm:p-5 border-b border-border flex flex-row items-center justify-between">
-                        <CardTitle className="text-base font-semibold">
+                    <CardHeader className="p-3 sm:p-5 border-b border-border flex flex-row items-center justify-between">
+                        <CardTitle className="text-sm sm:text-base font-semibold">
                             Daftar Pelanggan ({customers.total} Orang)
                         </CardTitle>
                     </CardHeader>
 
-                    <div className="w-full overflow-x-auto">
-                        <Table className="min-w-[760px]">
+                    {/* Desktop & Tablet Table View */}
+                    <div className="hidden md:block w-full overflow-x-auto">
+                        <Table className="min-w-[720px]">
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[200px]">Nama Pelanggan</TableHead>
-                                    <TableHead className="w-[140px]">WhatsApp</TableHead>
-                                    <TableHead className="w-[100px]">Jenis</TableHead>
-                                    <TableHead className="w-[180px]">Masa Berlaku</TableHead>
-                                    <TableHead className="w-[130px]">Status</TableHead>
-                                    <TableHead className="w-[120px]">Sisa Sesi</TableHead>
-                                    <TableHead className="text-right w-[180px]">Aksi</TableHead>
+                                    <TableHead className="w-[180px]">Nama Pelanggan</TableHead>
+                                    <TableHead className="w-[130px]">WhatsApp</TableHead>
+                                    <TableHead className="w-[90px]">Jenis</TableHead>
+                                    <TableHead className="w-[170px]">Masa Berlaku</TableHead>
+                                    <TableHead className="w-[120px]">Status</TableHead>
+                                    <TableHead className="w-[110px]">Sisa Sesi</TableHead>
+                                    <TableHead className="text-right w-[170px]">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -187,7 +189,7 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                                 <TableCell className="font-semibold text-foreground">
                                                     <div>{c.nama}</div>
                                                     {c.email && (
-                                                        <div className="text-[11px] text-muted-foreground font-normal">
+                                                        <div className="text-[11px] text-muted-foreground font-normal truncate max-w-[160px]">
                                                             {c.email}
                                                         </div>
                                                     )}
@@ -239,7 +241,7 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                                             onClick={() => setSelectedUserForStatus(c)}
                                                         >
                                                             <UserCog className="size-3.5" />
-                                                            <span className="hidden sm:inline">Status</span>
+                                                            <span>Status</span>
                                                         </Button>
 
                                                         {isMember && (
@@ -250,10 +252,10 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                                                     size="sm"
                                                                     className="h-8 text-xs gap-1"
                                                                     title="Lihat rincian paket sesi"
-                                                                    onClick={() => setSelectedUserForDetail(c)}
+                                                                    onClick={() => setSelectedUserIdForDetail(c.id_user)}
                                                                 >
                                                                     <Package className="size-3.5" />
-                                                                    <span className="hidden sm:inline">Paket</span>
+                                                                    <span>Paket</span>
                                                                 </Button>
 
                                                                 <Button
@@ -265,7 +267,7 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                                                     onClick={() => setSelectedUserForTambahPaket(c)}
                                                                 >
                                                                     <Plus className="size-3.5" />
-                                                                    <span className="hidden sm:inline">Tambah</span>
+                                                                    <span>Tambah</span>
                                                                 </Button>
                                                             </>
                                                         )}
@@ -279,19 +281,113 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                         </Table>
                     </div>
 
-                    
-                    {customers.last_page > 1 && (
-                        <div className="p-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-                            <div>
-                                Halaman {customers.current_page} dari {customers.last_page} ({customers.total} total pelanggan)
+                    {/* Mobile Card List View (Optimal untuk 375px) */}
+                    <div className="block md:hidden divide-y divide-border">
+                        {customers.data.length === 0 ? (
+                            <div className="p-6 text-center text-muted-foreground text-xs">
+                                Tidak ada data pelanggan yang sesuai dengan kriteria pencarian.
                             </div>
-                            <div className="flex items-center gap-1">
+                        ) : (
+                            customers.data.map((c) => {
+                                const isMember = c.jenis_pelanggan === "member";
+                                const statusBadgeVariant =
+                                    c.status_label === "Member Aktif"
+                                        ? "success"
+                                        : c.status_label === "Kedaluwarsa"
+                                        ? "warning"
+                                        : "neutral";
+
+                                return (
+                                    <div key={c.id_user} className="p-3.5 space-y-2.5">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <div className="font-semibold text-sm text-foreground truncate">{c.nama}</div>
+                                                <div className="text-xs font-mono text-muted-foreground">{c.no_whatsapp}</div>
+                                            </div>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <Badge
+                                                    variant={isMember ? "success" : "neutral"}
+                                                    className={isMember ? "bg-[var(--brand)] text-white border-transparent capitalize text-[10px]" : "capitalize text-[10px]"}
+                                                >
+                                                    {c.jenis_pelanggan}
+                                                </Badge>
+                                                <Badge variant={statusBadgeVariant} className="text-[10px]">
+                                                    {c.status_label}
+                                                </Badge>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 text-xs bg-muted/40 p-2 rounded-md">
+                                            <div>
+                                                <span className="text-muted-foreground block text-[10px]">Masa Berlaku</span>
+                                                <span className="font-mono text-foreground text-[11px] truncate block">
+                                                    {c.masa_berlaku_teks}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-muted-foreground block text-[10px]">Sisa Sesi</span>
+                                                <span className="font-mono font-bold text-foreground text-[11px]">
+                                                    {isMember ? `${c.sisa_sesi_aktif} Sesi` : "-"}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-end gap-1.5 pt-1">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 text-xs gap-1 flex-1"
+                                                onClick={() => setSelectedUserForStatus(c)}
+                                            >
+                                                <UserCog className="size-3.5" />
+                                                <span>Status</span>
+                                            </Button>
+
+                                            {isMember && (
+                                                <>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 text-xs gap-1 flex-1"
+                                                        onClick={() => setSelectedUserIdForDetail(c.id_user)}
+                                                    >
+                                                        <Package className="size-3.5" />
+                                                        <span>Paket</span>
+                                                    </Button>
+
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        size="sm"
+                                                        className="h-8 text-xs gap-1 flex-1"
+                                                        onClick={() => setSelectedUserForTambahPaket(c)}
+                                                    >
+                                                        <Plus className="size-3.5" />
+                                                        <span>Tambah</span>
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    {customers.last_page > 1 && (
+                        <div className="p-3 sm:p-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+                            <div>
+                                Halaman {customers.current_page} dari {customers.last_page} ({customers.total} pelanggan)
+                            </div>
+                            <div className="flex items-center gap-1 flex-wrap justify-center">
                                 {customers.links.map((link, idx) => {
                                     if (!link.url) {
                                         return (
                                             <span
                                                 key={idx}
-                                                className="px-2.5 py-1 text-muted-foreground/50 text-xs"
+                                                className="px-2 py-1 text-muted-foreground/50 text-xs"
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
                                             />
                                         );
@@ -313,7 +409,6 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                 </Card>
             </div>
 
-            
             <SetMemberModal
                 open={!!selectedUserForStatus}
                 onOpenChange={(v) => {
@@ -331,9 +426,9 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
             />
 
             <PaketDetailModal
-                open={!!selectedUserForDetail}
+                open={!!selectedUserIdForDetail}
                 onOpenChange={(v) => {
-                    if (!v) setSelectedUserForDetail(null);
+                    if (!v) setSelectedUserIdForDetail(null);
                 }}
                 customer={selectedUserForDetail}
                 onOpenTambahPaket={() => {
