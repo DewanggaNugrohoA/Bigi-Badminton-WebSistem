@@ -203,6 +203,10 @@ class OpenMabarController extends Controller
     
     public function destroy(OpenMabar $mabar)
     {
+        if ($mabar->status === OpenMabar::STATUS_DISETUJUI) {
+            abort(403, 'Jadwal mabar yang telah disetujui tidak dapat dihapus.');
+        }
+
         if (!Gate::allows('delete', $mabar)) {
             abort(403, 'Anda tidak dapat menghapus jadwal ini.');
         }

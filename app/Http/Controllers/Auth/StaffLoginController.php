@@ -124,6 +124,7 @@ class StaffLoginController extends Controller
         }
 
         Auth::guard('staff')->logout();
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect('/staff/login')->with('success', 'Anda telah berhasil keluar.');

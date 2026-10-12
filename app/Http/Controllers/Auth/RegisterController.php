@@ -100,7 +100,7 @@ class RegisterController extends Controller
         RateLimiter::hit($phoneHourKey, 3600);
         RateLimiter::hit($ipHourKey, 3600);
 
-        $otp = sprintf('%06d', mt_rand(100000, 999999));
+        $otp = sprintf('%06d', random_int(100000, 999999));
 
         VerifikasiOtp::updateOrCreate(
             ['no_whatsapp' => $noWhatsapp],
@@ -151,6 +151,14 @@ class RegisterController extends Controller
 
         $noWhatsapp = $validated['no_whatsapp'];
         $attemptKey = 'otp_attempts:' . $noWhatsapp;
+        $ipVerifyKey = 'verify_otp_ip:' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($ipVerifyKey, 15)) {
+            $seconds = RateLimiter::availableIn($ipVerifyKey);
+            throw ValidationException::withMessages([
+                'kode_otp' => "Terlalu banyak percobaan verifikasi kode dari perangkat ini. Silakan coba lagi dalam {$seconds} detik.",
+            ]);
+        }
 
         $pending = VerifikasiOtp::where('no_whatsapp', $noWhatsapp)->first();
 
@@ -163,6 +171,7 @@ class RegisterController extends Controller
         
         $inputHash = $this->hashOtp($validated['kode_otp']);
         if (! hash_equals($pending->kode_otp, $inputHash)) {
+            RateLimiter::hit($ipVerifyKey, 600);
             RateLimiter::hit($attemptKey, 1800);
 
             if (RateLimiter::attempts($attemptKey) >= 5) {
@@ -183,6 +192,7 @@ class RegisterController extends Controller
         }
 
         RateLimiter::clear($attemptKey);
+        RateLimiter::clear($ipVerifyKey);
 
         User::create([
             'nama' => $pending->nama,
@@ -240,7 +250,7 @@ class RegisterController extends Controller
         RateLimiter::hit($phoneHourKey, 3600);
         RateLimiter::hit($ipHourKey, 3600);
 
-        $otp = sprintf('%06d', mt_rand(100000, 999999));
+        $otp = sprintf('%06d', random_int(100000, 999999));
         $pending->update([
             'kode_otp' => $this->hashOtp($otp),
             'expires_at' => Carbon::now()->addMinutes(10),

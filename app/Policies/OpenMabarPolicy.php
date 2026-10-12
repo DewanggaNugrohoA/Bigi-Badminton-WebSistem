@@ -24,6 +24,7 @@ class OpenMabarPolicy
     
     public function delete(User $user, OpenMabar $openMabar): bool
     {
-        return $openMabar->id_user === $user->id_user;
+        return $openMabar->id_user === $user->id_user
+            && in_array($openMabar->status, [OpenMabar::STATUS_MENUNGGU, OpenMabar::STATUS_DITOLAK], true);
     }
 }

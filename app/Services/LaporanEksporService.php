@@ -32,9 +32,12 @@ class LaporanEksporService
         }
 
         $str = (string) $value;
-        $firstChar = $str[0];
-        if (in_array($firstChar, ['=', '+', '-', '@'], true)) {
-            return "'" . $str;
+        $trimmed = ltrim($str, " \t\r\n");
+        if ($trimmed !== '') {
+            $firstChar = $trimmed[0];
+            if (in_array($firstChar, ['=', '+', '-', '@', '|', "\t", "\r"], true)) {
+                return "'" . $str;
+            }
         }
 
         return $str;

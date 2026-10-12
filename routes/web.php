@@ -12,18 +12,18 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('guest:web')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
-    Route::post('/login', [LoginController::class, 'store']);
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:15,1');
 
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store']);
+    Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:15,1');
     Route::get('/register/verifikasi', [RegisterController::class, 'verifikasiCreate'])->name('register.verifikasi');
-    Route::post('/register/verifikasi', [RegisterController::class, 'verifikasiStore']);
-    Route::post('/register/kirim-ulang-otp', [RegisterController::class, 'kirimUlangOtp'])->name('register.kirim-ulang-otp');
+    Route::post('/register/verifikasi', [RegisterController::class, 'verifikasiStore'])->middleware('throttle:15,1');
+    Route::post('/register/kirim-ulang-otp', [RegisterController::class, 'kirimUlangOtp'])->middleware('throttle:5,1')->name('register.kirim-ulang-otp');
 });
 
 Route::middleware('guest:staff')->group(function () {
     Route::get('/staff/login', [\App\Http\Controllers\Auth\StaffLoginController::class, 'create'])->name('staff.login');
-    Route::post('/staff/login', [\App\Http\Controllers\Auth\StaffLoginController::class, 'store'])->name('staff.login.store');
+    Route::post('/staff/login', [\App\Http\Controllers\Auth\StaffLoginController::class, 'store'])->middleware('throttle:10,1')->name('staff.login.store');
 });
 
 Route::middleware(['auth:web', 'role:user,web'])->group(function () {
@@ -46,7 +46,7 @@ Route::middleware(['auth:web', 'role:user,web'])->group(function () {
     
     Route::get('/chat-panel/daftar', [\App\Http\Controllers\ChatPanelController::class, 'daftarMabar'])->name('chat-panel.daftar');
     Route::get('/chat-panel/{mabar}/pesan', [\App\Http\Controllers\ChatPanelController::class, 'pesan'])->name('chat-panel.pesan');
-    Route::post('/chat-panel/{mabar}/kirim', [\App\Http\Controllers\ChatPanelController::class, 'kirim'])->name('chat-panel.kirim');
+    Route::post('/chat-panel/{mabar}/kirim', [\App\Http\Controllers\ChatPanelController::class, 'kirim'])->middleware('throttle:30,1')->name('chat-panel.kirim');
 
     
     Route::get('/pengaturan/akun', [\App\Http\Controllers\AkunController::class, 'edit'])->name('pengaturan.akun');

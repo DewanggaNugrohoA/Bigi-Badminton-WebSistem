@@ -8,7 +8,8 @@ class ApproveOpenMabarRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user('staff') ?: $this->user();
+        return $user !== null && $user->role === 'admin';
     }
 
     public function rules(): array
