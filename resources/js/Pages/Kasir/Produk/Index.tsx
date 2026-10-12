@@ -32,6 +32,8 @@ interface ProdukItem {
     stok: number;
     stok_minimum: number;
     status_produk: "aktif" | "nonaktif";
+    gambar?: string | null;
+    url_gambar?: string | null;
 }
 
 interface PaginatedData<T> {
@@ -60,6 +62,7 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingProduk, setEditingProduk] = useState<ProdukItem | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     const form = useForm({
         nama_produk: "",
@@ -67,6 +70,8 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
         harga: "",
         stok_minimum: "0",
         status_produk: "aktif" as "aktif" | "nonaktif",
+        gambar: null as File | null,
+        hapus_gambar: false,
     });
 
     const handleFilter = (e: React.FormEvent) => {
@@ -91,12 +96,15 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
 
     const openAddDialog = () => {
         setEditingProduk(null);
+        setPreviewUrl(null);
         form.setData({
             nama_produk: "",
             kategori: kategoriList.length > 0 ? kategoriList[0] : "",
             harga: "",
             stok_minimum: "0",
             status_produk: "aktif",
+            gambar: null,
+            hapus_gambar: false,
         });
         form.clearErrors();
         setDialogOpen(true);
@@ -104,12 +112,15 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
 
     const openEditDialog = (item: ProdukItem) => {
         setEditingProduk(item);
+        setPreviewUrl(item.url_gambar || null);
         form.setData({
             nama_produk: item.nama_produk,
             kategori: item.kategori,
             harga: String(item.harga),
             stok_minimum: String(item.stok_minimum),
             status_produk: item.status_produk,
+            gambar: null,
+            hapus_gambar: false,
         });
         form.clearErrors();
         setDialogOpen(true);
@@ -124,20 +135,25 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
             ...data,
             harga: cleanedHarga,
             stok_minimum: cleanedStokMin,
+            ...(editingProduk ? { _method: "put" } : {}),
         }));
 
         if (editingProduk) {
-            form.put(`/kasir/produk/${editingProduk.id_produk}`, {
+            form.post(`/kasir/produk/${editingProduk.id_produk}`, {
+                forceFormData: true,
                 onSuccess: () => {
                     setDialogOpen(false);
                     form.reset();
+                    setPreviewUrl(null);
                 },
             });
         } else {
             form.post("/kasir/produk", {
+                forceFormData: true,
                 onSuccess: () => {
                     setDialogOpen(false);
                     form.reset();
+                    setPreviewUrl(null);
                 },
             });
         }
@@ -245,14 +261,13 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
                                     <TableHead className="whitespace-nowrap text-xs text-right">Harga</TableHead>
                                     <TableHead className="whitespace-nowrap text-xs text-right">Stok Saat Ini</TableHead>
                                     <TableHead className="whitespace-nowrap text-xs text-right">Stok Min</TableHead>
-                                    <TableHead className="whitespace-nowrap text-xs text-center">Status</TableHead>
                                     <TableHead className="whitespace-nowrap text-xs text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {produkList.data.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-xs text-muted-foreground">
+                                        <TableCell colSpan={6} className="text-center py-8 text-xs text-muted-foreground">
                                             Tidak ada produk yang sesuai kriteria pencarian.
                                         </TableCell>
                                     </TableRow>
@@ -262,7 +277,28 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
                                         return (
                                             <TableRow key={item.id_produk}>
                                                 <TableCell className="text-xs font-medium text-foreground whitespace-nowrap">
-                                                    {item.nama_produk}
+                                                    <div className="flex items-center gap-3">
+                                                        {item.url_gambar ? (
+                                                            <img
+                                                                src={item.url_gambar}
+                                                                alt={item.nama_produk}
+                                                                className="size-10 rounded-md object-cover border border-border shrink-0 bg-muted/20"
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <div className="size-10 rounded-md bg-muted/60 text-muted-foreground border border-border/60 flex items-center justify-center text-xs font-semibold shrink-0 select-none uppercase">
+                                                                {item.nama_produk.slice(0, 2)}
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{item.nama_produk}</span>
+                                                            {item.status_produk === "nonaktif" && (
+                                                                <span className="text-[11px] text-muted-foreground font-normal">
+                                                                    (Nonaktif)
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                                                     {item.kategori}
@@ -281,14 +317,6 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
                                                 </TableCell>
                                                 <TableCell className="text-xs tabular-nums text-right text-muted-foreground whitespace-nowrap">
                                                     {item.stok_minimum}
-                                                </TableCell>
-                                                <TableCell className="text-center whitespace-nowrap">
-                                                    <Badge
-                                                        variant={item.status_produk === "aktif" ? "success" : "neutral"}
-                                                        className="text-[11px] py-0 px-2"
-                                                    >
-                                                        {item.status_produk === "aktif" ? "Aktif" : "Nonaktif"}
-                                                    </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right whitespace-nowrap">
                                                     <Button
@@ -396,6 +424,63 @@ export default function ProdukIndex({ produkList, kategoriList, filters }: Props
                             </div>
                             {form.errors.kategori && (
                                 <p className="text-xs text-destructive mt-1">{form.errors.kategori}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <Label htmlFor="gambar_produk" className="text-xs font-medium">Foto Produk (Opsional)</Label>
+                            <div className="mt-1 flex items-start gap-3">
+                                {previewUrl ? (
+                                    <div className="relative size-16 rounded-md border border-border overflow-hidden shrink-0 bg-muted/20">
+                                        <img
+                                            src={previewUrl}
+                                            alt="Pratinjau foto produk"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="size-16 rounded-md border border-dashed border-border bg-muted/10 flex items-center justify-center text-[10px] text-muted-foreground shrink-0 text-center px-1">
+                                        Tanpa Foto
+                                    </div>
+                                )}
+
+                                <div className="flex-1 flex flex-col gap-1.5">
+                                    <Input
+                                        id="gambar_produk"
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            form.setData("gambar", file);
+                                            form.setData("hapus_gambar", false);
+                                            if (file) {
+                                                setPreviewUrl(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                        className="h-9 text-xs file:text-xs file:font-medium file:text-foreground cursor-pointer"
+                                    />
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[11px] text-muted-foreground">
+                                            Maksimal 2 MB (JPG, JPEG, PNG, WEBP).
+                                        </span>
+                                        {previewUrl && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    form.setData("gambar", null);
+                                                    form.setData("hapus_gambar", true);
+                                                    setPreviewUrl(null);
+                                                }}
+                                                className="text-[11px] text-destructive hover:underline font-medium cursor-pointer"
+                                            >
+                                                Hapus Gambar
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            {form.errors.gambar && (
+                                <p className="text-xs text-destructive mt-1">{form.errors.gambar}</p>
                             )}
                         </div>
 

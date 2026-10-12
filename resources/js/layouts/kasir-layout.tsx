@@ -80,7 +80,6 @@ const SIDEBAR_STORAGE_KEY = "kasir_sidebar_open";
 export default function KasirLayout({
     children,
     title = "Panel Kasir",
-    shiftAktif,
 }: KasirLayoutProps) {
     const { auth, flash } = usePage<SharedProps>().props;
     const user = auth?.user;
@@ -316,15 +315,6 @@ export default function KasirLayout({
 
                         <div className="flex items-center gap-2 truncate">
                             <span className="text-sm font-semibold text-foreground truncate">{title}</span>
-                            {shiftAktif ? (
-                                <Badge variant="success" className="text-[11px] py-0.5 px-2">
-                                    Shift terbuka
-                                </Badge>
-                            ) : (
-                                <Badge variant="neutral" className="text-[11px] py-0.5 px-2">
-                                    Belum ada shift
-                                </Badge>
-                            )}
                         </div>
                     </div>
 

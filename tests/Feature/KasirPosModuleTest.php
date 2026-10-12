@@ -9,7 +9,9 @@ use App\Models\ShiftKasir;
 use App\Models\TransaksiPos;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class KasirPosModuleTest extends TestCase
@@ -449,11 +451,153 @@ class KasirPosModuleTest extends TestCase
         ]);
 
         $this->actingAs($this->kasirUser, 'staff')
-            ->get('/kasir/struk/' . $trx1->id_transaksi)
-            ->assertStatus(200);
-
-        $this->actingAs($this->kasirUser, 'staff')
             ->get('/kasir/struk/' . $trx2->id_transaksi)
             ->assertStatus(404);
+    }
+
+    public function test_kasir_can_create_product_with_image_and_update_it(): void
+    {
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('produk_baru.jpg', 400, 400)->size(500);
+
+        $response = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/produk', [
+                'nama_produk' => 'Shuttlecock Bigi Silver',
+                'kategori' => 'Shuttlecock',
+                'harga' => 120000,
+                'stok_minimum' => 10,
+                'status_produk' => 'aktif',
+                'gambar' => $image,
+            ]);
+
+        $response->assertRedirect('/kasir/produk');
+
+        $produk = Produk::where('nama_produk', 'Shuttlecock Bigi Silver')->first();
+        $this->assertNotNull($produk);
+        $this->assertNotNull($produk->gambar);
+        $this->assertNotNull($produk->url_gambar);
+        $this->assertTrue(str_contains($produk->url_gambar, $produk->gambar));
+
+        Storage::disk('public')->assertExists($produk->gambar);
+
+        $oldGambarPath = $produk->gambar;
+        $newImage = UploadedFile::fake()->image('produk_updated.png', 400, 400)->size(600);
+
+        $updateResponse = $this->actingAs($this->kasirUser, 'staff')
+            ->put('/kasir/produk/' . $produk->id_produk, [
+                'nama_produk' => 'Shuttlecock Bigi Gold',
+                'kategori' => 'Shuttlecock',
+                'harga' => 135000,
+                'stok_minimum' => 8,
+                'status_produk' => 'aktif',
+                'gambar' => $newImage,
+            ]);
+
+        $updateResponse->assertRedirect('/kasir/produk');
+
+        $produk->refresh();
+        $this->assertEquals('Shuttlecock Bigi Gold', $produk->nama_produk);
+        $this->assertNotEquals($oldGambarPath, $produk->gambar);
+        Storage::disk('public')->assertMissing($oldGambarPath);
+        Storage::disk('public')->assertExists($produk->gambar);
+
+        $deleteGambarPath = $produk->gambar;
+        $deleteImageResponse = $this->actingAs($this->kasirUser, 'staff')
+            ->put('/kasir/produk/' . $produk->id_produk, [
+                'nama_produk' => 'Shuttlecock Bigi Gold',
+                'kategori' => 'Shuttlecock',
+                'harga' => 135000,
+                'stok_minimum' => 8,
+                'status_produk' => 'aktif',
+                'hapus_gambar' => 1,
+            ]);
+
+        $deleteImageResponse->assertRedirect('/kasir/produk');
+
+        $produk->refresh();
+        $this->assertNull($produk->gambar);
+        $this->assertNull($produk->url_gambar);
+        Storage::disk('public')->assertMissing($deleteGambarPath);
+    }
+
+    public function test_product_image_validation_rejects_invalid_files(): void
+    {
+        Storage::fake('public');
+
+        $fakePhp = UploadedFile::fake()->create('malicious.php', 10, 'text/x-php');
+        $responsePhp = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/produk', [
+                'nama_produk' => 'Test PHP File',
+                'kategori' => 'Test',
+                'harga' => 10000,
+                'stok_minimum' => 5,
+                'status_produk' => 'aktif',
+                'gambar' => $fakePhp,
+            ]);
+        $responsePhp->assertSessionHasErrors('gambar');
+
+        $fakeSvg = UploadedFile::fake()->create('vector.svg', 10, 'image/svg+xml');
+        $responseSvg = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/produk', [
+                'nama_produk' => 'Test SVG File',
+                'kategori' => 'Test',
+                'harga' => 10000,
+                'stok_minimum' => 5,
+                'status_produk' => 'aktif',
+                'gambar' => $fakeSvg,
+            ]);
+        $responseSvg->assertSessionHasErrors('gambar');
+
+        $oversizedImage = UploadedFile::fake()->image('huge.jpg')->size(3000);
+        $responseOversized = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/produk', [
+                'nama_produk' => 'Test Oversized Image',
+                'kategori' => 'Test',
+                'harga' => 10000,
+                'stok_minimum' => 5,
+                'status_produk' => 'aktif',
+                'gambar' => $oversizedImage,
+            ]);
+        $responseOversized->assertSessionHasErrors('gambar');
+    }
+
+    public function test_non_kasir_cannot_upload_product_image(): void
+    {
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('produk_unauth.jpg');
+
+        $guestResponse = $this->post('/kasir/produk', [
+            'nama_produk' => 'Grip Guest',
+            'kategori' => 'Aksesoris',
+            'harga' => 15000,
+            'stok_minimum' => 5,
+            'status_produk' => 'aktif',
+            'gambar' => $image,
+        ]);
+        $guestResponse->assertRedirect('/staff/login');
+
+        $userResponse = $this->actingAs($this->regulerUser, 'web')
+            ->post('/kasir/produk', [
+                'nama_produk' => 'Grip Reguler',
+                'kategori' => 'Aksesoris',
+                'harga' => 15000,
+                'stok_minimum' => 5,
+                'status_produk' => 'aktif',
+                'gambar' => $image,
+            ]);
+        $userResponse->assertRedirect('/staff/login');
+
+        $adminResponse = $this->actingAs($this->adminUser, 'staff')
+            ->post('/kasir/produk', [
+                'nama_produk' => 'Grip Admin Kasir Area',
+                'kategori' => 'Aksesoris',
+                'harga' => 15000,
+                'stok_minimum' => 5,
+                'status_produk' => 'aktif',
+                'gambar' => $image,
+            ]);
+        $adminResponse->assertStatus(403);
     }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import KasirLayout from "@/layouts/kasir-layout";
 import { formatTanggal } from "@/lib/admin-format";
@@ -51,18 +51,71 @@ interface PaginatedData<T> {
 interface Props {
     riwayatRestock: PaginatedData<RestockItem>;
     produkList: ProdukItem[];
+    kategoriList?: string[];
     tanggalFilter: string;
 }
 
-export default function RestockIndex({ riwayatRestock, produkList, tanggalFilter }: Props) {
+export default function RestockIndex({ riwayatRestock, produkList, kategoriList = [], tanggalFilter }: Props) {
     const [tanggal, setTanggal] = useState(tanggalFilter || "");
 
+    const [isNewProductMode, setIsNewProductMode] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<ProdukItem | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
     const form = useForm({
-        id_produk: produkList.length > 0 ? String(produkList[0].id_produk) : "",
+        id_produk: "",
+        nama_produk: "",
+        kategori: "",
+        harga: "",
         jumlah: "",
         tanggal: new Date().toISOString().substring(0, 10),
         keterangan: "",
     });
+
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    const filteredProduk = useMemo(() => {
+        if (!normalizedQuery) return produkList;
+        return produkList.filter((p) => p.nama_produk.toLowerCase().includes(normalizedQuery));
+    }, [produkList, normalizedQuery]);
+
+    const exactMatch = useMemo(() => {
+        if (!normalizedQuery) return null;
+        return produkList.find((p) => p.nama_produk.trim().toLowerCase() === normalizedQuery);
+    }, [produkList, normalizedQuery]);
+
+    const handleSelectExistingProduct = (prod: ProdukItem) => {
+        setSelectedProduct(prod);
+        setIsNewProductMode(false);
+        setSearchQuery(prod.nama_produk);
+        setIsDropdownOpen(false);
+
+        form.setData((prev) => ({
+            ...prev,
+            id_produk: String(prod.id_produk),
+            nama_produk: "",
+            kategori: "",
+            harga: "",
+        }));
+        form.clearErrors("id_produk", "nama_produk", "kategori", "harga");
+    };
+
+    const handleSelectAddNewProduct = (namaBaru: string) => {
+        setSelectedProduct(null);
+        setIsNewProductMode(true);
+        setSearchQuery(namaBaru);
+        setIsDropdownOpen(false);
+
+        form.setData((prev) => ({
+            ...prev,
+            id_produk: "",
+            nama_produk: namaBaru,
+            kategori: kategoriList.length > 0 ? kategoriList[0] : "",
+            harga: "",
+        }));
+        form.clearErrors("id_produk", "nama_produk", "kategori", "harga");
+    };
 
     const handleFilter = (e: React.FormEvent) => {
         e.preventDefault();
@@ -76,16 +129,38 @@ export default function RestockIndex({ riwayatRestock, produkList, tanggalFilter
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        form.transform((data) => ({
-            ...data,
-            jumlah: data.jumlah.replace(/\D/g, ""),
-        }));
+
+        const cleanedJumlah = form.data.jumlah.replace(/\D/g, "");
+        const cleanedHarga = form.data.harga.replace(/\D/g, "");
+
+        form.transform((data) => {
+            if (isNewProductMode) {
+                return {
+                    nama_produk: data.nama_produk.trim(),
+                    kategori: data.kategori.trim(),
+                    harga: cleanedHarga,
+                    jumlah: cleanedJumlah,
+                    tanggal: data.tanggal,
+                    keterangan: data.keterangan,
+                };
+            }
+            return {
+                id_produk: data.id_produk,
+                jumlah: cleanedJumlah,
+                tanggal: data.tanggal,
+                keterangan: data.keterangan,
+            };
+        });
+
         form.post("/kasir/restock", {
             onSuccess: () => {
                 form.reset("jumlah", "keterangan");
             },
         });
     };
+
+    const currentStockDisplay = isNewProductMode || !selectedProduct ? "-" : String(selectedProduct.stok);
+    const isSubmitDisabled = form.processing || !form.data.jumlah || (!selectedProduct && !isNewProductMode);
 
     return (
         <KasirLayout title="Restock Barang">
@@ -101,24 +176,137 @@ export default function RestockIndex({ riwayatRestock, produkList, tanggalFilter
                     </div>
 
                     <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
-                        <div>
-                            <Label htmlFor="id_produk" className="text-xs font-medium">Pilih Produk</Label>
-                            <select
-                                id="id_produk"
-                                value={form.data.id_produk}
-                                onChange={(e) => form.setData("id_produk", e.target.value)}
-                                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            >
-                                {produkList.map((prod) => (
-                                    <option key={prod.id_produk} value={prod.id_produk}>
-                                        {prod.nama_produk} (Stok: {prod.stok})
-                                    </option>
-                                ))}
-                            </select>
-                            {form.errors.id_produk && (
-                                <p className="text-xs text-destructive mt-1">{form.errors.id_produk}</p>
-                            )}
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
+                            <div className="sm:col-span-8 relative">
+                                <Label htmlFor="cari_produk" className="text-xs font-medium">Produk</Label>
+                                <div className="relative mt-1">
+                                    <Input
+                                        id="cari_produk"
+                                        type="text"
+                                        placeholder="Ketik nama produk..."
+                                        value={searchQuery}
+                                        onFocus={() => setIsDropdownOpen(true)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setSearchQuery(val);
+                                            setIsDropdownOpen(true);
+                                            if (selectedProduct && val !== selectedProduct.nama_produk) {
+                                                setSelectedProduct(null);
+                                                form.setData("id_produk", "");
+                                            }
+                                        }}
+                                        className="h-10 text-xs"
+                                        autoComplete="off"
+                                    />
+
+                                    {isDropdownOpen && (
+                                        <>
+                                            <div
+                                                className="fixed inset-0 z-40"
+                                                onClick={() => setIsDropdownOpen(false)}
+                                            />
+                                            <div className="absolute left-0 right-0 top-full mt-1 z-50 max-h-56 overflow-y-auto rounded-md border border-border bg-popover shadow-md py-1 text-xs">
+                                                {filteredProduk.map((prod) => (
+                                                    <button
+                                                        key={prod.id_produk}
+                                                        type="button"
+                                                        onClick={() => handleSelectExistingProduct(prod)}
+                                                        className="w-full text-left px-3 py-2 text-popover-foreground hover:bg-accent hover:text-accent-foreground flex items-center justify-between cursor-pointer"
+                                                    >
+                                                        <span className="font-medium truncate">{prod.nama_produk}</span>
+                                                    </button>
+                                                ))}
+
+                                                {!exactMatch && searchQuery.trim().length > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleSelectAddNewProduct(searchQuery.trim())}
+                                                        className="w-full text-left px-3 py-2 text-[var(--brand)] hover:bg-accent flex items-center border-t border-border cursor-pointer font-medium"
+                                                    >
+                                                        Tambah produk baru: {searchQuery.trim()}
+                                                    </button>
+                                                )}
+
+                                                {filteredProduk.length === 0 && searchQuery.trim().length === 0 && (
+                                                    <div className="px-3 py-2 text-muted-foreground text-center">
+                                                        Ketik nama untuk mencari
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                                {form.errors.id_produk && (
+                                    <p className="text-xs text-destructive mt-1">{form.errors.id_produk}</p>
+                                )}
+                                {form.errors.nama_produk && (
+                                    <p className="text-xs text-destructive mt-1">{form.errors.nama_produk}</p>
+                                )}
+                            </div>
+
+                            <div className="sm:col-span-4">
+                                <Label htmlFor="stok_saat_ini" className="text-xs font-medium">Stok Saat Ini</Label>
+                                <Input
+                                    id="stok_saat_ini"
+                                    type="text"
+                                    readOnly
+                                    tabIndex={-1}
+                                    aria-label="Stok saat ini"
+                                    value={currentStockDisplay}
+                                    className="h-10 mt-1 tabular-nums text-center text-xs bg-muted/40 cursor-default select-none focus-visible:ring-0 focus-visible:outline-none"
+                                />
+                            </div>
                         </div>
+
+                        {isNewProductMode && (
+                            <div className="flex flex-col gap-4 p-3.5 rounded-lg border border-border/80 bg-muted/20">
+                                <div>
+                                    <Label htmlFor="form_kategori" className="text-xs font-medium">Kategori Produk Baru</Label>
+                                    <div className="flex gap-2 mt-1">
+                                        <Input
+                                            id="form_kategori"
+                                            type="text"
+                                            placeholder="Ketik atau pilih kategori"
+                                            value={form.data.kategori}
+                                            onChange={(e) => form.setData("kategori", e.target.value)}
+                                            className="h-10 text-xs flex-1 bg-background"
+                                        />
+                                        {kategoriList.length > 0 && (
+                                            <select
+                                                onChange={(e) => {
+                                                    if (e.target.value) form.setData("kategori", e.target.value);
+                                                }}
+                                                className="h-10 px-2 rounded-md border border-input bg-background text-xs"
+                                            >
+                                                <option value="">Pilih Opsi</option>
+                                                {kategoriList.map((kat) => (
+                                                    <option key={kat} value={kat}>{kat}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                    {form.errors.kategori && (
+                                        <p className="text-xs text-destructive mt-1">{form.errors.kategori}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="harga" className="text-xs font-medium">Harga Jual (Rp)</Label>
+                                    <Input
+                                        id="harga"
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="Contoh: 25000"
+                                        value={form.data.harga ? Number(form.data.harga.replace(/\D/g, "")).toLocaleString("id-ID") : ""}
+                                        onChange={(e) => form.setData("harga", e.target.value.replace(/\D/g, ""))}
+                                        className="h-10 mt-1 tabular-nums text-right text-xs bg-background"
+                                    />
+                                    {form.errors.harga && (
+                                        <p className="text-xs text-destructive mt-1">{form.errors.harga}</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         <div>
                             <Label htmlFor="jumlah" className="text-xs font-medium">Jumlah Masuk (Unit)</Label>
@@ -168,7 +356,7 @@ export default function RestockIndex({ riwayatRestock, produkList, tanggalFilter
 
                         <Button
                             type="submit"
-                            disabled={form.processing || !form.data.jumlah || !form.data.id_produk}
+                            disabled={isSubmitDisabled}
                             className="w-full h-10 bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white text-xs font-medium mt-2"
                         >
                             <Plus className="size-4 mr-1.5" />

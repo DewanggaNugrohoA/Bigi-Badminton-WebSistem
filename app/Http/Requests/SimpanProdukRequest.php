@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File;
 
 class SimpanProdukRequest extends FormRequest
 {
@@ -28,6 +29,13 @@ class SimpanProdukRequest extends FormRequest
             'harga' => ['required', 'integer', 'min:1'],
             'stok_minimum' => ['required', 'integer', 'min:0'],
             'status_produk' => ['required', Rule::in(['aktif', 'nonaktif'])],
+            'gambar' => [
+                'nullable',
+                File::image()
+                    ->types(['jpg', 'jpeg', 'png', 'webp'])
+                    ->max(2048),
+            ],
+            'hapus_gambar' => ['nullable', 'boolean'],
         ];
     }
 
@@ -47,6 +55,9 @@ class SimpanProdukRequest extends FormRequest
             'stok_minimum.min' => 'Stok minimum tidak boleh kurang dari 0.',
             'status_produk.required' => 'Status produk wajib dipilih.',
             'status_produk.in' => 'Status produk hanya boleh aktif atau nonaktif.',
+            'gambar.image' => 'Berkas gambar produk harus berupa gambar yang valid.',
+            'gambar.mimes' => 'Format gambar harus berupa JPG, JPEG, PNG, atau WebP.',
+            'gambar.max' => 'Ukuran berkas gambar maksimal 2048 KB (2 MB).',
         ];
     }
 }

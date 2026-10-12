@@ -219,11 +219,17 @@ class KasirController extends Controller
 
         $produkList = Produk::where('status_produk', 'aktif')
             ->orderBy('nama_produk', 'asc')
-            ->get(['id_produk', 'nama_produk', 'stok', 'kategori']);
+            ->get(['id_produk', 'nama_produk', 'stok', 'kategori', 'harga']);
+
+        $kategoriList = Produk::select('kategori')
+            ->distinct()
+            ->orderBy('kategori', 'asc')
+            ->pluck('kategori');
 
         return Inertia::render('Kasir/Restock/Index', [
             'riwayatRestock' => $riwayatRestock,
             'produkList' => $produkList,
+            'kategoriList' => $kategoriList,
             'tanggalFilter' => $tanggal,
         ]);
     }

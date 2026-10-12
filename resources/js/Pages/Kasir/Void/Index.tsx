@@ -123,9 +123,7 @@ export default function VoidIndex({
                     <div className="border-b border-border pb-4 mb-4">
                         <div className="flex items-center gap-2.5">
                             <h2 className="text-base font-semibold text-foreground">Transaksi Shift Berjalan</h2>
-                            {shiftAktif ? (
-                                <Badge variant="success" className="text-xs py-0.5">Shift Aktif</Badge>
-                            ) : (
+                            {!shiftAktif && (
                                 <Badge variant="neutral" className="text-xs py-0.5">Shift Belum Dibuka</Badge>
                             )}
                         </div>

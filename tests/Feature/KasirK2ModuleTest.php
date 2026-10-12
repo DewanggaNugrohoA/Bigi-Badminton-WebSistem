@@ -231,6 +231,168 @@ class KasirK2ModuleTest extends TestCase
         ]);
     }
 
+    public function test_restock_can_create_new_product_and_increments_stock(): void
+    {
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+
+        $response = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/restock', [
+                'nama_produk' => 'Shuttlecock Bigi Tournament',
+                'kategori' => 'Shuttlecock',
+                'harga' => 140000,
+                'jumlah' => 25,
+                'tanggal' => $today,
+                'keterangan' => 'Pengadaan perdana stok',
+            ]);
+
+        $response->assertRedirect('/kasir/restock');
+
+        $this->assertDatabaseHas('produk', [
+            'nama_produk' => 'Shuttlecock Bigi Tournament',
+            'kategori' => 'Shuttlecock',
+            'harga' => 140000,
+            'stok' => 25,
+            'stok_minimum' => 0,
+            'status_produk' => 'aktif',
+        ]);
+
+        $produk = Produk::where('nama_produk', 'Shuttlecock Bigi Tournament')->first();
+        $this->assertNotNull($produk);
+
+        $this->assertDatabaseHas('restock', [
+            'id_produk' => $produk->id_produk,
+            'id_user' => $this->kasirUser->id_user,
+            'jumlah' => 25,
+            'keterangan' => 'Pengadaan perdana stok',
+        ]);
+
+        $this->assertDatabaseHas('audit_log', [
+            'id_user' => $this->kasirUser->id_user,
+            'aksi' => 'TAMBAH_PRODUK',
+        ]);
+
+        $this->assertDatabaseHas('audit_log', [
+            'id_user' => $this->kasirUser->id_user,
+            'aksi' => 'RESTOCK_PRODUK',
+        ]);
+    }
+
+    public function test_restock_rejects_duplicate_product_name_case_insensitively(): void
+    {
+        $initialCount = Produk::count();
+
+        Produk::create([
+            'nama_produk' => 'Grip Karet Yonex',
+            'kategori' => 'Aksesoris',
+            'harga' => 18000,
+            'stok' => 10,
+            'stok_minimum' => 2,
+            'status_produk' => 'aktif',
+        ]);
+
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+
+        $response = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/restock', [
+                'nama_produk' => '  grip karet yonex  ',
+                'kategori' => 'Aksesoris',
+                'harga' => 20000,
+                'jumlah' => 10,
+                'tanggal' => $today,
+            ]);
+
+        $response->assertSessionHasErrors('nama_produk');
+
+        $this->assertDatabaseCount('produk', $initialCount + 1);
+    }
+
+    public function test_restock_validations_for_new_product_and_exclusive_mode(): void
+    {
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $existing = Produk::first();
+
+        $bothResponse = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/restock', [
+                'id_produk' => $existing->id_produk,
+                'nama_produk' => 'Produk Dobel',
+                'kategori' => 'Kategori',
+                'harga' => 10000,
+                'jumlah' => 5,
+                'tanggal' => $today,
+            ]);
+        $bothResponse->assertSessionHasErrors('id_produk');
+
+        $emptyResponse = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/restock', [
+                'jumlah' => 5,
+                'tanggal' => $today,
+            ]);
+        $emptyResponse->assertSessionHasErrors('id_produk');
+
+        $missingKategori = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/restock', [
+                'nama_produk' => 'Produk Baru Tanpa Kategori',
+                'harga' => 15000,
+                'jumlah' => 5,
+                'tanggal' => $today,
+            ]);
+        $missingKategori->assertSessionHasErrors('kategori');
+
+        $missingHarga = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/restock', [
+                'nama_produk' => 'Produk Baru Tanpa Harga',
+                'kategori' => 'Minuman',
+                'jumlah' => 5,
+                'tanggal' => $today,
+            ]);
+        $missingHarga->assertSessionHasErrors('harga');
+
+        $negativeQty = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/restock', [
+                'id_produk' => $existing->id_produk,
+                'jumlah' => -5,
+                'tanggal' => $today,
+            ]);
+        $negativeQty->assertSessionHasErrors('jumlah');
+
+        $zeroQty = $this->actingAs($this->kasirUser, 'staff')
+            ->post('/kasir/restock', [
+                'id_produk' => $existing->id_produk,
+                'jumlah' => 0,
+                'tanggal' => $today,
+            ]);
+        $zeroQty->assertSessionHasErrors('jumlah');
+    }
+
+    public function test_non_kasir_cannot_perform_restock(): void
+    {
+        $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $existing = Produk::first();
+
+        $guest = $this->post('/kasir/restock', [
+            'id_produk' => $existing->id_produk,
+            'jumlah' => 5,
+            'tanggal' => $today,
+        ]);
+        $guest->assertRedirect('/staff/login');
+
+        $customer = $this->actingAs($this->regulerUser, 'web')
+            ->post('/kasir/restock', [
+                'id_produk' => $existing->id_produk,
+                'jumlah' => 5,
+                'tanggal' => $today,
+            ]);
+        $customer->assertRedirect('/staff/login');
+
+        $admin = $this->actingAs($this->adminUser, 'staff')
+            ->post('/kasir/restock', [
+                'id_produk' => $existing->id_produk,
+                'jumlah' => 5,
+                'tanggal' => $today,
+            ]);
+        $admin->assertStatus(403);
+    }
+
     public function test_stok_opname_updates_stock_and_validates_keterangan(): void
     {
         $produk = Produk::create([

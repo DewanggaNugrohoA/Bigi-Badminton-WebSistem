@@ -235,75 +235,166 @@ class PosService
 
     public function simpanProduk(User $user, array $data): Produk
     {
-        return DB::transaction(function () use ($user, $data) {
-            $produk = Produk::create([
-                'nama_produk' => trim($data['nama_produk']),
-                'kategori' => trim($data['kategori']),
-                'harga' => (int) $data['harga'],
-                'stok' => 0,
-                'stok_minimum' => (int) $data['stok_minimum'],
-                'status_produk' => $data['status_produk'],
-            ]);
+        $newUploadedPath = null;
+        if (isset($data['gambar']) && $data['gambar'] instanceof \Illuminate\Http\UploadedFile) {
+            $newUploadedPath = $data['gambar']->store('produk', 'public');
+        }
 
-            AuditLog::create([
-                'id_user' => $user->id_user,
-                'aksi' => 'TAMBAH_PRODUK',
-                'objek' => 'produk',
-                'keterangan' => "Menambahkan produk baru: {$produk->nama_produk} (Harga: Rp " . number_format($produk->harga, 0, ',', '.') . ")",
-                'waktu' => Carbon::now('Asia/Jakarta'),
-            ]);
+        try {
+            return DB::transaction(function () use ($user, $data, $newUploadedPath) {
+                $produk = Produk::create([
+                    'nama_produk' => trim($data['nama_produk']),
+                    'kategori' => trim($data['kategori']),
+                    'gambar' => $newUploadedPath,
+                    'harga' => (int) $data['harga'],
+                    'stok' => 0,
+                    'stok_minimum' => (int) $data['stok_minimum'],
+                    'status_produk' => $data['status_produk'],
+                ]);
 
-            return $produk;
-        });
+                $logKeterangan = "Menambahkan produk baru: {$produk->nama_produk} (Harga: Rp " . number_format($produk->harga, 0, ',', '.') . ")";
+                if ($newUploadedPath) {
+                    $logKeterangan .= " (dengan gambar produk)";
+                }
+
+                AuditLog::create([
+                    'id_user' => $user->id_user,
+                    'aksi' => 'TAMBAH_PRODUK',
+                    'objek' => 'produk',
+                    'keterangan' => $logKeterangan,
+                    'waktu' => Carbon::now('Asia/Jakarta'),
+                ]);
+
+                return $produk;
+            });
+        } catch (\Throwable $e) {
+            if ($newUploadedPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($newUploadedPath)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($newUploadedPath);
+            }
+            throw $e;
+        }
     }
 
     public function updateProduk(User $user, int $idProduk, array $data): Produk
     {
-        return DB::transaction(function () use ($user, $idProduk, $data) {
-            $produk = Produk::where('id_produk', $idProduk)
-                ->lockForUpdate()
-                ->firstOrFail();
+        $newUploadedPath = null;
+        if (isset($data['gambar']) && $data['gambar'] instanceof \Illuminate\Http\UploadedFile) {
+            $newUploadedPath = $data['gambar']->store('produk', 'public');
+        }
 
-            $oldStatus = $produk->status_produk;
-            $oldHarga = (float) $produk->harga;
+        $oldPathToDelete = null;
 
-            $produk->update([
-                'nama_produk' => trim($data['nama_produk']),
-                'kategori' => trim($data['kategori']),
-                'harga' => (int) $data['harga'],
-                'stok_minimum' => (int) $data['stok_minimum'],
-                'status_produk' => $data['status_produk'],
-            ]);
+        try {
+            return DB::transaction(function () use ($user, $idProduk, $data, $newUploadedPath, &$oldPathToDelete) {
+                $produk = Produk::where('id_produk', $idProduk)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            $keterangan = "Memperbarui produk #{$produk->id_produk}: {$produk->nama_produk}";
-            if ($oldStatus !== $produk->status_produk) {
-                $keterangan .= " (Status: {$oldStatus} -> {$produk->status_produk})";
+                $oldStatus = $produk->status_produk;
+                $oldHarga = (float) $produk->harga;
+                $currentGambar = $produk->gambar;
+
+                $updatePayload = [
+                    'nama_produk' => trim($data['nama_produk']),
+                    'kategori' => trim($data['kategori']),
+                    'harga' => (int) $data['harga'],
+                    'stok_minimum' => (int) $data['stok_minimum'],
+                    'status_produk' => $data['status_produk'],
+                ];
+
+                $gambarChanged = false;
+                if (! empty($data['hapus_gambar'])) {
+                    $updatePayload['gambar'] = null;
+                    if ($currentGambar) {
+                        $oldPathToDelete = $currentGambar;
+                        $gambarChanged = true;
+                    }
+                } elseif ($newUploadedPath) {
+                    $updatePayload['gambar'] = $newUploadedPath;
+                    if ($currentGambar) {
+                        $oldPathToDelete = $currentGambar;
+                    }
+                    $gambarChanged = true;
+                }
+
+                $produk->update($updatePayload);
+
+                $keterangan = "Memperbarui produk #{$produk->id_produk}: {$produk->nama_produk}";
+                if ($oldStatus !== $produk->status_produk) {
+                    $keterangan .= " (Status: {$oldStatus} -> {$produk->status_produk})";
+                }
+                if ($oldHarga != (float) $produk->harga) {
+                    $keterangan .= " (Harga: Rp " . number_format($oldHarga, 0, ',', '.') . " -> Rp " . number_format($produk->harga, 0, ',', '.') . ")";
+                }
+                if ($gambarChanged) {
+                    $keterangan .= ! empty($data['hapus_gambar']) ? " (Gambar dihapus)" : " (Gambar diperbarui)";
+                }
+
+                AuditLog::create([
+                    'id_user' => $user->id_user,
+                    'aksi' => 'UPDATE_PRODUK',
+                    'objek' => 'produk',
+                    'keterangan' => $keterangan,
+                    'waktu' => Carbon::now('Asia/Jakarta'),
+                ]);
+
+                if ($oldPathToDelete && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldPathToDelete)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPathToDelete);
+                }
+
+                return $produk;
+            });
+        } catch (\Throwable $e) {
+            if ($newUploadedPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($newUploadedPath)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($newUploadedPath);
             }
-            if ($oldHarga != (float) $produk->harga) {
-                $keterangan .= " (Harga: Rp " . number_format($oldHarga, 0, ',', '.') . " -> Rp " . number_format($produk->harga, 0, ',', '.') . ")";
-            }
-
-            AuditLog::create([
-                'id_user' => $user->id_user,
-                'aksi' => 'UPDATE_PRODUK',
-                'objek' => 'produk',
-                'keterangan' => $keterangan,
-                'waktu' => Carbon::now('Asia/Jakarta'),
-            ]);
-
-            return $produk;
-        });
+            throw $e;
+        }
     }
 
     public function prosesRestock(User $user, array $data): Restock
     {
         return DB::transaction(function () use ($user, $data) {
-            $idProduk = (int) $data['id_produk'];
             $jumlah = (int) $data['jumlah'];
+            $tanggal = $data['tanggal'];
+            $keterangan = $data['keterangan'] ?? null;
 
-            $produk = Produk::where('id_produk', $idProduk)
-                ->lockForUpdate()
-                ->firstOrFail();
+            if (! empty($data['nama_produk'])) {
+                $namaProduk = trim((string) $data['nama_produk']);
+
+                $existing = Produk::whereRaw('LOWER(TRIM(nama_produk)) = ?', [mb_strtolower($namaProduk)])
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existing) {
+                    throw ValidationException::withMessages([
+                        'nama_produk' => "Produk dengan nama '{$existing->nama_produk}' sudah terdaftar. Silakan pilih produk dari daftar yang tersedia.",
+                    ]);
+                }
+
+                $produk = Produk::create([
+                    'nama_produk' => $namaProduk,
+                    'kategori' => trim((string) $data['kategori']),
+                    'harga' => (int) $data['harga'],
+                    'stok' => 0,
+                    'stok_minimum' => 0,
+                    'status_produk' => Produk::STATUS_AKTIF ?? 'aktif',
+                    'gambar' => null,
+                ]);
+
+                AuditLog::create([
+                    'id_user' => $user->id_user,
+                    'aksi' => 'TAMBAH_PRODUK',
+                    'objek' => 'produk',
+                    'keterangan' => "Menambahkan produk baru lewat Restock: {$produk->nama_produk} (Harga: Rp " . number_format($produk->harga, 0, ',', '.') . ")",
+                    'waktu' => Carbon::now('Asia/Jakarta'),
+                ]);
+            } else {
+                $idProduk = (int) $data['id_produk'];
+                $produk = Produk::where('id_produk', $idProduk)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+            }
 
             $produk->increment('stok', $jumlah);
 
@@ -311,8 +402,8 @@ class PosService
                 'id_produk' => $produk->id_produk,
                 'id_user' => $user->id_user,
                 'jumlah' => $jumlah,
-                'tanggal' => $data['tanggal'],
-                'keterangan' => $data['keterangan'] ?? null,
+                'tanggal' => $tanggal,
+                'keterangan' => $keterangan,
             ]);
 
             AuditLog::create([

@@ -172,9 +172,6 @@ export default function ShiftIndex({
                             <div>
                                 <div className="flex items-center gap-2.5">
                                     <h2 className="text-base font-semibold text-foreground">Shift Sedang Berjalan</h2>
-                                    <Badge variant="success" className="text-xs py-0.5">
-                                        Aktif
-                                    </Badge>
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1">
                                     Dibuka pada {formatTanggal(shiftAktif.waktu_buka)}, pukul {formatJam(shiftAktif.waktu_buka.substring(11, 16))}

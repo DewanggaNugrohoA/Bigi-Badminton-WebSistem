@@ -30,6 +30,7 @@ interface ProdukItem {
     stok: number;
     stok_minimum: number;
     status_produk: string;
+    url_gambar?: string | null;
 }
 
 interface CartItem {
@@ -379,25 +380,42 @@ export default function KasirIndex({ shiftAktif, produk, kategoriList }: Props) 
                                             disabled={isOutOfStock}
                                             onClick={() => addToCart(item)}
                                             aria-label={`Tambah ${item.nama_produk}`}
-                                            className={`p-3 sm:p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all select-none min-h-[110px] sm:min-h-[120px] relative ${
+                                            className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all select-none relative group min-h-[44px] ${
                                                 isOutOfStock
                                                     ? "opacity-45 cursor-not-allowed bg-muted/40 border-border"
                                                     : "bg-card border-border hover:border-foreground/40 active:scale-[0.98] cursor-pointer shadow-2xs hover:shadow-xs"
                                             }`}
                                         >
                                             {cartQty > 0 && (
-                                                <span className="absolute top-2 right-2 size-5 rounded-full bg-[var(--brand)] text-white text-[10px] font-bold flex items-center justify-center">
+                                                <span className="absolute top-2 right-2 z-10 size-5 rounded-full bg-[var(--brand)] text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
                                                     {cartQty}
                                                 </span>
                                             )}
 
-                                            <div className="pr-4">
-                                                <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider truncate">
-                                                    {item.kategori}
+                                            <div>
+                                                <div className="w-full aspect-square rounded-lg overflow-hidden border border-border/60 bg-muted/20 mb-2.5 flex items-center justify-center">
+                                                    {item.url_gambar ? (
+                                                        <img
+                                                            src={item.url_gambar}
+                                                            alt={item.nama_produk}
+                                                            className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-200"
+                                                            loading="lazy"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-muted/40 text-muted-foreground font-semibold text-base select-none uppercase tracking-wider">
+                                                            {item.nama_produk.slice(0, 2)}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <h3 className="text-xs sm:text-sm font-semibold text-foreground mt-0.5 line-clamp-2 leading-tight">
-                                                    {item.nama_produk}
-                                                </h3>
+
+                                                <div className="pr-2">
+                                                    <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider truncate">
+                                                        {item.kategori}
+                                                    </div>
+                                                    <h3 className="text-xs sm:text-sm font-semibold text-foreground mt-0.5 line-clamp-2 leading-tight">
+                                                        {item.nama_produk}
+                                                    </h3>
+                                                </div>
                                             </div>
 
                                             <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between">
