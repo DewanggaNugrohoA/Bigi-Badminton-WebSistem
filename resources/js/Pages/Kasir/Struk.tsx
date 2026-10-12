@@ -50,31 +50,71 @@ export default function StrukKasir({ transaksi }: Props) {
             <Head title={`Struk ${transaksi.no_transaksi} - Bigi Badminton`} />
 
             <style>{`
+                :root {
+                    --lebar-struk: 72mm;
+                }
+                @page {
+                    size: 80mm auto;
+                    margin: 0;
+                }
                 @media print {
-                    aside, header, nav, .no-print {
+                    html, body {
+                        background: #ffffff !important;
+                        color: #000000 !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        width: 100% !important;
+                    }
+                    aside, header, nav, footer, .no-print {
                         display: none !important;
                     }
                     main {
                         padding: 0 !important;
                         margin: 0 !important;
                         max-width: 100% !important;
+                        width: 100% !important;
                     }
-                    body {
-                        background: white !important;
-                        color: black !important;
+                    .struk-container {
+                        max-width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
                     }
                     .print-area {
-                        border: none !important;
-                        box-shadow: none !important;
-                        padding: 0 !important;
+                        display: block !important;
+                        box-sizing: border-box !important;
+                        width: var(--lebar-struk) !important;
+                        max-width: var(--lebar-struk) !important;
                         margin: 0 auto !important;
-                        max-width: 80mm !important;
-                        width: 80mm !important;
+                        padding: 3mm !important;
+                        border: none !important;
+                        border-radius: 0 !important;
+                        box-shadow: none !important;
+                        background: #ffffff !important;
+                        color: #000000 !important;
+                        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+                        font-size: 11px !important;
+                        line-height: 1.35 !important;
+                    }
+                    .print-area * {
+                        color: #000000 !important;
+                        border-color: #000000 !important;
+                        background: transparent !important;
+                        box-shadow: none !important;
+                        text-shadow: none !important;
+                    }
+                    .print-item-block {
+                        break-inside: avoid !important;
+                        page-break-inside: avoid !important;
+                    }
+                    .print-area .product-name {
+                        white-space: normal !important;
+                        word-break: break-word !important;
+                        overflow-wrap: break-word !important;
                     }
                 }
             `}</style>
 
-            <div className="max-w-md mx-auto flex flex-col gap-4">
+            <div className="struk-container max-w-md mx-auto flex flex-col gap-4">
                 <div className="flex items-center justify-between no-print">
                     <Link href="/kasir">
                         <Button variant="ghost" size="sm" className="h-9 text-xs">
@@ -94,20 +134,20 @@ export default function StrukKasir({ transaksi }: Props) {
                 </div>
 
                 <div className="print-area bg-card border border-border rounded-xl p-6 shadow-xs font-mono text-xs">
-                    <div className="text-center pb-4 border-b border-dashed border-border">
+                    <div className="print-item-block text-center pb-4 border-b border-dashed border-border">
                         <h1 className="font-bold text-sm tracking-tight text-foreground">BIGI BADMINTON</h1>
                         <p className="text-[11px] text-muted-foreground mt-0.5">GOR Badminton 2 Lapangan</p>
                         <p className="text-[10px] text-muted-foreground">Komp. Olahraga, Bengkulu</p>
                     </div>
 
-                    <div className="py-3 border-b border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
+                    <div className="print-item-block py-3 border-b border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
                         <div className="flex justify-between">
                             <span>No. Transaksi</span>
-                            <span className="font-semibold text-foreground">{transaksi.no_transaksi}</span>
+                            <span className="font-semibold text-foreground tabular-nums">{transaksi.no_transaksi}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Waktu</span>
-                            <span className="text-foreground">
+                            <span className="text-foreground tabular-nums">
                                 {formatTanggal(transaksi.tanggal)} {formatJam(transaksi.tanggal.substring(11, 16))}
                             </span>
                         </div>
@@ -119,15 +159,15 @@ export default function StrukKasir({ transaksi }: Props) {
 
                     <div className="py-3 border-b border-dashed border-border flex flex-col gap-2">
                         {transaksi.detail_transaksi_pos.map((item) => (
-                            <div key={item.id_detail} className="flex flex-col gap-0.5">
-                                <div className="text-foreground font-medium truncate">
+                            <div key={item.id_detail} className="print-item-block flex flex-col gap-0.5">
+                                <div className="product-name text-foreground font-medium">
                                     {item.produk.nama_produk}
                                 </div>
                                 <div className="flex justify-between text-[11px] text-muted-foreground">
-                                    <span>
+                                    <span className="tabular-nums">
                                         {item.jumlah} x {formatRupiah(item.harga)}
                                     </span>
-                                    <span className="text-foreground font-semibold tabular-nums">
+                                    <span className="text-foreground font-semibold tabular-nums text-right">
                                         {formatRupiah(item.subtotal)}
                                     </span>
                                 </div>
@@ -135,24 +175,24 @@ export default function StrukKasir({ transaksi }: Props) {
                         ))}
                     </div>
 
-                    <div className="py-3 border-b border-dashed border-border flex flex-col gap-1.5 text-xs">
+                    <div className="print-item-block py-3 border-b border-dashed border-border flex flex-col gap-1.5 text-xs">
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Subtotal</span>
-                            <span className="tabular-nums">{formatRupiah(transaksi.subtotal)}</span>
+                            <span className="tabular-nums text-right font-medium">{formatRupiah(transaksi.subtotal)}</span>
                         </div>
                         {Number(transaksi.diskon) > 0 && (
                             <div className="flex justify-between text-muted-foreground">
                                 <span>Diskon</span>
-                                <span className="tabular-nums">-{formatRupiah(transaksi.diskon)}</span>
+                                <span className="tabular-nums text-right font-medium">-{formatRupiah(transaksi.diskon)}</span>
                             </div>
                         )}
                         <div className="flex justify-between font-bold text-foreground text-sm pt-1 border-t border-border/40">
                             <span>TOTAL</span>
-                            <span className="tabular-nums">{formatRupiah(transaksi.total)}</span>
+                            <span className="tabular-nums text-right">{formatRupiah(transaksi.total)}</span>
                         </div>
                     </div>
 
-                    <div className="py-3 border-b border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
+                    <div className="print-item-block py-3 border-b border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
                         <div className="flex justify-between">
                             <span>Metode Bayar</span>
                             <span className="font-semibold uppercase text-foreground">{transaksi.metode_bayar}</span>
@@ -161,19 +201,19 @@ export default function StrukKasir({ transaksi }: Props) {
                             <>
                                 <div className="flex justify-between">
                                     <span>Uang Diterima</span>
-                                    <span className="tabular-nums text-foreground">
+                                    <span className="tabular-nums text-foreground text-right">
                                         {formatRupiah(transaksi.uang_diterima || 0)}
                                     </span>
                                 </div>
                                 <div className="flex justify-between font-semibold text-foreground">
                                     <span>Kembalian</span>
-                                    <span className="tabular-nums">{formatRupiah(transaksi.kembalian || 0)}</span>
+                                    <span className="tabular-nums text-right">{formatRupiah(transaksi.kembalian || 0)}</span>
                                 </div>
                             </>
                         )}
                     </div>
 
-                    <div className="pt-4 text-center text-[10px] text-muted-foreground">
+                    <div className="print-item-block pt-4 text-center text-[10px] text-muted-foreground">
                         <p>Terima kasih atas kunjungan Anda!</p>
                         <p className="mt-0.5">Barang yang sudah dibeli tidak dapat ditukar.</p>
                     </div>
