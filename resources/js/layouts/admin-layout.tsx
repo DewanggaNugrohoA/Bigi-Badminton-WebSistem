@@ -59,12 +59,31 @@ interface MenuItem {
     icon: React.ComponentType<{ className?: string }>;
 }
 
-const MENU_ITEMS: MenuItem[] = [
-    { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { title: "Reservasi", href: "/admin/reservasi", icon: CalendarDays },
-    { title: "Open Mabar", href: "/admin/open-mabar", icon: Users },
-    { title: "Member", href: "/admin/member", icon: BadgePercent },
-    { title: "Laporan", href: "/admin/laporan", icon: FileSpreadsheet },
+interface MenuGroup {
+    title?: string;
+    items: MenuItem[];
+}
+
+const MENU_GROUPS: MenuGroup[] = [
+    {
+        items: [
+            { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
+        ],
+    },
+    {
+        title: "Operasional",
+        items: [
+            { title: "Reservasi", href: "/admin/reservasi", icon: CalendarDays },
+            { title: "Open Mabar", href: "/admin/open-mabar", icon: Users },
+        ],
+    },
+    {
+        title: "Data",
+        items: [
+            { title: "Member", href: "/admin/member", icon: BadgePercent },
+            { title: "Laporan", href: "/admin/laporan", icon: FileSpreadsheet },
+        ],
+    },
 ];
 
 export default function AdminLayout({
@@ -73,8 +92,9 @@ export default function AdminLayout({
     breadcrumb = [],
 }: AdminLayoutProps) {
     const { auth, flash } = usePage<SharedProps>().props;
+    const { url } = usePage();
     const user = auth?.user;
-    const currentUrl = typeof window !== "undefined" ? window.location.pathname : "";
+    const pathname = url.split("?")[0].split("#")[0];
 
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -126,47 +146,71 @@ export default function AdminLayout({
 
     const isItemActive = (href: string) => {
         if (href === "/admin") {
-            return currentUrl === "/admin";
+            return pathname === "/admin";
         }
-        return currentUrl === href || currentUrl.startsWith(href + "/");
+        return pathname === href || pathname.startsWith(href + "/");
     };
 
     const renderNavItems = (isDrawer = false) => (
-        <nav className="flex flex-col gap-1 py-3" aria-label="Menu Utama">
-            {MENU_ITEMS.map((item) => {
-                const active = isItemActive(item.href);
-                const Icon = item.icon;
+        <nav className="py-2 space-y-4" aria-label="Menu Utama">
+            {MENU_GROUPS.map((group, groupIndex) => {
+                const isCollapsedView = collapsed && !isDrawer;
+
                 return (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => {
-                            if (isDrawer) setMobileOpen(false);
-                        }}
-                        aria-current={active ? "page" : undefined}
-                        className={cn(
-                            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors relative min-h-[40px] select-none",
-                            active
-                                ? "bg-[var(--brand)] text-white shadow-xs"
-                                : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
-                            collapsed && !isDrawer && "justify-center px-2"
-                        )}
-                        title={collapsed && !isDrawer ? item.title : undefined}
+                    <div
+                        key={group.title || `group-${groupIndex}`}
+                        className={cn(groupIndex > 0 && "mt-4")}
                     >
-                        <Icon
-                            className={cn(
-                                "size-4.5 shrink-0 transition-transform group-hover:scale-105",
-                                active ? "text-white" : "text-muted-foreground group-hover:text-foreground"
-                            )}
-                        />
-                        {(!collapsed || isDrawer) && (
-                            <span className="truncate">{item.title}</span>
-                        )}
-                    </Link>
+                        {group.title ? (
+                            isCollapsedView ? (
+                                <div className="my-2 border-t border-sidebar-border" aria-hidden="true" />
+                            ) : (
+                                <div className="px-3 mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground select-none">
+                                    {group.title}
+                                </div>
+                            )
+                        ) : null}
+
+                        <div className="space-y-1">
+                            {group.items.map((item) => {
+                                const active = isItemActive(item.href);
+                                const Icon = item.icon;
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={() => {
+                                            if (isDrawer) setMobileOpen(false);
+                                        }}
+                                        aria-current={active ? "page" : undefined}
+                                        className={cn(
+                                            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors relative min-h-[40px] select-none",
+                                            active
+                                                ? "bg-[var(--brand)] text-white shadow-xs"
+                                                : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                                            isCollapsedView && "justify-center px-2"
+                                        )}
+                                        title={isCollapsedView ? item.title : undefined}
+                                    >
+                                        <Icon
+                                            className={cn(
+                                                "size-4.5 shrink-0 transition-transform group-hover:scale-105",
+                                                active ? "text-white" : "text-muted-foreground group-hover:text-foreground"
+                                            )}
+                                        />
+                                        {!isCollapsedView && (
+                                            <span className="truncate">{item.title}</span>
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
                 );
             })}
         </nav>
     );
+
 
     return (
         <div className="min-h-screen flex bg-background text-foreground antialiased selection:bg-[var(--brand)] selection:text-white">
