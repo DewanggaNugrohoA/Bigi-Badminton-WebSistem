@@ -66,14 +66,34 @@ interface MenuItem {
     icon: React.ComponentType<{ className?: string }>;
 }
 
-const MENU_ITEMS: MenuItem[] = [
-    { title: "Kasir", href: "/kasir", icon: ShoppingBag },
-    { title: "Shift", href: "/kasir/shift", icon: Clock },
-    { title: "Riwayat", href: "/kasir/riwayat", icon: ReceiptText },
-    { title: "Produk", href: "/kasir/produk", icon: Package },
-    { title: "Restock", href: "/kasir/restock", icon: Boxes },
-    { title: "Stok Opname", href: "/kasir/opname", icon: ClipboardCheck },
-    { title: "Void/Retur", href: "/kasir/void", icon: Ban },
+interface MenuGroup {
+    title: string;
+    items: MenuItem[];
+}
+
+const MENU_GROUPS: MenuGroup[] = [
+    {
+        title: "Transaksi",
+        items: [
+            { title: "Kasir", href: "/kasir", icon: ShoppingBag },
+            { title: "Shift", href: "/kasir/shift", icon: Clock },
+            { title: "Riwayat", href: "/kasir/riwayat", icon: ReceiptText },
+        ],
+    },
+    {
+        title: "Inventori",
+        items: [
+            { title: "Produk", href: "/kasir/produk", icon: Package },
+            { title: "Restock", href: "/kasir/restock", icon: Boxes },
+            { title: "Stok Opname", href: "/kasir/opname", icon: ClipboardCheck },
+        ],
+    },
+    {
+        title: "Koreksi",
+        items: [
+            { title: "Void/Retur", href: "/kasir/void", icon: Ban },
+        ],
+    },
 ];
 
 const SIDEBAR_STORAGE_KEY = "kasir_sidebar_open";
@@ -162,35 +182,48 @@ export default function KasirLayout({
         }
     };
 
-    const renderNavItems = (isMobile = false) => (
-        <nav className="space-y-1 py-2" aria-label="Navigasi Utama Kasir">
-            {MENU_ITEMS.map((item) => {
-                const isActive =
-                    item.href === "/kasir"
-                        ? currentUrl === "/kasir"
-                        : currentUrl.startsWith(item.href);
-                const Icon = item.icon;
+    const isItemActive = (href: string) => {
+        if (href === "/kasir") {
+            return currentUrl === "/kasir";
+        }
+        return currentUrl === href || currentUrl.startsWith(href + "/");
+    };
 
-                return (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => {
-                            if (isMobile) setMobileOpen(false);
-                        }}
-                        className={cn(
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                            isActive
-                                ? "bg-[var(--brand)] text-white shadow-xs font-semibold"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                        )}
-                        aria-current={isActive ? "page" : undefined}
-                    >
-                        <Icon className="size-4.5 shrink-0" />
-                        <span className="truncate">{item.title}</span>
-                    </Link>
-                );
-            })}
+    const renderNavItems = (isMobile = false) => (
+        <nav className="py-2 space-y-4" aria-label="Navigasi Utama Kasir">
+            {MENU_GROUPS.map((group, groupIndex) => (
+                <div key={group.title} className={cn(groupIndex > 0 && "mt-4 sm:mt-5")}>
+                    <div className="px-3 mb-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground select-none">
+                        {group.title}
+                    </div>
+                    <div className="space-y-1">
+                        {group.items.map((item) => {
+                            const isActive = isItemActive(item.href);
+                            const Icon = item.icon;
+
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={() => {
+                                        if (isMobile) setMobileOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                                        isActive
+                                            ? "bg-[var(--brand)] text-white shadow-xs font-semibold"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                                    )}
+                                    aria-current={isActive ? "page" : undefined}
+                                >
+                                    <Icon className="size-4.5 shrink-0" />
+                                    <span className="truncate">{item.title}</span>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            ))}
         </nav>
     );
 
