@@ -84,6 +84,7 @@ Route::middleware('auth:staff')->group(function () {
 
         
         Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan');
+        Route::get('/admin/laporan/ekspor', [\App\Http\Controllers\Admin\LaporanController::class, 'ekspor'])->name('admin.laporan.ekspor');
 
         
         Route::get('/admin/pengaturan', [AdminController::class, 'placeholder'])->name('admin.pengaturan');
