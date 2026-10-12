@@ -52,7 +52,10 @@ class PaketMember extends Model
     }
 
     
-    public function getSesiTerpakaiAttribute(): int
+    /**
+     * Sesi yang terpakai dari reservasi lapangan non-batal.
+     */
+    public function getSesiReservasiAttribute(): int
     {
         if ($this->relationLoaded('reservasi')) {
             return (int) $this->reservasi
@@ -68,17 +71,43 @@ class PaketMember extends Model
         })->count();
     }
 
-    
+    /**
+     * Sesi yang dicatat sebagai pemakaian manual tanpa reservasi (selisih negatif).
+     */
+    public function getPemakaianManualAttribute(): int
+    {
+        if ($this->relationLoaded('penyesuaian')) {
+            return (int) $this->penyesuaian->where('selisih', '<', 0)->sum(function ($p) {
+                return abs($p->selisih);
+            });
+        }
+
+        return (int) abs($this->penyesuaian()->where('selisih', '<', 0)->sum('selisih'));
+    }
+
+    /**
+     * Total Terpakai = dari reservasi lapangan + pemakaian manual.
+     */
+    public function getSesiTerpakaiAttribute(): int
+    {
+        return $this->sesi_reservasi + $this->pemakaian_manual;
+    }
+
+    /**
+     * Kolom Penyesuaian hanya untuk Tambah Sesi (nilai positif).
+     */
     public function getTotalPenyesuaianAttribute(): int
     {
         if ($this->relationLoaded('penyesuaian')) {
-            return (int) $this->penyesuaian->sum('selisih');
+            return (int) $this->penyesuaian->where('selisih', '>', 0)->sum('selisih');
         }
 
-        return (int) $this->penyesuaian()->sum('selisih');
+        return (int) $this->penyesuaian()->where('selisih', '>', 0)->sum('selisih');
     }
 
-    
+    /**
+     * Sisa Sesi = Total Awal + Penyesuaian (Tambah Sesi) - Terpakai (Reservasi + Pemakaian Manual).
+     */
     public function getSisaSesiAttribute(): int
     {
         $sisa = $this->jumlah_sesi + $this->total_penyesuaian - $this->sesi_terpakai;

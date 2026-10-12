@@ -488,13 +488,20 @@ export default function LaporanIndex({
                                                     <TableCell className="text-xs whitespace-nowrap tabular-nums text-foreground">
                                                         {item.no_whatsapp ? item.no_whatsapp : "-"}
                                                     </TableCell>
-                                                    <TableCell className="text-center whitespace-nowrap">
-                                                        <Badge
-                                                            variant={item.jenis_label === "Member" ? "success" : item.jenis_label === "Reguler" ? "info" : "neutral"}
-                                                            className="text-[11px] py-0 px-2"
-                                                        >
-                                                            {item.jenis_label}
-                                                        </Badge>
+                                                    <TableCell className="text-center whitespace-nowrap text-xs">
+                                                        {item.jenis_label === "Member" ? (
+                                                            <span className="font-medium text-foreground">
+                                                                Member
+                                                            </span>
+                                                        ) : item.jenis_label === "Reguler" ? (
+                                                            <span className="text-muted-foreground">
+                                                                Reguler
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted-foreground/80">
+                                                                Tanpa akun
+                                                            </span>
+                                                        )}
                                                     </TableCell>
                                                     <TableCell className="text-xs text-right tabular-nums text-foreground">
                                                         {item.sisa_sesi_paket !== null ? item.sisa_sesi_paket : "-"}

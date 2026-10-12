@@ -14,6 +14,7 @@ class PenyesuaianPaket extends Model
     protected $fillable = [
         'id_paket',
         'selisih',
+        'tanggal_main',
         'alasan',
         'id_admin',
     ];
@@ -22,6 +23,7 @@ class PenyesuaianPaket extends Model
     {
         return [
             'selisih' => 'integer',
+            'tanggal_main' => 'date',
         ];
     }
 
