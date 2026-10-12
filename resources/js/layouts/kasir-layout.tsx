@@ -34,6 +34,7 @@ import { PageProps } from "@inertiajs/core";
 interface KasirLayoutProps {
     children: ReactNode;
     title?: string;
+    fullWidth?: boolean;
     shiftAktif?: {
         id_shift: number;
         status: string;
@@ -80,6 +81,7 @@ const SIDEBAR_STORAGE_KEY = "kasir_sidebar_open";
 export default function KasirLayout({
     children,
     title = "Panel Kasir",
+    fullWidth = false,
 }: KasirLayoutProps) {
     const { auth, flash } = usePage<SharedProps>().props;
     const user = auth?.user;
@@ -377,7 +379,13 @@ export default function KasirLayout({
                 </header>
 
                 <main className="flex-1 w-full min-w-0">
-                    {children}
+                    {fullWidth ? (
+                        children
+                    ) : (
+                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+                            {children}
+                        </div>
+                    )}
                 </main>
             </div>
 

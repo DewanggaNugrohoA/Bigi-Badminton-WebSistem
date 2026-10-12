@@ -177,7 +177,7 @@ export default function KasirIndex({ shiftAktif, produk, kategoriList }: Props) 
         return (
             <KasirLayout title="Penjualan POS" shiftAktif={null}>
                 <Head title="Penjualan POS - Bigi Badminton" />
-                <div className="p-4 sm:p-6 lg:p-8 max-w-xl mx-auto">
+                <div className="max-w-xl mx-auto">
                     <div className="bg-card border border-border rounded-xl p-8 text-center mt-8 shadow-xs">
                         <h2 className="text-lg font-semibold text-foreground">Shift Belum Dibuka</h2>
                         <p className="text-sm text-muted-foreground mt-2 mb-6">
@@ -285,7 +285,7 @@ export default function KasirIndex({ shiftAktif, produk, kategoriList }: Props) 
     );
 
     return (
-        <KasirLayout title="Penjualan POS" shiftAktif={shiftAktif}>
+        <KasirLayout title="Penjualan POS" shiftAktif={shiftAktif} fullWidth>
             <Head title="Penjualan POS - Bigi Badminton" />
 
             <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden">
