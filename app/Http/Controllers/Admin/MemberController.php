@@ -17,8 +17,17 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller pengelolaan data keanggotaan (Member) dan paket sesi bermain.
+ *
+ * Mengelola status keaktifan member, penambahan paket sesi bermain baru,
+ * penyesuaian manual (tambah/kurang kuota sesi), dan pembatalan paket member.
+ */
 class MemberController extends Controller
 {
+    /**
+     * Catat aksi administratif data member ke audit_log.
+     */
     protected function logAudit(int $idAdmin, string $aksi, string $objek, ?string $keterangan = null): void
     {
         AuditLog::create([
@@ -30,6 +39,9 @@ class MemberController extends Controller
         ]);
     }
 
+    /**
+     * Tampilkan daftar pelanggan reguler & member beserta riwayat paket sesi dan status aktif.
+     */
     public function index(Request $request): Response
     {
         $search = $request->input('search');
@@ -184,6 +196,9 @@ class MemberController extends Controller
         ]);
     }
 
+    /**
+     * Perbarui status jenis pelanggan (member/reguler), status keaktifan, dan periode member.
+     */
     public function updateStatus(UpdateMemberStatusRequest $request, int $userId)
     {
         $user = User::where('role', User::ROLE_USER)->findOrFail($userId);
@@ -215,6 +230,9 @@ class MemberController extends Controller
         return redirect()->back()->with('success', "Status keanggotaan {$user->nama} berhasil diperbarui.");
     }
 
+    /**
+     * Daftarkan paket sesi bermain baru untuk member.
+     */
     public function storePaket(StorePaketMemberRequest $request, int $userId)
     {
         $user = User::where('role', User::ROLE_USER)->findOrFail($userId);
@@ -239,6 +257,9 @@ class MemberController extends Controller
         return redirect()->back()->with('success', "Paket sesi ({$paket->jumlah_sesi} sesi) berhasil ditambahkan untuk {$user->nama}.");
     }
 
+    /**
+     * Simpan penyesuaian sesi (tambah sesi bonus atau catat pemakaian manual) dengan audit log.
+     */
     public function adjustPaket(StorePenyesuaianPaketRequest $request, int $paketId)
     {
         $paket = PaketMember::with('user')->findOrFail($paketId);
@@ -277,6 +298,9 @@ class MemberController extends Controller
         return redirect()->back()->with('success', $pesan);
     }
 
+    /**
+     * Batalkan paket member yang belum habis dan simpan alasan pembatalan ke audit log.
+     */
     public function cancelPaket(CancelPaketMemberRequest $request, int $paketId)
     {
         $paket = PaketMember::with('user')->findOrFail($paketId);

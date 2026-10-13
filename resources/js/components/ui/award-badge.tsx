@@ -1,4 +1,4 @@
-import React, { MouseEvent, useEffect, useRef, useState } from "react";
+import { MouseEvent, useEffect, useRef, useState } from "react";
 
 export type AwardBadgeType =
   | "golden-kitty"

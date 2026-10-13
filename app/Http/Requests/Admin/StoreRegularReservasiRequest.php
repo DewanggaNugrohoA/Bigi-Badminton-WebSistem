@@ -6,8 +6,15 @@ use App\Models\Lapangan;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi pembuatan reservasi reguler satu sesi oleh admin.
+ * Hak akses: Hanya staf ber-role admin.
+ */
 class StoreRegularReservasiRequest extends FormRequest
 {
+    /**
+     * Otorisasi khusus admin.
+     */
     public function authorize(): bool
     {
         return $this->user() && $this->user()->role === 'admin';

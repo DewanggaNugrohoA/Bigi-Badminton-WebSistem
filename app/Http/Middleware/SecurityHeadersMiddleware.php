@@ -6,12 +6,17 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Middleware injeksi HTTP security response headers.
+ *
+ * Mengamankan aplikasi dari clickjacking (X-Frame-Options: SAMEORIGIN),
+ * MIME-sniffing drive-by downloads (X-Content-Type-Options: nosniff),
+ * dan pembocoran data sensitif referrer (Referrer-Policy: strict-origin-when-cross-origin).
+ */
 class SecurityHeadersMiddleware
 {
     /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * Sisipkan header keamanan HTTP standar pada setiap respon keluar.
      */
     public function handle(Request $request, Closure $next): Response
     {

@@ -6,8 +6,15 @@ use App\Models\ReturVoid;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * FormRequest validasi pengajuan pembatalan (void) atau retur barang transaksi POS.
+ * Hak akses: Hanya staf ber-role kasir pada guard staff.
+ */
 class VoidReturRequest extends FormRequest
 {
+    /**
+     * Otorisasi hanya untuk kasir.
+     */
     public function authorize(): bool
     {
         return $this->user('staff') !== null && $this->user('staff')->role === 'kasir';

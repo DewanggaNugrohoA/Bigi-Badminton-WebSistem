@@ -4,8 +4,15 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi pembuatan reservasi rutin mingguan member (autofield).
+ * Hak akses: Hanya staf ber-role admin.
+ */
 class StoreMemberAutofieldRequest extends FormRequest
 {
+    /**
+     * Otorisasi khusus admin.
+     */
     public function authorize(): bool
     {
         return $this->user() && $this->user()->role === 'admin';

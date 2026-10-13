@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use Throwable;
 
 class ReservasiController extends Controller
 {

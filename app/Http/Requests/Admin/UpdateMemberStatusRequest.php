@@ -2,11 +2,17 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi pembaruan status keanggotaan dan rentang aktif member.
+ * Hak akses: Hanya staf ber-role admin.
+ */
 class UpdateMemberStatusRequest extends FormRequest
 {
+    /**
+     * Otorisasi khusus admin.
+     */
     public function authorize(): bool
     {
         return $this->user() && $this->user()->role === 'admin';

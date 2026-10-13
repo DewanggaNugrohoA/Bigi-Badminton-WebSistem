@@ -7,7 +7,6 @@ use App\Models\OpenMabar;
 use App\Models\Pembayaran;
 use App\Models\Reservasi;
 use App\Models\TransaksiPos;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -95,17 +94,6 @@ class AdminController extends Controller
         $path = $request->path();
         
         $map = [
-            'admin/reservasi' => ['title' => 'Reservasi & Sewa Lapangan', 'group' => 'Operasional'],
-            'admin/open-mabar' => ['title' => 'Persetujuan Open Mabar', 'group' => 'Operasional'],
-            'admin/member' => ['title' => 'Paket & Data Member', 'group' => 'Operasional'],
-            'admin/informasi' => ['title' => 'Informasi & Pengumuman', 'group' => 'Operasional'],
-            'admin/produk' => ['title' => 'Produk & Harga POS', 'group' => 'Penjualan'],
-            'admin/transaksi-pos' => ['title' => 'Transaksi Kasir POS', 'group' => 'Penjualan'],
-            'admin/shift-kasir' => ['title' => 'Shift Kasir', 'group' => 'Penjualan'],
-            'admin/void-retur' => ['title' => 'Persetujuan Void & Retur', 'group' => 'Penjualan'],
-            'admin/laporan' => ['title' => 'Laporan & Ekspor Excel', 'group' => 'Laporan'],
-            'admin/kasir' => ['title' => 'Pengelolaan Akun Kasir', 'group' => 'Pengelolaan'],
-            'admin/audit-log' => ['title' => 'Audit Log Aktivitas', 'group' => 'Pengelolaan'],
             'admin/pengaturan' => ['title' => 'Pengaturan Akun Admin', 'group' => 'Pengelolaan'],
         ];
 

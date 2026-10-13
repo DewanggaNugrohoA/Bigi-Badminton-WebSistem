@@ -16,15 +16,26 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller autentikasi khusus staf internal (Admin & Kasir).
+ *
+ * Menerapkan rate limiting ketat (maksimal 5 kegagalan per email/IP)
+ * untuk memitigasi serangan brute force. Kegagalan berulang dicatat ke audit_log.
+ * Akses role kasir yang nonaktif ditolak dan tidak boleh masuk sistem.
+ */
 class StaffLoginController extends Controller
 {
-    
+    /**
+     * Tampilkan formulir login khusus staf/karyawan.
+     */
     public function create(): Response
     {
         return Inertia::render('Auth/StaffLogin');
     }
 
-    
+    /**
+     * Proses otentikasi staf, validasi password hash, verifikasi status akun, dan buat sesi guard staff.
+     */
     public function store(StaffLoginRequest $request)
     {
         $throttleKey = $this->throttleKey($request);

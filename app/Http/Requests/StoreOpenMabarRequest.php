@@ -4,8 +4,15 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi pembuatan pengajuan kegiatan Open Mabar baru.
+ * Hak akses: Semua pengguna terautentikasi (role user) yang lolos middleware auth.
+ */
 class StoreOpenMabarRequest extends FormRequest
 {
+    /**
+     * Diizinkan untuk pengguna yang sudah login (diproteksi middleware rute).
+     */
     public function authorize(): bool
     {
         return true;

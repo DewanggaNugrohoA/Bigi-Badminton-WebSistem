@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { formatRupiah } from "@/lib/admin-format";
 import BookingModal from "./partials/BookingModal";
 import PelunasanModal from "./partials/PelunasanModal";
 import BatalModal from "./partials/BatalModal";

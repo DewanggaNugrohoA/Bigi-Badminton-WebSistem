@@ -2,27 +2,25 @@
 
 namespace App\Services;
 
-use App\Models\AuditLog;
 use App\Models\DetailReservasi;
 use App\Models\OpenMabar;
 use App\Models\PaketMember;
-use App\Models\Pembayaran;
 use App\Models\PesertaMabar;
-use App\Models\Produk;
 use App\Models\Reservasi;
-use App\Models\Restock;
-use App\Models\ReturVoid;
-use App\Models\ShiftKasir;
-use App\Models\StockOpname;
-use App\Models\TransaksiPos;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Service pengelola data statistik dan aktivitas pemain (member, reguler, dan peserta open mabar).
+ */
 class LaporanPemainService
 {
+    /**
+     * Standarisasi nomor telepon WhatsApp ke format lokal (misal: 628... menjadi 08...).
+     */
     public static function normalizeWhatsapp(?string $wa): string
     {
         if ($wa === null) {

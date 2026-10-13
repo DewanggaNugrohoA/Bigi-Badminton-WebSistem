@@ -6,8 +6,15 @@ use App\Models\TransaksiPos;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * FormRequest validasi transaksi checkout pembayaran kasir POS.
+ * Hak akses: Hanya staf kasir pada guard staff.
+ */
 class CheckoutPosRequest extends FormRequest
 {
+    /**
+     * Otorisasi hanya untuk staf ber-role kasir.
+     */
     public function authorize(): bool
     {
         return $this->user('staff') !== null && $this->user('staff')->role === 'kasir';

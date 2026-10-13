@@ -164,7 +164,6 @@ export default function PaketDetailModal({
                                                 </span>
                                                 <div className="max-h-36 overflow-y-auto divide-y divide-border/40 pr-1">
                                                     {pkt.riwayat_transaksi.map((item: any) => {
-                                                        const isKurang = item.selisih < 0;
                                                         const tandaJumlah = item.selisih > 0 ? `+${item.selisih}` : `${item.selisih}`;
 
                                                         return (

@@ -13,21 +13,36 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
+/**
+ * Controller pendaftaran pengguna baru (User Pelanggan) menggunakan verifikasi OTP WhatsApp.
+ *
+ * Alur registrasi:
+ * 1. Pengguna memasukkan nama, nomor WhatsApp (format 08...), dan password.
+ * 2. Sistem menghasilkan 6-digit angka OTP yang di-hash dengan HMAC-SHA256 (bukan plaintext di DB).
+ * 3. OTP dikirimkan via WhatsApp Gateway, berlaku 10 menit dengan batas maksimal 5 kali percobaan verifikasi.
+ * 4. Setelah OTP diverifikasi sukses, akun user aktif dibuat dan sesi otomatis login.
+ */
 class RegisterController extends Controller
 {
-    
+    /**
+     * Hash kode OTP dengan HMAC-SHA256 menggunakan app.key agar aman dari kebocoran database.
+     */
     protected function hashOtp(string $otp): string
     {
         return hash_hmac('sha256', $otp, (string) config('app.key'));
     }
 
-    
+    /**
+     * Tampilkan formulir pendaftaran akun pengguna umum.
+     */
     public function create()
     {
         return Inertia::render('Auth/Register');
     }
 
-    
+    /**
+     * Validasi pendaftaran awal dan kirimkan kode OTP ke nomor WhatsApp pendaftar.
+     */
     public function store(Request $request, WhatsAppService $waService)
     {
         $ipSubmitKey = 'register_submit_ip:' . $request->ip();
@@ -125,6 +140,9 @@ class RegisterController extends Controller
     }
 
     
+    /**
+     * Tampilkan antarmuka pengisian 6-digit OTP verifikasi pendaftaran.
+     */
     public function verifikasiCreate(Request $request)
     {
         $noWhatsapp = $request->session()->get('pending_no_whatsapp');
@@ -138,7 +156,10 @@ class RegisterController extends Controller
         ]);
     }
 
-    
+    /**
+     * Verifikasi kode OTP WhatsApp: cocokkan hash kode, cek masa berlaku 10 menit,
+     * batasi percobaan gagal maksimal 5x, dan daftarkan akun baru ke tabel users.
+     */
     public function verifikasiStore(Request $request)
     {
         $validated = $request->validate([

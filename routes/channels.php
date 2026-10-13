@@ -4,10 +4,18 @@ use App\Models\OpenMabar;
 use App\Models\PesertaMabar;
 use Illuminate\Support\Facades\Broadcast;
 
+// Saluran privat profil notifikasi masing-masing user.
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id_user === (int) $id;
 });
 
+/**
+ * Saluran privat real-time chat Open Mabar (Laravel Reverb).
+ * Aturan hak akses:
+ * - Kasir: ditolak (kasir tidak memiliki keterkaitan dengan forum mabar).
+ * - Admin: diizinkan memantau seluruh obrolan open mabar.
+ * - User: hanya diizinkan jika event mabar berstatus disetujui DAN user adalah pembuat atau peserta terdaftar.
+ */
 Broadcast::channel('mabar.{id_mabar}', function ($user, $id_mabar) {
     if ($user->role === 'kasir') {
         return false;

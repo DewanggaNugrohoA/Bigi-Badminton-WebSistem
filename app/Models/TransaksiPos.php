@@ -4,14 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Model entitas Transaksi Penjualan Kasir POS (Point of Sale).
+ * id_user merujuk pada kasir yang melayani transaksi.
+ */
 class TransaksiPos extends Model
 {
-
+    // Metode Pembayaran POS
     const METODE_TUNAI = 'tunai';
     const METODE_QRIS = 'qris';
-    const STATUS_SELESAI = 'selesai';
-    const STATUS_VOID = 'void';
-    const STATUS_RETUR = 'retur';
+
+    // Status Transaksi POS
+    const STATUS_SELESAI = 'selesai'; // Transaksi berhasil dan stok terpotong
+    const STATUS_VOID = 'void';       // Pembatalan transaksi kasir (stok dipulihkan)
+    const STATUS_RETUR = 'retur';     // Pengembalian barang kasir (stok dipulihkan)
 
     protected $table = 'transaksi_pos';
     protected $primaryKey = 'id_transaksi';

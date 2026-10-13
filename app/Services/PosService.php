@@ -15,8 +15,21 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Service pengelola transaksi Point of Sale (POS), shift kerja kasir,
+ * manajemen katalog produk, restock, stock opname, dan retur/void.
+ *
+ * Aturan bisnis:
+ * 1. Pengurangan stok produk terjadi setelah pembayaran transaksi POS selesai.
+ * 2. Selisih kas fisik vs kas sistem saat penutupan shift dicatat ke audit log.
+ * 3. Restock menambah stok langsung, opname mencatat selisih fisik vs sistem.
+ * 4. Void/retur mengembalikan stok produk ke sistem secara otomatis.
+ */
 class PosService
 {
+    /**
+     * Dapatkan shift kasir yang saat ini berstatus terbuka untuk user yang sedang aktif.
+     */
     public function getActiveShift(User $user): ?ShiftKasir
     {
         return ShiftKasir::where('id_user', $user->id_user)
@@ -24,6 +37,9 @@ class PosService
             ->first();
     }
 
+    /**
+     * Buka shift kasir baru dengan modal kas awal dan catat aktivitas ke audit log.
+     */
     public function bukaShift(User $user, int $modalAwal): ShiftKasir
     {
         return DB::transaction(function () use ($user, $modalAwal) {
@@ -57,6 +73,10 @@ class PosService
         });
     }
 
+    /**
+     * Tutup shift kasir aktif, hitung total kas sistem (modal awal + transaksi tunai),
+     * serta hitung selisih uang fisik yang dilaporkan kasir.
+     */
     public function tutupShift(ShiftKasir $shift, int $kasFisik, User $user): ShiftKasir
     {
         return DB::transaction(function () use ($shift, $kasFisik, $user) {
@@ -104,6 +124,10 @@ class PosService
         });
     }
 
+    /**
+     * Proses transaksi penjualan POS: validasi shift aktif, ketersediaan stok,
+     * kalkulasi subtotal/kembalian, pemotongan stok barang, dan pembuatan struk/nomor transaksi.
+     */
     public function prosesPenjualan(User $user, array $data): TransaksiPos
     {
         return DB::transaction(function () use ($user, $data) {
@@ -352,6 +376,9 @@ class PosService
         }
     }
 
+    /**
+     * Tambah stok produk fisik (bisa memilih produk lama atau mendata produk baru secara langsung).
+     */
     public function prosesRestock(User $user, array $data): Restock
     {
         return DB::transaction(function () use ($user, $data) {
@@ -418,6 +445,9 @@ class PosService
         });
     }
 
+    /**
+     * Catat opname fisik berkala dan sesuaikan stok sistem dengan stok aktual.
+     */
     public function prosesOpname(User $user, array $items): void
     {
         DB::transaction(function () use ($user, $items) {
@@ -462,6 +492,10 @@ class PosService
         });
     }
 
+    /**
+     * Ajukan void (pembatalan transaksi) atau retur barang dari transaksi selesai pada shift aktif,
+     * serta pulihkan (increment) kuantitas stok produk yang dikembalikan.
+     */
     public function prosesVoidRetur(User $user, array $data): ReturVoid
     {
         return DB::transaction(function () use ($user, $data) {

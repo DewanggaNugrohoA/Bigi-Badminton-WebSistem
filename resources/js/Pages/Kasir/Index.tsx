@@ -49,6 +49,14 @@ interface Props {
     kategoriList: string[];
 }
 
+/**
+ * Antarmuka Utama Kasir POS (Point of Sale).
+ * Fitur utama:
+ * - Peringatan pembukaan shift kasir jika belum ada shift aktif.
+ * - Katalog produk cepat (grid kartu, filter kategori, pencarian).
+ * - Keranjang belanja interaktif (tambah, kurang kuantitas, kalkulasi total).
+ * - Modal checkout pembayaran (Tunai dengan hitung otomatis kembalian & QRIS).
+ */
 export default function KasirIndex({ shiftAktif, produk, kategoriList }: Props) {
     const [search, setSearch] = useState("");
     const [selectedKategori, setSelectedKategori] = useState<string>("semua");

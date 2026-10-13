@@ -6,8 +6,15 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
+/**
+ * FormRequest validasi pembuatan dan pembaruan data produk pada modul kasir.
+ * Hak akses: Hanya staf ber-role kasir pada guard staff.
+ */
 class SimpanProdukRequest extends FormRequest
 {
+    /**
+     * Otorisasi hanya untuk kasir.
+     */
     public function authorize(): bool
     {
         return $this->user('staff') !== null && $this->user('staff')->role === 'kasir';

@@ -27,6 +27,10 @@ interface SetMemberModalProps {
     } | null;
 }
 
+/**
+ * Modal dialog untuk memperbarui status tipe pelanggan (reguler / member)
+ * serta rentang tanggal aktif keanggotaan member.
+ */
 export default function SetMemberModal({
     open,
     onOpenChange,
@@ -34,7 +38,7 @@ export default function SetMemberModal({
 }: SetMemberModalProps) {
     if (!customer) return null;
 
-    const { data, setData, put, processing, errors, reset } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         jenis_pelanggan: customer.jenis_pelanggan || "reguler",
         status_member: customer.status_member || "tidak_aktif",
         tanggal_mulai_member: customer.tanggal_mulai_member || "",

@@ -25,7 +25,6 @@ import {
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/material-design-3-button";
-import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -71,6 +70,12 @@ interface MenuGroup {
     items: MenuItem[];
 }
 
+/**
+ * Definisi grup navigasi sidebar Panel Kasir:
+ * - Transaksi: Antarmuka kasir penjualan POS, shift kerja, dan riwayat struk
+ * - Inventori: Katalog master produk, penambahan stok (restock), dan opname berkala
+ * - Koreksi: Form pembatalan transaksi (void/retur) barang
+ */
 const MENU_GROUPS: MenuGroup[] = [
     {
         title: "Transaksi",
@@ -98,6 +103,10 @@ const MENU_GROUPS: MenuGroup[] = [
 
 const SIDEBAR_STORAGE_KEY = "kasir_sidebar_open";
 
+/**
+ * Layout kerangka utama untuk seluruh modul Panel Kasir.
+ * Dirancang khusus untuk efisiensi kasir layar sentuh / desktop dengan sidebar toggleable.
+ */
 export default function KasirLayout({
     children,
     title = "Panel Kasir",

@@ -4,8 +4,15 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi penambahan paket sesi bermain member baru.
+ * Hak akses: Hanya staf ber-role admin.
+ */
 class StorePaketMemberRequest extends FormRequest
 {
+    /**
+     * Otorisasi khusus admin.
+     */
     public function authorize(): bool
     {
         return $this->user() && $this->user()->role === 'admin';

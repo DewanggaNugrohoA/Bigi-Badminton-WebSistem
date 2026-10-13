@@ -14,9 +14,18 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Service pengelola logika bisnis reservasi lapangan badminton.
+ * 
+ * Bertanggung jawab atas pengecekan konflik slot jadwal (lapangan & mabar),
+ * pemesanan reguler, autofield pemesanan rutin member, pelunasan sisa bayar,
+ * serta pembatalan dan penyelesaian reservasi dengan pencatatan audit log.
+ */
 class ReservasiService
 {
-    
+    /**
+     * Catat aktivitas perubahan data reservasi ke tabel audit_log.
+     */
     public function logAktivitas(int $idUser, string $aksi, string $objek, ?string $keterangan = null): void
     {
         AuditLog::create([
@@ -28,7 +37,12 @@ class ReservasiService
         ]);
     }
 
-    
+    /**
+     * Periksa apakah slot waktu bentrok dengan reservasi lain atau Open Mabar disetujui.
+     * Menggunakan query overlap: (jam_mulai < request_selesai AND jam_selesai > request_mulai).
+     *
+     * @return string|null Pesan kesalahan jika terjadi bentrok, atau null jika slot tersedia.
+     */
     public function checkSlotConflict(
         int $idLapangan,
         string $tanggal,
@@ -105,6 +119,10 @@ class ReservasiService
     }
 
     
+    /**
+     * Periksa konflik jadwal khusus saat Admin akan menyetujui pengajuan Open Mabar.
+     * Mengembalikan rincian pemesan/judul yang bertabrakan bila terjadi bentrok.
+     */
     public function checkMabarConflict(
         int $idLapangan,
         string $tanggal,
@@ -182,6 +200,10 @@ class ReservasiService
     }
 
     
+    /**
+     * Buat reservasi reguler (satu slot/hari) beserta detail reservasi dan pencatatan pembayaran awal (DP/Lunas).
+     * Jika pemesan terdaftar sebagai member aktif, paket sesinya dicek dan dikaitkan ke reservasi.
+     */
     public function createRegularReservasi(array $data, int $adminUserId): Reservasi
     {
         return DB::transaction(function () use ($data, $adminUserId) {
@@ -330,6 +352,11 @@ class ReservasiService
     }
 
     
+    /**
+     * Hitung kalkulasi preview jadwal autofield member mingguan (misal setiap hari Senin).
+     * Melakukan iterasi dari tanggal hari ini hingga tanggal akhir masa aktif member,
+     * serta mendeteksi apakah setiap tanggal bentrok atau melebihi kuota sisa sesi paket.
+     */
     public function previewMemberAutofield(int $idUser, int $idLapangan, string $hari, string $jamMulai, string $jamSelesai, ?int $hargaPerSesi = null): array
     {
         $user = User::findOrFail($idUser);
@@ -435,6 +462,10 @@ class ReservasiService
     }
 
     
+    /**
+     * Simpan reservasi kolektif mingguan member secara atomik (all-or-nothing).
+     * Jika satu saja tanggal bentrok, seluruh transaksi digagalkan dan dibatalkan.
+     */
     public function storeMemberAutofield(array $data, int $adminUserId): Reservasi
     {
         return DB::transaction(function () use ($data, $adminUserId) {
@@ -578,6 +609,9 @@ class ReservasiService
     }
 
     
+    /**
+     * Catat pelunasan sisa kekurangan biaya sewa reservasi lapangan.
+     */
     public function lunasiPembayaran(int $idReservasi, array $data, int $adminUserId): Pembayaran
     {
         return DB::transaction(function () use ($idReservasi, $data, $adminUserId) {
@@ -620,7 +654,9 @@ class ReservasiService
         });
     }
 
-    
+    /**
+     * Batalkan status reservasi dan catat alasan pembatalannya ke audit log.
+     */
     public function batalkanReservasi(int $idReservasi, string $alasan, int $adminUserId): Reservasi
     {
         return DB::transaction(function () use ($idReservasi, $alasan, $adminUserId) {
@@ -647,7 +683,9 @@ class ReservasiService
         });
     }
 
-    
+    /**
+     * Tandai pemakaian lapangan selesai digunakan oleh pemesan.
+     */
     public function selesaikanReservasi(int $idReservasi, int $adminUserId): Reservasi
     {
         return DB::transaction(function () use ($idReservasi, $adminUserId) {

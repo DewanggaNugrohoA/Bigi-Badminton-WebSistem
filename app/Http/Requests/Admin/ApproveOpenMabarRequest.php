@@ -4,8 +4,15 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi persetujuan kegiatan Open Mabar dan penentuan slot lapangan.
+ * Hak akses: Hanya staf ber-role admin.
+ */
 class ApproveOpenMabarRequest extends FormRequest
 {
+    /**
+     * Otorisasi khusus admin.
+     */
     public function authorize(): bool
     {
         $user = $this->user('staff') ?: $this->user();

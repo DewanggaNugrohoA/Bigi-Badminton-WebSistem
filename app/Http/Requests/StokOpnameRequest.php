@@ -4,8 +4,15 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi pencatatan stock opname fisik.
+ * Hak akses: Hanya staf kasir pada guard staff.
+ */
 class StokOpnameRequest extends FormRequest
 {
+    /**
+     * Otorisasi hanya untuk kasir.
+     */
     public function authorize(): bool
     {
         return $this->user('staff') !== null && $this->user('staff')->role === 'kasir';

@@ -10,6 +10,9 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
+/**
+ * Service pengelola data riwayat pemeriksaan rutin sarana & prasarana lapangan badminton.
+ */
 class LaporanLapanganService
 {
     /**

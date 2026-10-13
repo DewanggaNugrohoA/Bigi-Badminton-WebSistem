@@ -53,7 +53,7 @@ class PaketMember extends Model
 
     
     /**
-     * Sesi yang terpakai dari reservasi lapangan non-batal.
+     * Sesi yang terpakai dari reservasi lapangan aktif (status non-batal).
      */
     public function getSesiReservasiAttribute(): int
     {
@@ -72,7 +72,7 @@ class PaketMember extends Model
     }
 
     /**
-     * Sesi yang dicatat sebagai pemakaian manual tanpa reservasi (selisih negatif).
+     * Sesi yang dicatat sebagai pemakaian manual langsung oleh admin (selisih negatif pada penyesuaian).
      */
     public function getPemakaianManualAttribute(): int
     {
@@ -86,7 +86,7 @@ class PaketMember extends Model
     }
 
     /**
-     * Total Terpakai = dari reservasi lapangan + pemakaian manual.
+     * Total sesi terpakai: penjumlahan sesi dari reservasi lapangan + pemakaian sesi manual.
      */
     public function getSesiTerpakaiAttribute(): int
     {
@@ -94,7 +94,7 @@ class PaketMember extends Model
     }
 
     /**
-     * Kolom Penyesuaian hanya untuk Tambah Sesi (nilai positif).
+     * Total penyesuaian penambahan sesi bonus/kompensasi (hanya nilai selisih positif).
      */
     public function getTotalPenyesuaianAttribute(): int
     {
@@ -106,7 +106,9 @@ class PaketMember extends Model
     }
 
     /**
-     * Sisa Sesi = Total Awal + Penyesuaian (Tambah Sesi) - Terpakai (Reservasi + Pemakaian Manual).
+     * Rumus sisa sesi yang dapat digunakan:
+     * sisa_sesi = jumlah_sesi_awal + total_penyesuaian_positif - sesi_terpakai.
+     * Nilai tidak boleh bernilai negatif (minimal 0).
      */
     public function getSisaSesiAttribute(): int
     {

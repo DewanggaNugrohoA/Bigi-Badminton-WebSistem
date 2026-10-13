@@ -4,8 +4,15 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi penolakan pengajuan Open Mabar beserta alasan penolakannya.
+ * Hak akses: Hanya staf ber-role admin.
+ */
 class RejectOpenMabarRequest extends FormRequest
 {
+    /**
+     * Otorisasi khusus admin.
+     */
     public function authorize(): bool
     {
         $user = $this->user('staff') ?: $this->user();

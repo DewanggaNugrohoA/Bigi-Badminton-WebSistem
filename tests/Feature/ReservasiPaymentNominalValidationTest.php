@@ -2,9 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\DetailReservasi;
 use App\Models\Lapangan;
-use App\Models\Pembayaran;
 use App\Models\Reservasi;
 use App\Models\User;
 use Carbon\Carbon;

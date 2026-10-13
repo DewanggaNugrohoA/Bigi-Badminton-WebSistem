@@ -3,24 +3,14 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
 use App\Models\Lapangan;
 use App\Models\Produk;
-use App\Models\OpenMabar;
-use App\Models\PesertaMabar;
-use App\Models\ChatMabar;
-use App\Models\Informasi;
-use App\Models\Reservasi;
-use App\Models\DetailReservasi;
-use App\Models\Pembayaran;
-use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        
+        // Inisialisasi 2 data master lapangan badminton standar GOR Bigi Badminton
         $lapangan1 = Lapangan::create([
             'nama_lapangan' => 'Lapangan 1',
             'harga_per_jam' => 50000,
@@ -33,7 +23,7 @@ class DatabaseSeeder extends Seeder
             'status_lapangan' => 'tersedia',
         ]);
 
-        
+        // Inisialisasi stok awal produk kantin dan perlengkapan kasir POS
         Produk::create(['nama_produk' => 'Air Mineral', 'kategori' => 'Minuman', 'harga' => 5000, 'stok' => 50, 'status_produk' => 'aktif']);
         Produk::create(['nama_produk' => 'Teh Manis', 'kategori' => 'Minuman', 'harga' => 7000, 'stok' => 30, 'status_produk' => 'aktif']);
         Produk::create(['nama_produk' => 'Isotonik', 'kategori' => 'Minuman', 'harga' => 10000, 'stok' => 20, 'status_produk' => 'aktif']);

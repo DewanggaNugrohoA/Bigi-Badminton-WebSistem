@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\AuditLog;
-use App\Models\DetailTransaksiPos;
 use App\Models\Produk;
 use App\Models\ShiftKasir;
 use App\Models\TransaksiPos;

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\AuditLog;
 use App\Models\Lapangan;
 use App\Models\PemeriksaanLapangan;
 use App\Models\User;

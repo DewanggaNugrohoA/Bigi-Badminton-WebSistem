@@ -6,9 +6,18 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Middleware otorisasi berbasis peran (role-based access control).
+ *
+ * Memeriksa apakah pengguna memiliki role yang diizinkan untuk mengakses rute.
+ * Jika role tidak cocok, memicu respon HTTP 403 (bukan redirect diam-diam).
+ * Jika akun berstatus 'nonaktif', sesi pengguna langsung dicabut dan dialihkan ke login.
+ */
 class RoleMiddleware
 {
-    
+    /**
+     * Tangani request masuk dan pastikan role pengguna terdaftar dalam daftar argumen yang diizinkan.
+     */
     public function handle(Request $request, Closure $next, string ...$args): Response
     {
         

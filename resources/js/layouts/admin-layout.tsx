@@ -64,6 +64,12 @@ interface MenuGroup {
     items: MenuItem[];
 }
 
+/**
+ * Definisi grup navigasi sidebar Panel Admin:
+ * - Utama: Ringkasan KPI dan jadwal harian
+ * - Operasional: Pengelolaan jadwal lapangan reservasi dan persetujuan mabar
+ * - Data: Keanggotaan paket member dan pelaporan rekapitulasi/ekspor Excel
+ */
 const MENU_GROUPS: MenuGroup[] = [
     {
         items: [
@@ -86,6 +92,10 @@ const MENU_GROUPS: MenuGroup[] = [
     },
 ];
 
+/**
+ * Layout kerangka utama untuk seluruh halaman Panel Admin.
+ * Menyediakan sidebar responsif, breadcrumb, toggle tema gelap, serta penanganan notifikasi toast.
+ */
 export default function AdminLayout({
     children,
     title = "Panel Admin",

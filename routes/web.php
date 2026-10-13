@@ -8,8 +8,12 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KasirController;
 use Illuminate\Support\Facades\Route;
 
+// ==========================================
+// 1. RUTE PUBLIK & AUTENTIKASI PENGGUNA UMUM
+// ==========================================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Tamu web (pelanggan belum login): Login, Registrasi, dan Verifikasi OTP WhatsApp
 Route::middleware('guest:web')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:15,1');
@@ -21,11 +25,16 @@ Route::middleware('guest:web')->group(function () {
     Route::post('/register/kirim-ulang-otp', [RegisterController::class, 'kirimUlangOtp'])->middleware('throttle:5,1')->name('register.kirim-ulang-otp');
 });
 
+// Tamu staf (karyawan belum login): Login khusus internal staf (Admin & Kasir)
 Route::middleware('guest:staff')->group(function () {
     Route::get('/staff/login', [\App\Http\Controllers\Auth\StaffLoginController::class, 'create'])->name('staff.login');
     Route::post('/staff/login', [\App\Http\Controllers\Auth\StaffLoginController::class, 'store'])->middleware('throttle:10,1')->name('staff.login.store');
 });
 
+// =========================================================================
+// 2. PANEL USER / PELANGGAN (Guard: web, Role: user)
+// Middleware role:user,web menjamin hanya pengguna umum yang bisa mengakses.
+// =========================================================================
 Route::middleware(['auth:web', 'role:user,web'])->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
@@ -54,13 +63,21 @@ Route::middleware(['auth:web', 'role:user,web'])->group(function () {
     Route::put('/pengaturan/akun/password', [\App\Http\Controllers\AkunController::class, 'updatePassword'])->name('pengaturan.akun.password');
 });
 
+// =========================================================================
+// 3. AREA STAF INTERNAL (Guard: staff)
+// Sesi terpisah untuk karyawan lapangan, dibagi menjadi Panel Admin dan Panel Kasir.
+// =========================================================================
 Route::middleware('auth:staff')->group(function () {
     Route::post('/staff/logout', [\App\Http\Controllers\Auth\StaffLoginController::class, 'destroy'])->name('staff.logout');
 
+    // -------------------------------------------------------------
+    // PANEL ADMIN (Role: admin)
+    // Hak akses: Operasional reservasi, approval mabar, member, dan laporan.
+    // -------------------------------------------------------------
     Route::middleware('role:admin,staff')->group(function () {
         Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
 
-        
+        // Reservasi Lapangan & Transaksi Sewa
         Route::get('/admin/reservasi', [\App\Http\Controllers\Admin\ReservasiController::class, 'index'])->name('admin.reservasi');
         Route::post('/admin/reservasi/regular', [\App\Http\Controllers\Admin\ReservasiController::class, 'storeRegular'])->name('admin.reservasi.store-regular');
         Route::post('/admin/reservasi/autofield/preview', [\App\Http\Controllers\Admin\ReservasiController::class, 'previewAutofield'])->name('admin.reservasi.preview-autofield');
@@ -71,28 +88,32 @@ Route::middleware('auth:staff')->group(function () {
         Route::get('/admin/reservasi/search-customers', [\App\Http\Controllers\Admin\ReservasiController::class, 'searchCustomers'])->name('admin.reservasi.search-customers');
         Route::post('/admin/reservasi/quick-customer', [\App\Http\Controllers\Admin\ReservasiController::class, 'quickCustomer'])->name('admin.reservasi.quick-customer');
 
-        
+        // Persetujuan Open Mabar
         Route::get('/admin/open-mabar', [\App\Http\Controllers\Admin\OpenMabarController::class, 'index'])->name('admin.open-mabar');
         Route::get('/admin/open-mabar/{id}/conflict', [\App\Http\Controllers\Admin\OpenMabarController::class, 'checkConflict'])->name('admin.open-mabar.conflict');
         Route::post('/admin/open-mabar/{id}/approve', [\App\Http\Controllers\Admin\OpenMabarController::class, 'approve'])->name('admin.open-mabar.approve');
         Route::post('/admin/open-mabar/{id}/reject', [\App\Http\Controllers\Admin\OpenMabarController::class, 'reject'])->name('admin.open-mabar.reject');
 
-        // Member
+        // Paket & Keanggotaan Member
         Route::get('/admin/member', [\App\Http\Controllers\Admin\MemberController::class, 'index'])->name('admin.member');
         Route::put('/admin/member/{user}/status', [\App\Http\Controllers\Admin\MemberController::class, 'updateStatus'])->name('admin.member.update-status');
         Route::post('/admin/member/{user}/paket', [\App\Http\Controllers\Admin\MemberController::class, 'storePaket'])->name('admin.member.store-paket');
         Route::post('/admin/member/paket/{paket}/adjust', [\App\Http\Controllers\Admin\MemberController::class, 'adjustPaket'])->name('admin.member.adjust-paket');
         Route::post('/admin/member/paket/{paket}/cancel', [\App\Http\Controllers\Admin\MemberController::class, 'cancelPaket'])->name('admin.member.cancel-paket');
 
-        // Laporan
+        // Laporan Rekapitulasi & Ekspor Excel
         Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan');
         Route::post('/admin/laporan/pemeriksaan-lapangan', [\App\Http\Controllers\Admin\LaporanController::class, 'storePemeriksaan'])->name('admin.laporan.pemeriksaan-lapangan.store');
         Route::get('/admin/laporan/ekspor', [\App\Http\Controllers\Admin\LaporanController::class, 'ekspor'])->name('admin.laporan.ekspor');
 
-        // Pengaturan
+        // Pengaturan Akun Admin
         Route::get('/admin/pengaturan', [AdminController::class, 'placeholder'])->name('admin.pengaturan');
     });
 
+    // -------------------------------------------------------------
+    // PANEL KASIR (Role: kasir)
+    // Hak akses: Operasional kasir POS (snack, minuman), shift kasir, restock, opname, void/retur.
+    // -------------------------------------------------------------
     Route::middleware('role:kasir,staff')->group(function () {
         Route::get('/kasir', [KasirController::class, 'index'])->name('kasir.dashboard');
         Route::get('/kasir/shift', [KasirController::class, 'shift'])->name('kasir.shift');

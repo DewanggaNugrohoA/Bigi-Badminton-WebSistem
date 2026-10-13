@@ -6,16 +6,30 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
+/**
+ * Model entitas Pengguna (User).
+ *
+ * Mendukung autentikasi multi-role:
+ * - admin: pengelola jadwal, data master, member, approval, dan laporan.
+ * - kasir: operator shift kasir POS, penjualan snack/minuman, restock, dan opname.
+ * - user: pelanggan yang dapat membuat reservasi dan mengajukan/mengikuti Open Mabar.
+ */
 class User extends Authenticatable
 {
-
+    // Nilai Enum Role Pengguna
     const ROLE_ADMIN = 'admin';
     const ROLE_KASIR = 'kasir';
     const ROLE_USER = 'user';
+
+    // Nilai Enum Jenis Pelanggan
     const JENIS_PELANGGAN_MEMBER = 'member';
     const JENIS_PELANGGAN_REGULER = 'reguler';
+
+    // Nilai Enum Status Member
     const STATUS_MEMBER_AKTIF = 'aktif';
     const STATUS_MEMBER_TIDAK_AKTIF = 'tidak_aktif';
+
+    // Nilai Enum Status Akun (akun nonaktif dicegah login oleh RoleMiddleware)
     const STATUS_AKUN_AKTIF = 'aktif';
     const STATUS_AKUN_NONAKTIF = 'nonaktif';
 

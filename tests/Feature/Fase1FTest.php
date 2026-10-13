@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\OpenMabar;
-use App\Models\PesertaMabar;
 use App\Models\Reservasi;
 use App\Models\DetailReservasi;
 use App\Models\Lapangan;

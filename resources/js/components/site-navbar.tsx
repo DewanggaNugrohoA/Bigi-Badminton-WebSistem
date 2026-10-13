@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, User as UserIcon, Calendar, PlusCircle, List, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { Menu, User as UserIcon, Calendar, PlusCircle, List, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AuthUser {

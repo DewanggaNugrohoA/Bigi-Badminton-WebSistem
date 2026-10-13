@@ -58,6 +58,11 @@ interface MemberIndexProps {
     };
 }
 
+/**
+ * Halaman utama Pengelolaan Member & Paket Sesi (Panel Admin).
+ * Menampilkan tabel pelanggan, filter status aktif/reguler, pencarian nama/WA,
+ * serta memicu modal ubah status keanggotaan, penambahan paket, dan audit riwayat sesi.
+ */
 export default function MemberIndex({ customers, filters }: MemberIndexProps) {
     const [search, setSearch] = useState(filters.search || "");
     const [filter, setFilter] = useState(filters.filter || "semua");

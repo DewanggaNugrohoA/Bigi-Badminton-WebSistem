@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import AdminLayout from "@/layouts/admin-layout";
 import { formatRupiah, formatTanggal, formatJam } from "@/lib/admin-format";
@@ -219,6 +219,15 @@ interface Props {
     };
 }
 
+/**
+ * Halaman pusat Laporan & Analitik Operasional GOR (Panel Admin).
+ * Menyediakan empat tab analitik:
+ * 1. Ringkasan Keuangan: Total omset sewa lapangan + penjualan POS, profit bersih, breakdown metode bayar.
+ * 2. Kasir POS & Inventori: Rekap kas harian, selisih kas shift kasir, restock, opname, dan void/retur.
+ * 3. Analitik Lapangan: Jam sibuk pemakaian lapangan, utilisasi lapangan 1 & 2, serta form pemeriksaan kondisi sarana.
+ * 4. Pemain & Komunitas: Statistik member aktif vs reguler, riwayat main, dan partisipasi open mabar.
+ * Ekspor Excel multi-sheet tersedia lewat tombol unduh sesuai rentang tanggal yang dipilih.
+ */
 export default function LaporanIndex({
     ringkasan,
     ringkasanPemain,

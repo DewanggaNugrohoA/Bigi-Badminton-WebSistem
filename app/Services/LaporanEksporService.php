@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
-use App\Models\DetailReservasi;
 use App\Models\Pembayaran;
 use App\Models\Produk;
 use App\Models\Reservasi;
@@ -23,8 +22,19 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
+/**
+ * Service pembuat berkas ekspor laporan rekapitulasi operasional dan keuangan ke format spreadsheet (.xlsx).
+ *
+ * Mengagregasi data pendapatan sewa lapangan, transaksi kasir POS, audit log,
+ * riwayat shift kasir, dan hasil pemeriksaan lapangan dalam satu workbook.
+ */
 class LaporanEksporService
 {
+    /**
+     * Sanitasi input teks sel untuk mencegah kerentanan Formula Injection (CSV / Excel Injection / DDE).
+     * Jika sebuah sel teks diawali karakter formula berbahaya seperti '=', '+', '-', '@', '|',
+     * teks diawali dengan tanda petik tunggal (') agar dievaluasi oleh Excel murni sebagai literal string.
+     */
     public function sanitizeText(?string $value): string
     {
         if ($value === null || $value === '') {

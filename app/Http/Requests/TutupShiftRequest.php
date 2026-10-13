@@ -4,8 +4,15 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi penutupan shift kasir.
+ * Hak akses: Hanya staf ber-role kasir pada guard staff.
+ */
 class TutupShiftRequest extends FormRequest
 {
+    /**
+     * Otorisasi hanya untuk kasir.
+     */
     public function authorize(): bool
     {
         return $this->user('staff') !== null && $this->user('staff')->role === 'kasir';

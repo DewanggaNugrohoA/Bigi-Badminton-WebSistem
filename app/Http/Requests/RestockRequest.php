@@ -5,8 +5,15 @@ namespace App\Http\Requests;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi penambahan stok produk kasir (restock).
+ * Hak akses: Hanya kasir aktif pada guard staff.
+ */
 class RestockRequest extends FormRequest
 {
+    /**
+     * Otorisasi hanya untuk staf ber-role kasir.
+     */
     public function authorize(): bool
     {
         return $this->user('staff') !== null && $this->user('staff')->role === 'kasir';

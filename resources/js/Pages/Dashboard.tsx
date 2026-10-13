@@ -18,7 +18,6 @@ import {
     ShieldCheck,
     Phone,
     Mail,
-    Sparkles,
 } from "lucide-react";
 import { buildWaLink } from "@/lib/content";
 import { BigiMemberBadge } from "@/components/ui/award-badge";

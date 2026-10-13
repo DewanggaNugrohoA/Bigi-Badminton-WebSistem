@@ -4,8 +4,15 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi kredensial login staf (Admin & Kasir).
+ * Hak akses: Publik terbuka untuk halaman login staf internal.
+ */
 class StaffLoginRequest extends FormRequest
 {
+    /**
+     * Otorisasi publik sebelum proses otentikasi.
+     */
     public function authorize(): bool
     {
         return true;

@@ -6,8 +6,15 @@ use App\Models\PemeriksaanLapangan;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * FormRequest validasi pencatatan hasil pemeriksaan fisik sarana lapangan (karpet, net, lampu, tiang).
+ * Hak akses: Hanya staf ber-role admin.
+ */
 class StorePemeriksaanLapanganRequest extends FormRequest
 {
+    /**
+     * Otorisasi khusus admin.
+     */
     public function authorize(): bool
     {
         return $this->user() && $this->user()->role === 'admin';

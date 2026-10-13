@@ -6,8 +6,15 @@ use App\Models\PaketMember;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * FormRequest validasi penyesuaian kuota sesi bermain paket member (penambahan bonus atau pemakaian manual).
+ * Hak akses: Hanya staf ber-role admin.
+ */
 class StorePenyesuaianPaketRequest extends FormRequest
 {
+    /**
+     * Otorisasi khusus admin.
+     */
     public function authorize(): bool
     {
         return $this->user() && $this->user()->role === 'admin';
