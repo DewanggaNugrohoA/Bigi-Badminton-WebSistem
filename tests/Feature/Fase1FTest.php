@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\OpenMabar;
-use App\Models\PesertaMabar;
 use App\Models\Reservasi;
 use App\Models\DetailReservasi;
 use App\Models\Lapangan;
@@ -18,55 +17,113 @@ class Fase1FTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected User $user;
+    protected User $member;
+    protected User $admin;
+    protected Reservasi $memberReservasi;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed();
+
+        $this->user = User::create([
+            'nama' => 'User Biasa',
+            'email' => 'user.f@example.com',
+            'no_whatsapp' => '08155550001',
+            'password' => Hash::make('password_awal'),
+            'role' => 'user',
+        ]);
+
+        $this->member = User::create([
+            'nama' => 'User Member',
+            'email' => 'member.f@example.com',
+            'no_whatsapp' => '08155550002',
+            'password' => Hash::make('password_awal'),
+            'role' => 'user',
+            'jenis_pelanggan' => 'member',
+            'tanggal_mulai_member' => Carbon::now()->subDays(10)->toDateString(),
+            'tanggal_akhir_member' => Carbon::now()->addDays(20)->toDateString(),
+            'status_member' => 'aktif',
+        ]);
+
+        $this->admin = User::create([
+            'nama' => 'Admin Uji',
+            'email' => 'admin.f@example.com',
+            'no_whatsapp' => '08155550003',
+            'password' => Hash::make('password_awal'),
+            'role' => 'admin',
+        ]);
+
+        $lapangan = Lapangan::first();
+
+        $this->memberReservasi = Reservasi::create([
+            'id_user' => $this->member->id_user,
+            'tanggal_pemesanan' => Carbon::now()->toDateString(),
+            'total_biaya' => 100000,
+            'status_reservasi' => 'terkonfirmasi',
+        ]);
+
+        DetailReservasi::create([
+            'id_reservasi' => $this->memberReservasi->id_reservasi,
+            'id_lapangan' => $lapangan ? $lapangan->id_lapangan : 1,
+            'tanggal_main' => Carbon::now()->addDays(2)->toDateString(),
+            'jam_mulai' => '10:00:00',
+            'jam_selesai' => '12:00:00',
+            'durasi' => 120,
+            'subtotal' => 100000,
+        ]);
+
+        Pembayaran::create([
+            'id_reservasi' => $this->memberReservasi->id_reservasi,
+            'tanggal_pembayaran' => Carbon::now()->toDateString(),
+            'jenis_pembayaran' => 'Lunas',
+            'jumlah' => 100000,
+            'metode_pembayaran' => 'transfer',
+            'status_pembayaran' => 'terkonfirmasi',
+        ]);
     }
 
-    // ───────────────────────────── Dashboard ─────────────────────────────
+    
 
-    /** Dashboard hanya bisa diakses oleh role user, bukan tamu */
+    
     public function test_dashboard_hanya_untuk_user_login(): void
     {
         $response = $this->get('/dashboard');
         $response->assertRedirect('/login');
     }
 
-    /** Admin yang akses /dashboard mendapat 403 */
+    
     public function test_admin_tidak_bisa_akses_dashboard(): void
     {
-        $admin = User::where('email', 'admin@bigi.test')->first();
-        $response = $this->actingAs($admin)->get('/dashboard');
+        $response = $this->actingAs($this->admin)->get('/dashboard');
         $response->assertStatus(403);
     }
 
-    /** User dapat mengakses /dashboard */
+    
     public function test_user_bisa_akses_dashboard(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
-        $response = $this->actingAs($user)->get('/dashboard');
+        $response = $this->actingAs($this->user)->get('/dashboard');
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page->component('Dashboard'));
     }
 
-    /** User A tidak melihat reservasi milik User B di /dashboard */
+    
     public function test_user_tidak_melihat_reservasi_milik_user_lain(): void
     {
-        // user@bigi.test tidak punya reservasi (hanya member@bigi.test yang punya di seeder)
-        $userA = User::where('email', 'user@bigi.test')->first();
-        $userB = User::where('email', 'member@bigi.test')->first();
+        $userA = $this->user;
+        $userB = $this->member;
 
-        // Pastikan userB punya reservasi
+        
         $this->assertGreaterThan(0, Reservasi::where('id_user', $userB->id_user)->count());
 
         $response = $this->actingAs($userA)->get('/dashboard');
         $response->assertStatus(200);
 
-        // Ambil prop reservasiSaya dari response Inertia
+        
         $response->assertInertia(function ($page) use ($userB) {
             $page->component('Dashboard');
-            // Reservasi yang tampil harus kosong karena userA tidak punya reservasi
+            
             $reservasi = collect($page->toArray()['props']['reservasiSaya']);
             foreach ($reservasi as $res) {
                 $this->assertNotEquals($userB->id_user, $res['id_user'] ?? null,
@@ -76,13 +133,13 @@ class Fase1FTest extends TestCase
         });
     }
 
-    /** Data mabar di dashboard hanya milik user yang login */
+    
     public function test_dashboard_menampilkan_mabar_stats_milik_user_sendiri(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
-        $otherUser = User::where('email', 'member@bigi.test')->first();
+        $user = $this->user;
+        $otherUser = $this->member;
 
-        // Buat mabar milik otherUser
+        
         OpenMabar::create([
             'id_user' => $otherUser->id_user,
             'judul' => 'Mabar Milik User Lain',
@@ -100,9 +157,9 @@ class Fase1FTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(function ($page) use ($user) {
             $page->component('Dashboard');
-            // Mabar yang dihitung adalah milik user sendiri, bukan milik other user
+            
             $stats = $page->toArray()['props']['mabarStats'];
-            // Verifikasi data stats cocok dengan DB
+            
             $dbMenunggu = OpenMabar::where('id_user', $user->id_user)
                 ->where('status', 'menunggu')->count();
             $this->assertEquals($dbMenunggu, $stats['menunggu']);
@@ -110,34 +167,32 @@ class Fase1FTest extends TestCase
         });
     }
 
-    // ───────────────────────── Pengaturan Akun ───────────────────────────
+    
 
-    /** Halaman pengaturan akun dapat diakses user */
+    
     public function test_user_dapat_akses_pengaturan_akun(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
-        $response = $this->actingAs($user)->get('/pengaturan/akun');
+        $response = $this->actingAs($this->user)->get('/pengaturan/akun');
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page->component('Pengaturan/Akun'));
     }
 
-    /** Admin tidak dapat akses /pengaturan/akun (role:user saja) */
+    
     public function test_admin_tidak_bisa_akses_pengaturan_akun(): void
     {
-        $admin = User::where('email', 'admin@bigi.test')->first();
-        $response = $this->actingAs($admin)->get('/pengaturan/akun');
+        $response = $this->actingAs($this->admin)->get('/pengaturan/akun');
         $response->assertStatus(403);
     }
 
-    /** Update profil berhasil dengan data valid */
+    
     public function test_update_profil_berhasil_dengan_data_valid(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
+        $user = $this->user;
 
         $response = $this->actingAs($user)->put('/pengaturan/akun/profil', [
             'nama' => 'Nama Baru',
-            'email' => 'userbaru@bigi.test',
-            'no_whatsapp' => '0899999999',
+            'email' => 'userbaru@example.com',
+            'no_whatsapp' => '08199990001',
         ]);
 
         $response->assertRedirect('/pengaturan/akun');
@@ -146,40 +201,40 @@ class Fase1FTest extends TestCase
         $this->assertDatabaseHas('users', [
             'id_user' => $user->id_user,
             'nama' => 'Nama Baru',
-            'email' => 'userbaru@bigi.test',
-            'no_whatsapp' => '0899999999',
+            'email' => 'userbaru@example.com',
+            'no_whatsapp' => '08199990001',
         ]);
     }
 
-    /** Update profil ditolak jika email milik user lain sudah dipakai */
+    
     public function test_update_profil_menolak_email_duplikat_milik_user_lain(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
-        $member = User::where('email', 'member@bigi.test')->first();
+        $user = $this->user;
+        $member = $this->member;
 
         $response = $this->actingAs($user)->put('/pengaturan/akun/profil', [
             'nama' => 'User Biasa',
-            'email' => $member->email, // email milik user lain
-            'no_whatsapp' => '0833333333',
+            'email' => $member->email, 
+            'no_whatsapp' => $user->no_whatsapp,
         ]);
 
         $response->assertSessionHasErrors(['email']);
-        // Data tidak berubah
+        
         $this->assertDatabaseHas('users', [
             'id_user' => $user->id_user,
-            'email' => 'user@bigi.test',
+            'email' => $user->email,
         ]);
     }
 
-    /** Update profil BERHASIL jika email adalah milik sendiri (tidak berubah) */
+    
     public function test_update_profil_menerima_email_milik_sendiri(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
+        $user = $this->user;
 
         $response = $this->actingAs($user)->put('/pengaturan/akun/profil', [
             'nama' => 'Nama Diperbarui',
-            'email' => $user->email, // email sama, tidak berubah
-            'no_whatsapp' => '0833333333',
+            'email' => $user->email, 
+            'no_whatsapp' => $user->no_whatsapp,
         ]);
 
         $response->assertRedirect('/pengaturan/akun');
@@ -190,13 +245,13 @@ class Fase1FTest extends TestCase
         ]);
     }
 
-    /** Ganti password berhasil dengan kata sandi lama benar */
+    
     public function test_ganti_password_berhasil_dengan_kata_sandi_lama_benar(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
+        $user = $this->user;
 
         $response = $this->actingAs($user)->put('/pengaturan/akun/password', [
-            'current_password' => 'password',
+            'current_password' => 'password_awal',
             'password' => 'passwordbaru123',
             'password_confirmation' => 'passwordbaru123',
         ]);
@@ -204,16 +259,16 @@ class Fase1FTest extends TestCase
         $response->assertRedirect('/pengaturan/akun');
         $response->assertSessionHas('success', 'Kata sandi berhasil diperbarui');
 
-        // Verifikasi password baru bisa login
+        
         $user->refresh();
         $this->assertTrue(Hash::check('passwordbaru123', $user->password));
     }
 
-    /** Ganti password ditolak jika kata sandi lama salah */
+    
     public function test_ganti_password_ditolak_jika_kata_sandi_lama_salah(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
-        $passwordLama = $user->password; // simpan sebelum percobaan
+        $user = $this->user;
+        $passwordLama = $user->password; 
 
         $response = $this->actingAs($user)->put('/pengaturan/akun/password', [
             'current_password' => 'passwordsalah',
@@ -223,28 +278,28 @@ class Fase1FTest extends TestCase
 
         $response->assertSessionHasErrors(['current_password']);
 
-        // Password tidak berubah
+        
         $user->refresh();
         $this->assertEquals($passwordLama, $user->password);
     }
 
-    /** Tidak ada endpoint hapus akun */
+    
     public function test_tidak_ada_endpoint_hapus_akun(): void
     {
-        $user = User::where('email', 'user@bigi.test')->first();
+        $user = $this->user;
 
-        // Rute DELETE pada /pengaturan/akun tidak didefinisikan (MethodNotAllowedHttpException / 405)
+        
         $response = $this->actingAs($user)->delete('/pengaturan/akun');
         $this->assertContains($response->status(), [404, 405]);
 
-        // Rute hapus akun umum lainnya tidak ada (404)
+        
         $this->actingAs($user)->delete('/user/profile-information')->assertStatus(404);
         $this->actingAs($user)->delete('/user')->assertStatus(404);
     }
 
-    // ─────────────────────── Error Pages ─────────────────────────────────
+    
 
-    /** Tamu mengakses rute terlindungi mendapat redirect login, bukan 404 */
+    
     public function test_tamu_redirect_ke_login_untuk_rute_terproteksi(): void
     {
         $this->get('/dashboard')->assertRedirect('/login');

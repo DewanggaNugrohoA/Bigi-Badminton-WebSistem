@@ -17,6 +17,40 @@ export function cleanWaNumber(phone?: string | null): string {
     return cleaned;
 }
 
+export function formatIndonesianPhoneInput(raw: string): string {
+    let digits = raw.replace(/\D/g, '');
+
+    if (digits.startsWith('628')) {
+        digits = '0' + digits.slice(2);
+    } else if (digits.startsWith('8')) {
+        digits = '0' + digits;
+    }
+
+    if (digits.length >= 2 && !digits.startsWith('08')) {
+        digits = '08' + digits.replace(/^0+/, '');
+    }
+
+    return digits.slice(0, 13);
+}
+
+export function isValidIndonesianPhone(phone: string): boolean {
+    return /^08[0-9]{8,11}$/.test(phone);
+}
+
+export function handlePhoneKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void {
+    if (
+        ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) ||
+        e.ctrlKey ||
+        e.metaKey
+    ) {
+        return;
+    }
+
+    if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+    }
+}
+
 export function buildWaLink(phone?: string | null, message: string = WA_RESERVATION_TEMPLATE): string {
     const cleaned = cleanWaNumber(phone);
     if (!cleaned) return '#';

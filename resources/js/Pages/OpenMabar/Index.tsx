@@ -104,40 +104,32 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
 
     return (
         <PublicLayout title="Cari Jadwal Open Mabar - Bigi Badminton">
-            <div className="pt-28 pb-16 px-4 sm:px-6 max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div className="pt-28 pb-16 px-4 sm:px-6 max-w-6xl mx-auto space-y-6">
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
                     <div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-[var(--brand)] border border-primary/20 mb-3">
-                            <span>Komunitas Badminton</span>
-                        </div>
-                        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                             Jadwal Open Mabar
                         </h1>
                         <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                             Temukan teman mabar badminton dan pilih slot main yang cocok untukmu.
                         </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="shrink-0">
                         <Link href="/open-mabar/create">
-                            <Button className="gap-2 bg-[var(--brand)] hover:opacity-90">
+                            <Button className="h-10 px-5 text-sm font-semibold gap-2 bg-[var(--brand)] hover:opacity-90 shadow-xs">
                                 <PlusCircle className="size-4" />
                                 <span>Buat Jadwal</span>
-                            </Button>
-                        </Link>
-                        <Link href="/open-mabar/saya">
-                            <Button variant="outline">
-                                <span>Jadwal Saya</span>
                             </Button>
                         </Link>
                     </div>
                 </div>
 
-                {/* Filter Bar */}
-                <div className="bg-card border border-border/60 rounded-xl p-5 mb-8 shadow-sm">
-                    <form onSubmit={handleFilter} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="usia" className="text-xs font-semibold text-muted-foreground">
+                
+                <div className="bg-card/90 backdrop-blur-sm border border-border/80 rounded-xl p-4 sm:p-5 shadow-xs">
+                    <form onSubmit={handleFilter} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-end">
+                        <div className="sm:col-span-1 lg:col-span-3 space-y-1.5 text-left">
+                            <Label htmlFor="usia" className="text-xs font-semibold text-foreground/80">
                                 Usia Pemain
                             </Label>
                             <Input
@@ -145,15 +137,15 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                                 type="number"
                                 min={1}
                                 max={100}
-                                placeholder="Contoh: 22"
+                                placeholder="Contoh: 22 th"
                                 value={usia}
                                 onChange={(e) => setUsia(e.target.value)}
-                                className="h-10 text-sm"
+                                className="h-10 text-sm bg-background/80"
                             />
                         </div>
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="tanggal" className="text-xs font-semibold text-muted-foreground">
+                        <div className="sm:col-span-1 lg:col-span-3 space-y-1.5 text-left">
+                            <Label htmlFor="tanggal" className="text-xs font-semibold text-foreground/80">
                                 Tanggal Main
                             </Label>
                             <Input
@@ -161,29 +153,29 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                                 type="date"
                                 value={tanggal}
                                 onChange={(e) => setTanggal(e.target.value)}
-                                className="h-10 text-sm"
+                                className="h-10 text-sm bg-background/80"
                             />
                         </div>
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="gender" className="text-xs font-semibold text-muted-foreground">
+                        <div className="sm:col-span-1 lg:col-span-3 space-y-1.5 text-left">
+                            <Label htmlFor="gender" className="text-xs font-semibold text-foreground/80">
                                 Kategori Gender
                             </Label>
                             <select
                                 id="gender"
                                 value={gender}
                                 onChange={(e) => setGender(e.target.value)}
-                                className="w-full h-10 px-3 rounded-md border border-input bg-transparent text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+                                className="w-full h-10 px-3 rounded-md border border-input bg-background/80 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 text-foreground cursor-pointer"
                             >
-                                <option value="" className="bg-background text-foreground">Semua Kategori</option>
-                                <option value="putra" className="bg-background text-foreground">Putra</option>
-                                <option value="putri" className="bg-background text-foreground">Putri</option>
-                                <option value="campuran" className="bg-background text-foreground">Campuran</option>
+                                <option value="" className="bg-card text-foreground">Semua Kategori</option>
+                                <option value="putra" className="bg-card text-foreground">Putra</option>
+                                <option value="putri" className="bg-card text-foreground">Putri</option>
+                                <option value="campuran" className="bg-card text-foreground">Campuran</option>
                             </select>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <Button type="submit" className="flex-1 h-10 min-h-[44px] gap-2 bg-[var(--brand)] hover:opacity-90">
+                        <div className="sm:col-span-1 lg:col-span-3 flex items-center gap-2">
+                            <Button type="submit" className="flex-1 h-10 px-4 text-sm font-semibold gap-2 bg-[var(--brand)] hover:opacity-90">
                                 <Filter className="size-4" />
                                 <span>Terapkan</span>
                             </Button>
@@ -192,7 +184,7 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                                     type="button"
                                     variant="outline"
                                     onClick={handleReset}
-                                    className="h-10 min-h-[44px] px-3.5"
+                                    className="h-10 px-3 text-sm shrink-0"
                                     title="Reset filter"
                                     aria-label="Reset filter pencarian"
                                 >
@@ -203,113 +195,143 @@ export default function OpenMabarIndex({ jadwal, filters }: IndexProps) {
                     </form>
                 </div>
 
-                {/* List Jadwal */}
                 {jadwal.data.length === 0 ? (
-                    <div className="border border-dashed border-border/80 rounded-2xl p-12 text-center bg-card/40 my-10">
-                        <Users className="size-12 mx-auto text-muted-foreground/40 mb-3" />
-                        <h3 className="text-lg font-semibold text-foreground">Belum ada jadwal yang cocok</h3>
-                        <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-                            Tidak menemukan jadwal dengan kriteria yang dicari. Silakan ubah filter atau buat jadwal mabar baru!
-                        </p>
-                        <Link href="/open-mabar/create" className="mt-5 inline-block">
-                            <Button className="bg-[var(--brand)] hover:opacity-90">Buat Jadwal Baru</Button>
+                    <div className="border border-dashed border-border/80 rounded-xl p-6 sm:p-8 text-left bg-card/60 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xs">
+                        <div className="flex items-start gap-4 text-left">
+                            <div className="size-11 rounded-lg bg-muted flex items-center justify-center shrink-0 text-muted-foreground border border-border/60">
+                                <Users className="size-5" />
+                            </div>
+                            <div className="space-y-1 text-left">
+                                <h3 className="text-base font-semibold text-foreground">Belum Ada Jadwal yang Cocok</h3>
+                                <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
+                                    Tidak menemukan jadwal dengan kriteria pencarian tersebut. Silakan atur ulang filter pencarian atau buat jadwal mabar baru.
+                                </p>
+                            </div>
+                        </div>
+                        <Link href="/open-mabar/create" className="shrink-0 w-full sm:w-auto">
+                            <Button className="w-full sm:w-auto h-10 px-4 text-sm font-medium gap-2 bg-[var(--brand)] hover:opacity-90 text-white shadow-xs">
+                                <PlusCircle className="size-4" />
+                                <span>Buat Jadwal Baru</span>
+                            </Button>
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                         {jadwal.data.map((item) => {
                             const isPenuh = item.peserta_terdaftar_count >= item.kuota;
                             return (
                                 <div
                                     key={item.id_mabar}
-                                    className="bg-card border border-border/60 rounded-xl overflow-hidden hover:border-border transition-all flex flex-col group shadow-sm"
+                                    className="bg-card border border-border/80 rounded-xl p-5 hover:border-[var(--brand)]/40 hover:shadow-sm shadow-xs transition-colors flex flex-col justify-between h-full text-left"
                                 >
-                                    <MabarImage src={item.foto} alt={item.judul} />
+                                    <div>
+                                        
+                                        <div className="flex items-start justify-between gap-3 mb-4">
+                                            <div className="space-y-1.5 flex-1 min-w-0 text-left">
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <span className="inline-flex items-center h-5 px-2 rounded-md text-xs font-medium bg-secondary text-secondary-foreground">
+                                                        {genderLabel[item.gender]}
+                                                    </span>
+                                                    {item.lapangan && (
+                                                        <span className="inline-flex items-center h-5 px-2 rounded-md text-xs font-medium bg-muted text-muted-foreground border border-border/60">
+                                                            {item.lapangan.nama_lapangan}
+                                                        </span>
+                                                    )}
+                                                    {isPenuh && (
+                                                        <span className="inline-flex items-center h-5 px-2 rounded-md text-xs font-medium border bg-rose-500/10 text-rose-400 border-rose-500/20">
+                                                            Penuh
+                                                        </span>
+                                                    )}
+                                                </div>
 
-                                    <div className="p-5 flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <div className="flex items-center justify-between gap-2 mb-2">
-                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-foreground border border-border">
-                                                    {genderLabel[item.gender]}
-                                                </span>
-                                                <span
-                                                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                                                        isPenuh
-                                                            ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                                                            : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                                    }`}
-                                                >
-                                                    {isPenuh ? "Penuh" : `Tersedia: ${item.kuota - item.peserta_terdaftar_count} slot`}
-                                                </span>
+                                                <h3 className="font-semibold text-base text-foreground line-clamp-1 pt-0.5">
+                                                    {item.judul}
+                                                </h3>
                                             </div>
 
-                                            <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2">
-                                                {item.judul}
-                                            </h3>
-
-                                            <div className="space-y-1.5 text-xs text-muted-foreground mb-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar className="size-3.5 text-primary shrink-0" />
-                                                    <span>{formatTanggal(item.tanggal)}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="size-3.5 text-primary shrink-0" />
-                                                    <span>
-                                                        {formatJam(item.jam_mulai)} - {formatJam(item.jam_selesai)} WIB
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Users className="size-3.5 text-primary shrink-0" />
-                                                    <span>
-                                                        Usia {item.batas_usia_min} - {item.batas_usia_max} th • Terdaftar: {item.peserta_terdaftar_count}/{item.kuota}
-                                                    </span>
-                                                </div>
-                                                {item.user && (
-                                                    <div className="flex items-center gap-2 pt-1 border-t border-border/40">
-                                                        <User className="size-3.5 text-muted-foreground shrink-0" />
-                                                        <span>Dibuat oleh: {item.user.nama}</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            
+                                            <MabarImage
+                                                src={item.foto}
+                                                alt={item.judul}
+                                                variant="avatar"
+                                                className="size-12 shrink-0"
+                                            />
                                         </div>
 
-                                        <Link href={`/open-mabar/${item.id_mabar}`} className="w-full mt-2 block">
-                                            <Button variant="outline" className="w-full justify-between">
-                                                <span>Lihat Detail</span>
-                                                <ArrowRight className="size-4" />
-                                            </Button>
-                                        </Link>
+                                        
+                                        <div className="space-y-1.5 text-sm text-muted-foreground mb-5 pb-4 border-b border-border/50">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="size-4 text-muted-foreground/80 shrink-0" />
+                                                <span>{formatTanggal(item.tanggal)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="size-4 text-muted-foreground/80 shrink-0" />
+                                                <span>
+                                                    {formatJam(item.jam_mulai)} - {formatJam(item.jam_selesai)} WIB
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Users className="size-4 text-muted-foreground/80 shrink-0" />
+                                                <span>
+                                                    Usia {item.batas_usia_min} - {item.batas_usia_max} th • Terdaftar: {item.peserta_terdaftar_count}/{item.kuota}
+                                                </span>
+                                            </div>
+                                            {item.user && (
+                                                <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground/90">
+                                                    <User className="size-3.5 text-muted-foreground/80 shrink-0" />
+                                                    <span>Dibuat oleh: {item.user.nama}</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
+
+                                    <Link href={`/open-mabar/${item.id_mabar}`} className="w-full block">
+                                        <Button variant="outline" className="w-full justify-between h-9 text-xs font-medium hover:border-[var(--brand)]/40">
+                                            <span>Lihat Detail</span>
+                                            <ArrowRight className="size-3.5" />
+                                        </Button>
+                                    </Link>
                                 </div>
                             );
                         })}
                     </div>
                 )}
 
-                {/* Pagination */}
                 {jadwal.last_page > 1 && (
                     <div className="flex items-center justify-center gap-2 mt-10">
                         {jadwal.links.map((link, idx) => {
+                            const labelText = link.label
+                                .replace(/&laquo;/g, "")
+                                .replace(/&raquo;/g, "")
+                                .trim();
+                            const displayLabel = labelText.toLowerCase().includes("previous")
+                                ? "Sebelumnya"
+                                : labelText.toLowerCase().includes("next")
+                                ? "Berikutnya"
+                                : labelText;
+
                             if (!link.url) {
                                 return (
                                     <span
                                         key={idx}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
                                         className="px-3 py-1.5 text-xs text-muted-foreground opacity-50 border border-transparent"
-                                    />
+                                    >
+                                        {displayLabel}
+                                    </span>
                                 );
                             }
                             return (
                                 <Link
                                     key={idx}
                                     href={link.url}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
                                     className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                                         link.active
                                             ? "bg-[var(--brand)] text-white border-[var(--brand)]"
                                             : "bg-card border-border hover:bg-accent text-foreground"
                                     }`}
-                                />
+                                >
+                                    {displayLabel}
+                                </Link>
                             );
                         })}
                     </div>

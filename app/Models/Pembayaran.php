@@ -4,14 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Model entitas Pembayaran sewa lapangan reservasi (dicatat dan dikonfirmasi oleh Admin).
+ */
 class Pembayaran extends Model
 {
-
+    // Jenis Pembayaran Reservasi
     const JENIS_DP = 'DP';
     const JENIS_LUNAS = 'Lunas';
+
+    // Metode Pembayaran
     const METODE_TRANSFER = 'transfer';
     const METODE_TUNAI = 'tunai';
     const METODE_QRIS = 'qris';
+
+    // Status Pembayaran
     const STATUS_MENUNGGU = 'menunggu';
     const STATUS_TERKONFIRMASI = 'terkonfirmasi';
 

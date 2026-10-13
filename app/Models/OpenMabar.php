@@ -4,15 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Model entitas Open Mabar (Komunitas Main Bareng).
+ * Dibuat oleh pengguna, lalu ditinjau dan disetujui/ditolak oleh admin.
+ */
 class OpenMabar extends Model
 {
-
+    // Kategori Gender
     const GENDER_PUTRA = 'putra';
     const GENDER_PUTRI = 'putri';
     const GENDER_CAMPURAN = 'campuran';
-    const STATUS_MENUNGGU = 'menunggu';
-    const STATUS_DISETUJUI = 'disetujui';
-    const STATUS_DITOLAK = 'ditolak';
+
+    // Status Pengajuan Open Mabar
+    const STATUS_MENUNGGU = 'menunggu';   // Pengajuan baru, belum tampil di publik
+    const STATUS_DISETUJUI = 'disetujui'; // Disetujui admin dan slot lapangan dialokasikan
+    const STATUS_DITOLAK = 'ditolak';     // Ditolak oleh admin beserta catatan alasan
 
     protected $table = 'open_mabar';
     protected $primaryKey = 'id_mabar';

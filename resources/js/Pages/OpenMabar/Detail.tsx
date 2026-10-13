@@ -8,24 +8,12 @@ import {
     Users,
     User,
     ArrowLeft,
-    CheckCircle2,
     XCircle,
     MessageSquare,
     AlertTriangle,
     MapPin,
-    ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
-
-interface PesertaItem {
-    id_peserta: number;
-    tanggal_daftar: string;
-    status_peserta: "terdaftar" | "batal";
-    user?: {
-        id_user: number;
-        nama: string;
-    };
-}
 
 interface DetailProps {
     mabar: {
@@ -51,10 +39,10 @@ interface DetailProps {
             nama_lapangan: string;
         } | null;
     };
-    peserta: PesertaItem[];
     pesertaCount: number;
     isOwner: boolean;
     userStatus: "terdaftar" | "batal" | null;
+    canAccessChat: boolean;
     errors?: {
         message?: string;
     };
@@ -65,12 +53,11 @@ interface DetailProps {
 
 export default function OpenMabarDetail({
     mabar,
-    peserta,
     pesertaCount,
     isOwner,
     userStatus,
+    canAccessChat,
     errors,
-    flash,
 }: DetailProps) {
     const [submitting, setSubmitting] = useState(false);
 
@@ -96,6 +83,14 @@ export default function OpenMabarDetail({
                 onFinish: () => setSubmitting(false),
             });
         }
+    };
+
+    const handleBukaChat = () => {
+        window.dispatchEvent(
+            new CustomEvent("bigi:buka-chat", {
+                detail: { idMabar: mabar.id_mabar },
+            })
+        );
     };
 
     const formatTanggal = (dateStr: string) => {
@@ -132,17 +127,16 @@ export default function OpenMabarDetail({
                 </Link>
 
                 {errors?.message && (
-                    <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm mb-6 flex items-center gap-2">
+                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm mb-6 flex items-center gap-2">
                         <XCircle className="size-4 shrink-0" />
                         <span>{errors.message}</span>
                     </div>
                 )}
 
-                {/* Status Khusus Pemilik jika belum disetujui */}
                 {isOwner && mabar.status !== "disetujui" && (
-                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm mb-6 flex items-center justify-between gap-4">
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm mb-6 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-2">
-                            <AlertTriangle className="size-4 shrink-0 text-amber-400" />
+                            <AlertTriangle className="size-4 shrink-0 text-amber-600" />
                             <span>
                                 Status jadwal ini: <strong>{mabar.status.toUpperCase()}</strong>. Hanya Anda (pemilik) yang dapat melihat halaman ini saat belum disetujui.
                             </span>
@@ -154,71 +148,78 @@ export default function OpenMabarDetail({
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Banner Card */}
-                        <div className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
-                            <MabarImage src={mabar.foto} alt={mabar.judul} aspectRatio="aspect-[21/9] sm:aspect-[16/7]" />
-
-                            <div className="p-6">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-[var(--brand)] border border-primary/20">
-                                        {genderLabel[mabar.gender]}
-                                    </span>
-                                    {mabar.lapangan && (
-                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-foreground border border-border flex items-center gap-1">
-                                            <MapPin className="size-3" />
-                                            {mabar.lapangan.nama_lapangan}
+                        <div className="bg-card border border-border/70 rounded-xl overflow-hidden p-6">
+                            <div className="flex items-start justify-between gap-4 mb-4">
+                                <div className="space-y-2 flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
+                                            {genderLabel[mabar.gender]}
                                         </span>
-                                    )}
+                                        {mabar.lapangan && (
+                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border flex items-center gap-1">
+                                                <MapPin className="size-3" />
+                                                {mabar.lapangan.nama_lapangan}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <h1 className="text-xl sm:text-2xl font-extrabold text-foreground">
+                                        {mabar.judul}
+                                    </h1>
                                 </div>
 
-                                <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-4">
-                                    {mabar.judul}
-                                </h1>
+                                
+                                <MabarImage
+                                    src={mabar.foto}
+                                    alt={mabar.judul}
+                                    variant="avatar"
+                                    className="size-16 sm:size-20 shrink-0"
+                                />
+                            </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-muted/40 border border-border/50 text-sm">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-lg bg-background/60 border border-border/60 text-sm">
                                     <div className="flex items-center gap-3">
-                                        <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                        <div className="size-8 rounded-md bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
                                             <Calendar className="size-4" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground font-medium">Tanggal</p>
-                                            <p className="font-semibold text-foreground">{formatTanggal(mabar.tanggal)}</p>
+                                            <p className="text-[11px] text-muted-foreground font-medium">Tanggal</p>
+                                            <p className="font-semibold text-foreground text-xs sm:text-sm">{formatTanggal(mabar.tanggal)}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                        <div className="size-8 rounded-md bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
                                             <Clock className="size-4" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground font-medium">Waktu Main</p>
-                                            <p className="font-semibold text-foreground">
+                                            <p className="text-[11px] text-muted-foreground font-medium">Waktu Main</p>
+                                            <p className="font-semibold text-foreground text-xs sm:text-sm">
                                                 {formatJam(mabar.jam_mulai)} - {formatJam(mabar.jam_selesai)} WIB
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                        <div className="size-8 rounded-md bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
                                             <Users className="size-4" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground font-medium">Batas Usia</p>
-                                            <p className="font-semibold text-foreground">
+                                            <p className="text-[11px] text-muted-foreground font-medium">Batas Usia</p>
+                                            <p className="font-semibold text-foreground text-xs sm:text-sm">
                                                 {mabar.batas_usia_min} s/d {mabar.batas_usia_max} tahun
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                        <div className="size-8 rounded-md bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
                                             <User className="size-4" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground font-medium">Inisiator</p>
-                                            <p className="font-semibold text-foreground">
+                                            <p className="text-[11px] text-muted-foreground font-medium">Inisiator</p>
+                                            <p className="font-semibold text-foreground text-xs sm:text-sm">
                                                 {mabar.user?.nama || "Pemain"}
                                             </p>
                                         </div>
@@ -227,42 +228,18 @@ export default function OpenMabarDetail({
 
                                 {mabar.deskripsi && (
                                     <div className="mt-6">
-                                        <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">
+                                        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                                             Deskripsi & Catatan
                                         </h2>
-                                        <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line bg-muted/20 p-4 rounded-xl border border-border/40">
+                                        <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line bg-background/50 p-4 rounded-lg border border-border/50">
                                             {mabar.deskripsi}
                                         </p>
                                     </div>
                                 )}
-                            </div>
-                        </div>
-
-                        {/* Ruang Obrolan Tautan */}
-                        <div className="bg-card border border-border/70 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <div className="size-10 rounded-full bg-[var(--brand)]/10 text-[var(--brand)] flex items-center justify-center shrink-0">
-                                    <MessageSquare className="size-5" />
-                                </div>
-                                <div>
-                                    <h2 className="font-bold text-foreground text-base">Forum Diskusi Mabar</h2>
-                                    <p className="text-xs text-muted-foreground">
-                                        Koordinasi dengan sesama pemain dalam ruang obrolan.
-                                    </p>
-                                </div>
-                            </div>
-                            <Link href={`/open-mabar/${mabar.id_mabar}/chat`}>
-                                <Button variant="outline" className="gap-2">
-                                    <MessageSquare className="size-4" />
-                                    <span>Buka Ruang Obrolan</span>
-                                </Button>
-                            </Link>
                         </div>
                     </div>
 
-                    {/* Sidebar: Partisipasi & Daftar Peserta */}
                     <div className="space-y-6">
-                        {/* Status Card Partisipasi */}
                         <div className="bg-card border border-border/70 rounded-2xl p-6 shadow-sm">
                             <h2 className="font-bold text-lg text-foreground mb-4">Status Kuota</h2>
 
@@ -277,7 +254,7 @@ export default function OpenMabarDetail({
                                     <p className="text-xs text-muted-foreground">Sisa Slot</p>
                                     <p
                                         className={`text-2xl font-black ${
-                                            isPenuh ? "text-rose-400" : "text-emerald-400"
+                                            isPenuh ? "text-rose-600" : "text-emerald-600"
                                         }`}
                                     >
                                         {sisaKuota}
@@ -285,29 +262,24 @@ export default function OpenMabarDetail({
                                 </div>
                             </div>
 
-                            {/* Tombol Ikut / Batal Ikut */}
                             {mabar.status !== "disetujui" ? (
                                 <div className="text-center p-3 rounded-lg bg-muted text-xs text-muted-foreground">
                                     Pendaftaran belum dibuka (jadwal belum disetujui admin).
                                 </div>
                             ) : isTerdaftar ? (
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-center gap-2 p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
-                                        <ShieldCheck className="size-4" />
-                                        <span>Anda terdaftar sebagai peserta</span>
-                                    </div>
                                     <Button
                                         variant="outline"
                                         disabled={submitting}
                                         onClick={handleBatalIkut}
-                                        className="w-full text-rose-400 hover:text-rose-500 hover:bg-rose-500/10 border-rose-500/20 text-xs"
+                                        className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50/70 border-rose-200 dark:border-rose-900/40 text-xs h-11 min-h-[44px] font-semibold transition-colors"
                                     >
                                         {submitting ? "Memproses..." : "Batal Ikut Mabar"}
                                     </Button>
                                 </div>
                             ) : isPenuh ? (
                                 <div className="space-y-2">
-                                    <Button disabled className="w-full opacity-60">
+                                    <Button disabled className="w-full h-11 min-h-[44px] opacity-60 font-semibold">
                                         Kuota Penuh
                                     </Button>
                                     <p className="text-[11px] text-muted-foreground text-center">
@@ -318,48 +290,30 @@ export default function OpenMabarDetail({
                                 <Button
                                     disabled={submitting}
                                     onClick={handleIkut}
-                                    className="w-full bg-[var(--brand)] hover:opacity-90 font-semibold"
+                                    className="w-full h-11 min-h-[44px] bg-[var(--brand)] hover:opacity-90 font-semibold text-white shadow-xs"
                                 >
                                     {submitting ? "Memproses..." : "Ikut Mabar Sekarang"}
                                 </Button>
                             )}
-                        </div>
 
-                        {/* Daftar Peserta */}
-                        <div className="bg-card border border-border/70 rounded-2xl p-6 shadow-sm">
-                            <h2 className="font-bold text-base text-foreground mb-4 flex items-center justify-between">
-                                <span>Daftar Peserta</span>
-                                <span className="text-xs font-normal text-muted-foreground">
-                                    ({pesertaCount} orang)
-                                </span>
-                            </h2>
-
-                            {peserta.length === 0 ? (
-                                <p className="text-xs text-muted-foreground text-center py-6">
-                                    Belum ada peserta yang mendaftar. Jadilah pemain pertama!
-                                </p>
-                            ) : (
-                                <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-                                    {peserta.map((p, idx) => (
-                                        <div
-                                            key={p.id_peserta}
-                                            className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 border border-border/40 text-xs"
-                                        >
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="size-5 rounded-full bg-primary/10 text-primary font-bold text-[10px] flex items-center justify-center shrink-0">
-                                                    {idx + 1}
-                                                </span>
-                                                <span className="font-medium text-foreground">
-                                                    {p.user?.nama || "Pemain"}
-                                                </span>
-                                            </div>
-                                            <span className="text-[11px] text-muted-foreground">
-                                                Terdaftar
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            
+                            <div className="mt-6 pt-5 border-t border-border/60">
+                                {canAccessChat ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleBukaChat}
+                                        className="w-full h-10 gap-2 text-sm font-medium hover:border-[var(--brand)]/50"
+                                    >
+                                        <MessageSquare className="size-4 text-[var(--brand)]" />
+                                        <span>Gabung Forum Chat</span>
+                                    </Button>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                                        Ikuti Open Mabar ini untuk bergabung ke forum chat.
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

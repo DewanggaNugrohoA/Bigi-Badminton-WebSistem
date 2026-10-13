@@ -15,4 +15,7 @@ return [
         'Toilet & Kamar Ganti Clean',
         'Free Wi-Fi High Speed',
     ],
+    'wa_gateway_provider' => env('WA_GATEWAY_PROVIDER', 'fonnte'),
+    'wa_gateway_url' => env('WA_GATEWAY_URL', 'https://api.fonnte.com/send'),
+    'wa_gateway_token' => env('WA_GATEWAY_TOKEN', ''),
 ];

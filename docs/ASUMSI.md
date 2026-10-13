@@ -88,3 +88,21 @@
   - Layanan WhatsApp Gateway (`App\Services\WhatsAppService`) mengirimkan kode via API (mendukung provider Fonnte/Wablas dengan token di `.env`).
   - Pada lingkungan pengujian / lokal di mana `WA_GATEWAY_TOKEN` kosong, kode OTP dicatat ke log sistem dan ditampilkan pada flash pesan dev agar pengujian lokal tetap berjalan lancar.
   - Pengguna melakukan verifikasi pada rute `/register/verifikasi`. Setelah kode cocok, data user resmi dibuat di tabel `users` (`role = user`, `status_akun = aktif`) dan diarahkan ke `/login`.
+- **Standar & Validasi Nomor WhatsApp/HP Indonesia:**
+  - Input nomor WhatsApp pada form Login, Register, dan Pengaturan Profil dibatasi ketat hanya menerima karakter angka (huruf dan simbol otomatis dicegah/dibersihkan).
+  - Nomor harus berawalan `08` (jika user paste format `+628...` atau `628...`, sistem otomatis menormalisasikannya menjadi `08...`).
+  - Panjang nomor dibatasi minimal 10 digit dan maksimal 13 digit angka (`regex:/^08[0-9]{8,11}$/`), sesuai standar penomoran seluler di Indonesia.
+
+## 10. Integrasi Badge Keanggotaan Member (Award Badge) di Panel User
+- **Otoritas Status Member:**
+  - Status keanggotaan (`jenis_pelanggan = 'member'` dan `status_member = 'aktif'`) sepenuhnya merupakan wewenang Admin. User tidak dapat mengubah status keanggotaannya sendiri secara mandiri.
+- **Tampilan Badge Interaktif 3D di Panel User:**
+  - Komponen `AwardBadge` (`resources/js/components/ui/award-badge.tsx`) mengadaptasi efek 3D matrix tilt interaktif dan kilau holografik (`mixBlendMode: overlay`) untuk badge keanggotaan Bigi Badminton.
+  - Badge keanggotaan (`BigiMemberBadge`) **HANYA** muncul di akun pengguna jika pengguna telah disetujui / diubah oleh Admin menjadi member aktif (`user.jenis_pelanggan === 'member' && user.status_member === 'aktif'`).
+  - Letak tampilan badge di User Panel:
+    1. **Dashboard User (`/dashboard`)**: Di dalam Welcome Banner Card pengguna di sisi kanan (desktop) atau sejajar (mobile), berdampingan dengan tanggal masa aktif member.
+    2. **Pengaturan Akun (`/pengaturan/akun`)**: Di dalam kotak status keanggotaan sebagai penanda status resmi member aktif.
+  - Jika pengguna masih berstatus reguler atau belum diaktifkan oleh Admin, badge tidak ditampilkan (hanya menampilkan status reguler standar).
+
+## 11. Manajemen Akun Staf (Admin & Kasir)
+- Seluruh akun staf tidak lagi disediakan melalui akun sampel/dummy bawaan seeder; akun dibuat secara aman melalui perintah `php artisan bigi:buat-admin`.

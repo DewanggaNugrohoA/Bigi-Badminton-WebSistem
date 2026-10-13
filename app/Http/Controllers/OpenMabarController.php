@@ -17,9 +17,7 @@ use Inertia\Inertia;
 
 class OpenMabarController extends Controller
 {
-    /**
-     * Tampilkan daftar jadwal Open Mabar yang disetujui (cari & filter).
-     */
+    
     public function index(Request $request)
     {
         $today = Carbon::today()->toDateString();
@@ -32,19 +30,19 @@ class OpenMabarController extends Controller
             ->where('status', OpenMabar::STATUS_DISETUJUI)
             ->whereDate('tanggal', '>=', $today);
 
-        // Filter: Usia (batas_usia_min <= usia <= batas_usia_max)
+        
         if ($request->filled('usia')) {
             $usia = (int) $request->input('usia');
             $query->where('batas_usia_min', '<=', $usia)
                   ->where('batas_usia_max', '>=', $usia);
         }
 
-        // Filter: Tanggal pelaksanaan
+        
         if ($request->filled('tanggal')) {
             $query->whereDate('tanggal', $request->input('tanggal'));
         }
 
-        // Filter: Jenis kelamin / gender (exact match)
+        
         if ($request->filled('gender')) {
             $query->where('gender', $request->input('gender'));
         }
@@ -64,9 +62,7 @@ class OpenMabarController extends Controller
         ]);
     }
 
-    /**
-     * Form buat jadwal mabar baru.
-     */
+    
     public function create()
     {
         $lapangan = Lapangan::where('status_lapangan', 'tersedia')
@@ -78,9 +74,7 @@ class OpenMabarController extends Controller
         ]);
     }
 
-    /**
-     * Simpan jadwal mabar baru (status 'menunggu').
-     */
+    
     public function store(StoreOpenMabarRequest $request)
     {
         $validated = $request->validated();
@@ -110,9 +104,7 @@ class OpenMabarController extends Controller
         return redirect()->route('open-mabar.saya')->with('success', 'Jadwal berhasil dikirim dan menunggu persetujuan admin.');
     }
 
-    /**
-     * Halaman jadwal mabar milik saya.
-     */
+    
     public function saya()
     {
         $user = Auth::user();
@@ -132,42 +124,40 @@ class OpenMabarController extends Controller
         ]);
     }
 
-    /**
-     * Detail jadwal mabar & daftar peserta.
-     */
+    
     public function show(OpenMabar $mabar)
     {
         $user = Auth::user();
 
-        // Cek otorisasi view via policy (hanya disetujui atau milik sendiri)
+        
         if (!Gate::allows('view', $mabar)) {
             abort(403, 'Anda tidak memiliki hak akses untuk melihat jadwal ini.');
         }
 
         $mabar->load(['user:id_user,nama', 'lapangan:id_lapangan,nama_lapangan']);
 
-        $peserta = PesertaMabar::with('user:id_user,nama')
-            ->where('id_mabar', $mabar->id_mabar)
+        $pesertaCount = PesertaMabar::where('id_mabar', $mabar->id_mabar)
             ->where('status_peserta', PesertaMabar::STATUS_TERDAFTAR)
-            ->orderBy('tanggal_daftar', 'asc')
-            ->get();
+            ->count();
 
         $userStatus = PesertaMabar::where('id_mabar', $mabar->id_mabar)
             ->where('id_user', $user->id_user)
             ->value('status_peserta');
 
+        $isOwner = (int) $mabar->id_user === (int) $user->id_user;
+        $isPesertaAktif = $userStatus === PesertaMabar::STATUS_TERDAFTAR;
+        $canAccessChat = $mabar->status === OpenMabar::STATUS_DISETUJUI && ($isOwner || $isPesertaAktif);
+
         return Inertia::render('OpenMabar/Detail', [
             'mabar' => $mabar,
-            'peserta' => $peserta,
-            'pesertaCount' => $peserta->count(),
-            'isOwner' => $mabar->id_user === $user->id_user,
-            'userStatus' => $userStatus, // 'terdaftar', 'batal', or null
+            'pesertaCount' => $pesertaCount,
+            'isOwner' => $isOwner,
+            'userStatus' => $userStatus, 
+            'canAccessChat' => $canAccessChat,
         ]);
     }
 
-    /**
-     * Form revisi/edit jadwal mabar (hanya untuk status menunggu atau ditolak milik sendiri).
-     */
+    
     public function edit(OpenMabar $mabar)
     {
         if (!Gate::allows('update', $mabar)) {
@@ -184,9 +174,7 @@ class OpenMabarController extends Controller
         ]);
     }
 
-    /**
-     * Update jadwal mabar.
-     */
+    
     public function update(UpdateOpenMabarRequest $request, OpenMabar $mabar)
     {
         if (!Gate::allows('update', $mabar)) {
@@ -202,7 +190,7 @@ class OpenMabarController extends Controller
             $validated['foto'] = $request->file('foto')->store('mabar', 'public');
         }
 
-        // Jika jadwal sebelumnya ditolak, ubah kembali menjadi menunggu
+        
         if ($mabar->status === OpenMabar::STATUS_DITOLAK) {
             $validated['status'] = OpenMabar::STATUS_MENUNGGU;
         }
@@ -212,11 +200,13 @@ class OpenMabarController extends Controller
         return redirect()->route('open-mabar.saya')->with('success', 'Jadwal berhasil diperbarui.');
     }
 
-    /**
-     * Hapus jadwal mabar milik sendiri.
-     */
+    
     public function destroy(OpenMabar $mabar)
     {
+        if ($mabar->status === OpenMabar::STATUS_DISETUJUI) {
+            abort(403, 'Jadwal mabar yang telah disetujui tidak dapat dihapus.');
+        }
+
         if (!Gate::allows('delete', $mabar)) {
             abort(403, 'Anda tidak dapat menghapus jadwal ini.');
         }
@@ -230,22 +220,20 @@ class OpenMabarController extends Controller
         return redirect()->route('open-mabar.saya')->with('success', 'Jadwal berhasil dibatalkan dan dihapus.');
     }
 
-    /**
-     * Ikut jadwal mabar.
-     */
+    
     public function ikut(Request $request, OpenMabar $mabar)
     {
         $user = Auth::user();
 
-        // Ikut hanya boleh untuk jadwal berstatus 'disetujui'
+        
         if ($mabar->status !== OpenMabar::STATUS_DISETUJUI) {
             return back()->withErrors(['message' => 'Hanya jadwal yang telah disetujui yang dapat diikuti.']);
         }
 
-        // Pembuat jadwal tidak otomatis jadi peserta dan tidak boleh ikut jika mau, atau dicek
-        // Sesuai catatan: Ikut hanya boleh untuk jadwal disetujui, tolak jika kuota penuh atau sudah terdaftar
+        
+        
         return DB::transaction(function () use ($mabar, $user) {
-            // Lock baris open_mabar supaya tidak melewati kuota saat concurrent request
+            
             $mabarLocked = OpenMabar::where('id_mabar', $mabar->id_mabar)->lockForUpdate()->first();
 
             $pesertaTerdaftarCount = PesertaMabar::where('id_mabar', $mabarLocked->id_mabar)
@@ -282,9 +270,7 @@ class OpenMabarController extends Controller
         });
     }
 
-    /**
-     * Batal ikut jadwal mabar.
-     */
+    
     public function batalIkut(Request $request, OpenMabar $mabar)
     {
         $user = Auth::user();

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, User as UserIcon, Calendar, PlusCircle, List, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { Menu, User as UserIcon, Calendar, PlusCircle, List, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AuthUser {
@@ -37,21 +37,44 @@ interface SharedProps {
 
 export function SiteNavbar() {
     const { auth } = usePage<SharedProps>().props;
+    const { url } = usePage();
+    const currentPath = url.split("?")[0] || "/";
     const user = auth?.user;
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<"beranda" | "fasilitas" | "mabar">(() => {
+        if (typeof window !== "undefined" && window.location.hash === "#fasilitas") return "fasilitas";
+        if (currentPath.startsWith("/open-mabar")) return "mabar";
+        return "beranda";
+    });
 
     useEffect(() => {
-        const handleScroll = () => {
+        const checkHashAndScroll = () => {
             if (window.scrollY > 20) {
                 setScrolled(true);
             } else {
                 setScrolled(false);
             }
+
+            if (currentPath === "/") {
+                if (window.location.hash === "#fasilitas") {
+                    setActiveTab("fasilitas");
+                } else if (window.scrollY < 200) {
+                    setActiveTab("beranda");
+                }
+            } else if (currentPath.startsWith("/open-mabar")) {
+                setActiveTab("mabar");
+            }
         };
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+
+        checkHashAndScroll();
+        window.addEventListener("scroll", checkHashAndScroll);
+        window.addEventListener("hashchange", checkHashAndScroll);
+        return () => {
+            window.removeEventListener("scroll", checkHashAndScroll);
+            window.removeEventListener("hashchange", checkHashAndScroll);
+        };
+    }, [currentPath]);
 
     return (
         <header
@@ -63,24 +86,48 @@ export function SiteNavbar() {
             )}
         >
             <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-                {/* Brand / Logo (Kiri) */}
+                
                 <div className="flex-1 flex items-center justify-start">
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <span className="font-extrabold text-2xl tracking-tight text-foreground group-hover:text-primary transition-colors">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2.5 sm:gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+                        aria-label="Bigi Badminton - Beranda"
+                    >
+                        <img
+                            src="/images/logo-sm.png"
+                            alt="Logo Bigi Badminton"
+                            width={120}
+                            height={120}
+                            className="h-10 w-10 sm:h-11 sm:w-11 object-contain rounded-full shadow-sm ring-1 ring-black/10 dark:ring-white/15 group-hover:scale-105 transition-transform shrink-0"
+                        />
+                        <span className="font-unbounded font-extrabold text-xl sm:text-2xl tracking-tight text-foreground group-hover:text-primary transition-colors">
                             BIGI <span className="text-[var(--brand)]">BADMINTON</span>
                         </span>
                     </Link>
                 </div>
 
-                {/* Desktop Nav (Tengah) */}
+                
                 <div className="hidden lg:flex items-center justify-center shrink-0">
                     <NavigationMenu>
-                        <NavigationMenuList className="gap-1.5">
+                        <NavigationMenuList className="relative flex items-center rounded-full border border-border/70 bg-card/75 p-1 backdrop-blur-md shadow-xs">
                             <NavigationMenuItem>
                                 <NavigationMenuLink asChild>
                                     <Link
                                         href="/"
-                                        className="px-4 py-2.5 text-base font-medium hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none rounded-lg transition-colors"
+                                        onClick={(e) => {
+                                            setActiveTab("beranda");
+                                            if (typeof window !== 'undefined' && window.location.pathname === '/' && window.location.hash) {
+                                                e.preventDefault();
+                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                window.history.pushState(null, '', '/');
+                                            }
+                                        }}
+                                        className={cn(
+                                            "px-4 py-2 text-sm font-semibold rounded-full transition-all duration-200 select-none",
+                                            activeTab === "beranda"
+                                                ? "bg-[var(--brand)] text-white shadow-xs"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                        )}
                                     >
                                         Beranda
                                     </Link>
@@ -91,7 +138,23 @@ export function SiteNavbar() {
                                 <NavigationMenuLink asChild>
                                     <a
                                         href="/#fasilitas"
-                                        className="px-4 py-2.5 text-base font-medium hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none rounded-lg transition-colors"
+                                        onClick={(e) => {
+                                            setActiveTab("fasilitas");
+                                            if (typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === '')) {
+                                                e.preventDefault();
+                                                const el = document.getElementById('fasilitas');
+                                                if (el) {
+                                                    el.scrollIntoView({ behavior: 'smooth' });
+                                                    window.history.pushState(null, '', '#fasilitas');
+                                                }
+                                            }
+                                        }}
+                                        className={cn(
+                                            "px-4 py-2 text-sm font-semibold rounded-full transition-all duration-200 select-none",
+                                            activeTab === "fasilitas"
+                                                ? "bg-[var(--brand)] text-white shadow-xs"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                        )}
                                     >
                                         Fasilitas
                                     </a>
@@ -99,7 +162,14 @@ export function SiteNavbar() {
                             </NavigationMenuItem>
 
                             <NavigationMenuItem>
-                                <NavigationMenuTrigger className="px-4 py-2.5 text-base font-medium h-auto rounded-lg">
+                                <NavigationMenuTrigger
+                                    className={cn(
+                                        "px-4 py-2 text-sm font-semibold rounded-full transition-all duration-200 select-none",
+                                        activeTab === "mabar"
+                                            ? "bg-[var(--brand)] text-white shadow-xs data-[popup-open]:text-white hover:bg-[var(--brand)]/90"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                    )}
+                                >
                                     Open Mabar
                                 </NavigationMenuTrigger>
                                 <NavigationMenuContent width="w-72">
@@ -124,16 +194,6 @@ export function SiteNavbar() {
                                                 <div className="text-xs text-muted-foreground font-normal">Inisiasi mabar baru</div>
                                             </div>
                                         </Link>
-                                        <Link
-                                            href={user ? "/open-mabar/saya" : "/login?redirect=/open-mabar/saya"}
-                                            className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors group"
-                                        >
-                                            <List className="size-5 text-[var(--brand)] shrink-0" />
-                                            <div>
-                                                <div className="text-[15px] font-semibold text-foreground">Jadwal Saya</div>
-                                                <div className="text-xs text-muted-foreground font-normal">Kelola jadwal yang Anda ikuti</div>
-                                            </div>
-                                        </Link>
                                     </div>
                                 </NavigationMenuContent>
                             </NavigationMenuItem>
@@ -141,17 +201,17 @@ export function SiteNavbar() {
                     </NavigationMenu>
                 </div>
 
-                {/* Right / Auth Actions (Kanan) & Mobile Trigger */}
+                
                 <div className="flex-1 flex items-center justify-end">
-                    {/* Desktop Auth */}
+                    
                     <div className="hidden lg:flex items-center gap-3">
                         {user ? (
                             <DropdownMenu>
                                 <DropdownMenuTrigger
                                     render={
-                                        <Button variant="outline" className="h-11 px-4 gap-2.5 text-base font-medium rounded-lg">
-                                            <UserIcon className="size-4.5 text-muted-foreground" />
-                                            <span>{user.nama}</span>
+                                        <Button variant="outline" className="h-10 px-3.5 gap-2 text-sm font-medium rounded-lg">
+                                            <UserIcon className="size-4 text-muted-foreground" />
+                                            <span>Akun</span>
                                         </Button>
                                     }
                                 />
@@ -162,30 +222,20 @@ export function SiteNavbar() {
                                     </div>
 
                                     {user.role === "user" && (
-                                        <DropdownMenuItem>
-                                            <Link href="/pengaturan/akun" className="w-full flex items-center gap-2">
-                                                <Settings className="size-4" />
-                                                <span>Pengaturan Akun</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    )}
-
-                                    {user.role === "admin" && (
-                                        <DropdownMenuItem>
-                                            <Link href="/admin" className="w-full flex items-center gap-2 text-purple-400">
-                                                <LayoutDashboard className="size-4" />
-                                                <span>Panel Admin</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    )}
-
-                                    {user.role === "kasir" && (
-                                        <DropdownMenuItem>
-                                            <Link href="/kasir" className="w-full flex items-center gap-2 text-emerald-400">
-                                                <LayoutDashboard className="size-4" />
-                                                <span>Panel Kasir</span>
-                                            </Link>
-                                        </DropdownMenuItem>
+                                        <>
+                                            <DropdownMenuItem>
+                                                <Link href="/open-mabar/saya" className="w-full flex items-center gap-2">
+                                                    <List className="size-4 text-[var(--brand)]" />
+                                                    <span>Jadwal Saya</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <Link href="/pengaturan/akun" className="w-full flex items-center gap-2">
+                                                    <Settings className="size-4" />
+                                                    <span>Pengaturan Akun</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </>
                                     )}
 
                                     <DropdownMenuSeparator />
@@ -218,7 +268,7 @@ export function SiteNavbar() {
                         )}
                     </div>
 
-                    {/* Mobile Menu Trigger */}
+                    
                     <div className="flex lg:hidden items-center">
                         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                             <SheetTrigger
@@ -231,22 +281,60 @@ export function SiteNavbar() {
                             <SheetContent side="right" className="w-[85vw] max-w-xs flex flex-col justify-between">
                                 <div className="flex flex-col gap-6 mt-6">
                                     <SheetHeader className="text-left">
-                                        <SheetTitle className="text-xl font-extrabold tracking-tight">
-                                            BIGI <span className="text-[var(--brand)]">BADMINTON</span>
-                                        </SheetTitle>
+                                        <div className="flex items-center">
+                                            <Link
+                                                href="/"
+                                                onClick={() => setMobileOpen(false)}
+                                                className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+                                                aria-label="Bigi Badminton - Beranda"
+                                            >
+                                                <img
+                                                    src="/images/logo-sm.png"
+                                                    alt="Logo Bigi Badminton"
+                                                    width={120}
+                                                    height={120}
+                                                    className="h-9 w-9 object-contain rounded-full shadow-sm ring-1 ring-black/10 dark:ring-white/15 shrink-0"
+                                                />
+                                                <span className="font-unbounded text-lg sm:text-xl font-extrabold tracking-tight text-foreground">
+                                                    BIGI <span className="text-[var(--brand)]">BADMINTON</span>
+                                                </span>
+                                            </Link>
+                                        </div>
+                                        <SheetTitle className="sr-only">Bigi Badminton</SheetTitle>
                                     </SheetHeader>
 
                                     <nav className="flex flex-col gap-1.5">
                                         <Link
                                             href="/"
-                                            onClick={() => setMobileOpen(false)}
+                                            onClick={(e) => {
+                                                setMobileOpen(false);
+                                                if (typeof window !== 'undefined' && window.location.pathname === '/' && window.location.hash) {
+                                                    e.preventDefault();
+                                                    setTimeout(() => {
+                                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                        window.history.pushState(null, '', '/');
+                                                    }, 150);
+                                                }
+                                            }}
                                             className="px-3 min-h-[44px] flex items-center rounded-lg hover:bg-accent text-sm font-medium transition-colors"
                                         >
                                             Beranda
                                         </Link>
                                         <a
                                             href="/#fasilitas"
-                                            onClick={() => setMobileOpen(false)}
+                                            onClick={(e) => {
+                                                setMobileOpen(false);
+                                                if (typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === '')) {
+                                                    e.preventDefault();
+                                                    setTimeout(() => {
+                                                        const el = document.getElementById('fasilitas');
+                                                        if (el) {
+                                                            el.scrollIntoView({ behavior: 'smooth' });
+                                                            window.history.pushState(null, '', '#fasilitas');
+                                                        }
+                                                    }, 150);
+                                                }
+                                            }}
                                             className="px-3 min-h-[44px] flex items-center rounded-lg hover:bg-accent text-sm font-medium transition-colors"
                                         >
                                             Fasilitas
@@ -271,14 +359,6 @@ export function SiteNavbar() {
                                             <PlusCircle className="size-4 text-muted-foreground shrink-0" />
                                             <span>Buat Jadwal</span>
                                         </Link>
-                                        <Link
-                                            href={user ? "/open-mabar/saya" : "/login?redirect=/open-mabar/saya"}
-                                            onClick={() => setMobileOpen(false)}
-                                            className="px-3 pl-4 min-h-[44px] rounded-lg hover:bg-accent text-sm font-medium flex items-center gap-2.5 transition-colors"
-                                        >
-                                            <List className="size-4 text-muted-foreground shrink-0" />
-                                            <span>Jadwal Saya</span>
-                                        </Link>
                                     </nav>
                                 </div>
 
@@ -291,34 +371,22 @@ export function SiteNavbar() {
                                             </div>
                                             {user.role === "user" && (
                                                 <Link
-                                                    href="/pengaturan/akun"
+                                                    href="/open-mabar/saya"
                                                     onClick={() => setMobileOpen(false)}
                                                     className="px-3 py-2 rounded-md hover:bg-accent text-sm font-medium flex items-center gap-2"
                                                 >
-                                                    <Settings className="size-4" />
-                                                    <span>Pengaturan Akun</span>
+                                                    <List className="size-4 text-[var(--brand)]" />
+                                                    <span>Jadwal Saya</span>
                                                 </Link>
                                             )}
-                                            {user.role === "admin" && (
-                                                <Link
-                                                    href="/admin"
-                                                    onClick={() => setMobileOpen(false)}
-                                                    className="px-3 py-2 rounded-md hover:bg-accent text-sm font-medium text-[var(--brand)] flex items-center gap-2"
-                                                >
-                                                    <LayoutDashboard className="size-4" />
-                                                    <span>Panel Admin</span>
-                                                </Link>
-                                            )}
-                                            {user.role === "kasir" && (
-                                                <Link
-                                                    href="/kasir"
-                                                    onClick={() => setMobileOpen(false)}
-                                                    className="px-3 py-2 rounded-md hover:bg-accent text-sm font-medium text-emerald-700 flex items-center gap-2"
-                                                >
-                                                    <LayoutDashboard className="size-4" />
-                                                    <span>Panel Kasir</span>
-                                                </Link>
-                                            )}
+                                            <Link
+                                                href="/pengaturan/akun"
+                                                onClick={() => setMobileOpen(false)}
+                                                className="px-3 py-2 rounded-md hover:bg-accent text-sm font-medium flex items-center gap-2"
+                                            >
+                                                <Settings className="size-4" />
+                                                <span>Pengaturan Akun</span>
+                                            </Link>
                                             <Link
                                                 href="/logout"
                                                 method="post"

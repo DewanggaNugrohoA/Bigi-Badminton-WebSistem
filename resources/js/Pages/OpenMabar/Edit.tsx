@@ -31,7 +31,7 @@ interface EditProps {
 }
 
 export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
-    // Edit jadwal yang memuat foto: kirim dari form sebagai POST dengan _method=PUT (multipart PUT tidak terbaca PHP)
+    
     const { data, setData, post, processing, errors } = useForm({
         _method: "PUT",
         judul: mabar.judul,
@@ -61,7 +61,7 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Menggunakan POST ke /open-mabar/{id}/edit dengan field _method=PUT untuk file upload
+        
         post(`/open-mabar/${mabar.id_mabar}/edit`);
     };
 
@@ -80,8 +80,8 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                         Revisi Jadwal Open Mabar
                     </h1>
                     {mabar.status === "ditolak" && (
-                        <div className="mt-3 flex items-start gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300">
-                            <AlertCircle className="size-4 shrink-0 text-rose-400 mt-0.5" />
+                        <div className="mt-3 flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800">
+                            <AlertCircle className="size-4 shrink-0 text-rose-600 mt-0.5" />
                             <span>
                                 Jadwal ini sebelumnya <strong>Ditolak</strong> oleh Admin. Setelah Anda melakukan perubahan dan menyimpannya, status jadwal akan kembali menjadi <strong>Menunggu Persetujuan</strong>.
                             </span>
@@ -91,7 +91,6 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
 
                 <div className="bg-card border border-border/70 rounded-2xl p-6 sm:p-8 shadow-sm">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Judul */}
                         <div className="space-y-2">
                             <Label htmlFor="judul" className="text-sm font-semibold">
                                 Judul Mabar <span className="text-rose-500">*</span>
@@ -107,7 +106,6 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                             )}
                         </div>
 
-                        {/* Tanggal, Jam Mulai, Jam Selesai */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="tanggal" className="text-sm font-semibold">
@@ -158,7 +156,6 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                             </div>
                         </div>
 
-                        {/* Gender & Kuota */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="gender" className="text-sm font-semibold">
@@ -168,11 +165,11 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                                     id="gender"
                                     value={data.gender}
                                     onChange={(e) => setData("gender", e.target.value as any)}
-                                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input"
+                                    className="w-full h-10 px-3 rounded-lg border border-input bg-transparent text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
                                 >
-                                    <option value="campuran">Campuran (Putra & Putri)</option>
-                                    <option value="putra">Putra</option>
-                                    <option value="putri">Putri</option>
+                                    <option value="campuran" className="bg-background text-foreground">Campuran (Putra & Putri)</option>
+                                    <option value="putra" className="bg-background text-foreground">Putra</option>
+                                    <option value="putri" className="bg-background text-foreground">Putri</option>
                                 </select>
                                 {errors.gender && (
                                     <p className="text-xs text-rose-500">{errors.gender}</p>
@@ -197,7 +194,6 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                             </div>
                         </div>
 
-                        {/* Batas Usia Min & Max */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="batas_usia_min" className="text-sm font-semibold">
@@ -234,7 +230,6 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                             </div>
                         </div>
 
-                        {/* Lapangan (Opsional) */}
                         <div className="space-y-2">
                             <Label htmlFor="id_lapangan" className="text-sm font-semibold">
                                 Lapangan (Opsional)
@@ -243,11 +238,11 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                                 id="id_lapangan"
                                 value={data.id_lapangan}
                                 onChange={(e) => setData("id_lapangan", e.target.value)}
-                                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-input"
+                                className="w-full h-10 px-3 rounded-lg border border-input bg-transparent text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
                             >
-                                <option value="">-- Belum Ditentukan / Bebas --</option>
+                                <option value="" className="bg-background text-foreground">-- Belum Ditentukan / Bebas --</option>
                                 {lapangan.map((lap) => (
-                                    <option key={lap.id_lapangan} value={lap.id_lapangan}>
+                                    <option key={lap.id_lapangan} value={lap.id_lapangan} className="bg-background text-foreground">
                                         {lap.nama_lapangan}
                                     </option>
                                 ))}
@@ -257,7 +252,6 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                             )}
                         </div>
 
-                        {/* Foto Unggahan (Opsional) */}
                         <div className="space-y-2">
                             <Label htmlFor="foto" className="text-sm font-semibold">
                                 Ganti Foto Banner (Opsional, maks 2 MB)
@@ -293,7 +287,6 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                             )}
                         </div>
 
-                        {/* Deskripsi & Catatan */}
                         <div className="space-y-2">
                             <Label htmlFor="deskripsi" className="text-sm font-semibold">
                                 Deskripsi & Catatan Khusus (Opsional)

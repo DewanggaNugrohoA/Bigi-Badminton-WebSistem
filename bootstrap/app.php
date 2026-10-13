@@ -16,8 +16,31 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeadersMiddleware::class,
             HandleInertiaRequests::class,
         ]);
+
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('admin*') || $request->is('kasir*') || $request->is('staff*')) {
+                return route('staff.login');
+            }
+            return route('login');
+        });
+
+        $middleware->redirectUsersTo(function (Request $request) {
+            if ($request->is('staff*')) {
+                $staffUser = $request->user('staff');
+                if ($staffUser) {
+                    return match ($staffUser->role) {
+                        'admin' => '/admin',
+                        'kasir' => '/kasir',
+                        default => '/',
+                    };
+                }
+            }
+
+            return '/dashboard';
+        });
 
         $middleware->alias([
             'role' => RoleMiddleware::class,
@@ -30,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->toResponse($request)
                     ->setStatusCode($response->getStatusCode());
             } elseif ($response->getStatusCode() === 404 || $response->getStatusCode() === 403) {
-                // Return Inertia Error on 403 and 404 even in local/testing if it is an Inertia request or normal web request
+                
                 if ($request->header('X-Inertia') || (! $request->is('api/*') && ! $request->expectsJson())) {
                     return \Inertia\Inertia::render('Error', ['status' => $response->getStatusCode()])
                         ->toResponse($request)

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import PublicLayout from "@/layouts/public-layout";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,6 @@ import { APP_CONTENT, buildWaLink } from "@/lib/content";
 import { motion, useReducedMotion } from "framer-motion";
 import {
     Phone,
-    ExternalLink,
     Calendar,
     Users,
     Trophy,
@@ -46,56 +46,43 @@ export default function Home() {
     const waReservationLink = buildWaLink(config?.wa_admin_number);
     const prefersReducedMotion = useReducedMotion();
 
+    useEffect(() => {
+        const scrollToTarget = () => {
+            if (typeof window !== "undefined" && window.location.hash === "#fasilitas") {
+                const el = document.getElementById("fasilitas");
+                if (el) {
+                    el.scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        };
+
+        
+        const timer = setTimeout(scrollToTarget, 150);
+        window.addEventListener("hashchange", scrollToTarget);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener("hashchange", scrollToTarget);
+        };
+    }, []);
+
     const getAnimProps = (delay = 0) =>
         prefersReducedMotion
             ? {}
             : {
                   initial: { opacity: 0, y: 20 },
                   whileInView: { opacity: 1, y: 0 },
-                  viewport: { once: true, margin: "-50px" },
+                  viewport: { once: false, margin: "-50px" },
                   transition: { duration: 0.5, delay, ease: "easeOut" as const },
               };
 
     return (
         <PublicLayout title="Beranda">
-            <section className="relative isolate overflow-hidden pt-28 pb-14 min-[340px]:pt-30 min-[340px]:pb-16 sm:pt-36 sm:pb-36 lg:pt-44 lg:pb-56 px-4 sm:px-6">
-                {/* Dynamic Ambient Background Animation */}
-                <div className="absolute inset-0 -z-10 h-full w-full overflow-hidden pointer-events-none">
-                    <div className="absolute inset-0 [background-image:radial-gradient(rgba(100,116,139,0.18)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_80%_70%_at_40%_40%,#000_60%,transparent_100%)] opacity-75" />
+            <section className="relative pt-28 pb-8 min-[340px]:pt-30 min-[340px]:pb-10 sm:pt-36 sm:pb-12 lg:pt-40 lg:pb-16 px-4 sm:px-6">
 
-                    <motion.div
-                        animate={
-                            prefersReducedMotion
-                                ? {}
-                                : {
-                                      x: [-20, 20, -20],
-                                      y: [-15, 15, -15],
-                                      scale: [1, 1.06, 1],
-                                  }
-                        }
-                        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -top-24 left-1/4 w-[540px] h-[340px] bg-[var(--brand)]/12 rounded-full blur-3xl"
-                    />
-
-                    <motion.div
-                        animate={
-                            prefersReducedMotion
-                                ? {}
-                                : {
-                                      x: [20, -20, 20],
-                                      y: [15, -15, 15],
-                                      scale: [1.05, 0.95, 1.05],
-                                  }
-                        }
-                        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute top-36 right-1/4 w-[440px] h-[280px] bg-emerald-500/10 rounded-full blur-3xl"
-                    />
-                </div>
-
-                <div className="max-w-6xl mx-auto grid grid-cols-1 min-[340px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] items-center gap-x-4 sm:gap-x-8 lg:gap-x-12 gap-y-5 sm:gap-y-8 lg:gap-y-0 text-left">
-                    {/* Left Column: Headline & Tagline */}
-                    <div className="col-start-1 row-start-1 text-left min-w-0">
-                        {/* Main Headline */}
+                <div className="max-w-6xl mx-auto grid grid-cols-1 min-[340px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_auto] items-center gap-x-4 sm:gap-x-8 lg:gap-x-12 gap-y-4 sm:gap-y-5 lg:gap-y-0 text-left">
+                    
+                    <div className="col-start-1 row-start-1 text-left min-w-0 self-end lg:self-end">
+                        
                         <motion.h1
                             {...(prefersReducedMotion
                                 ? {}
@@ -104,7 +91,7 @@ export default function Home() {
                                       animate: { opacity: 1, y: 0 },
                                       transition: { duration: 0.5, delay: 0.1 },
                                   })}
-                            className="text-2xl min-[360px]:text-[26px] min-[390px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.12]"
+                            className="font-unbounded text-xl min-[360px]:text-[22px] min-[390px]:text-2xl sm:text-3xl md:text-[38px] lg:text-[44px] xl:text-[48px] font-extrabold tracking-[-0.01em] text-foreground leading-[1.3] sm:leading-[1.35] lg:leading-[1.38]"
                         >
                             Main Badminton Lebih Seru di{" "}
                             <span className="text-[var(--brand)] inline-block">
@@ -112,7 +99,7 @@ export default function Home() {
                             </span>
                         </motion.h1>
 
-                        {/* Tagline */}
+                        
                         <motion.p
                             {...(prefersReducedMotion
                                 ? {}
@@ -121,34 +108,141 @@ export default function Home() {
                                       animate: { opacity: 1, y: 0 },
                                       transition: { duration: 0.5, delay: 0.2 },
                                   })}
-                            className="mt-2.5 sm:mt-5 lg:mt-6 text-xs min-[360px]:text-sm sm:text-base lg:text-lg text-muted-foreground leading-snug sm:leading-relaxed"
+                            className="font-sans font-normal mt-3.5 sm:mt-5 lg:mt-6 text-sm sm:text-base lg:text-[17px] text-muted-foreground/90 leading-relaxed sm:leading-loose max-w-xl"
                         >
                             {APP_CONTENT.tagline}
                         </motion.p>
                     </div>
 
-                    {/* Right Column: Hero Badminton Athlete Image */}
+                    
                     <motion.div
                         initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
                         animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.25 }}
-                        className="col-start-1 min-[340px]:col-start-2 row-start-2 min-[340px]:row-start-1 lg:row-span-2 flex items-end justify-center min-[340px]:justify-end shrink-0 w-full self-center"
+                        className="col-start-1 min-[340px]:col-start-2 row-start-2 min-[340px]:row-start-1 lg:row-span-2 flex items-end justify-center min-[340px]:justify-end shrink-0 w-full self-center relative"
                     >
+                        
+                        <div
+                            className="absolute -inset-10 sm:-inset-16 pointer-events-none -z-10 flex items-center justify-center overflow-visible select-none"
+                            aria-hidden="true"
+                        >
+                            <svg
+                                viewBox="0 0 600 600"
+                                className="w-full h-full max-w-[560px] lg:max-w-[620px] select-none"
+                            >
+                                <defs>
+                                    
+                                    <linearGradient id="bigiTextGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.22" />
+                                        <stop offset="38%" stopColor="#C4B5FD" stopOpacity="0.30" />
+                                        <stop offset="72%" stopColor="#6C3BFF" stopOpacity="0.16" />
+                                        <stop offset="100%" stopColor="#4C1D95" stopOpacity="0.03" />
+                                    </linearGradient>
+
+                                    
+                                    <linearGradient id="bigiStrokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.38" />
+                                        <stop offset="45%" stopColor="#A78BFA" stopOpacity="0.32" />
+                                        <stop offset="100%" stopColor="#6C3BFF" stopOpacity="0.08" />
+                                    </linearGradient>
+
+                                    
+                                    <linearGradient id="diagShapeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.24" />
+                                        <stop offset="55%" stopColor="#5B2EFF" stopOpacity="0.13" />
+                                        <stop offset="100%" stopColor="#4338CA" stopOpacity="0.02" />
+                                    </linearGradient>
+
+                                    
+                                    <linearGradient id="motionArcGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#6C3BFF" stopOpacity="0.1" />
+                                        <stop offset="50%" stopColor="#A78BFA" stopOpacity="0.75" />
+                                        <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.95" />
+                                    </linearGradient>
+
+                                    
+                                    <radialGradient id="auraGrad" cx="52%" cy="46%" r="50%">
+                                        <stop offset="0%" stopColor="#6C3BFF" stopOpacity="0.24" />
+                                        <stop offset="50%" stopColor="#5B2EFF" stopOpacity="0.09" />
+                                        <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+                                    </radialGradient>
+                                </defs>
+
+                                
+                                <circle cx="330" cy="280" r="230" fill="url(#auraGrad)" />
+
+                                
+                                <polygon
+                                    points="180,20 530,20 380,580 30,580"
+                                    fill="url(#diagShapeGrad)"
+                                />
+
+                                
+                                <line
+                                    x1="210"
+                                    y1="20"
+                                    x2="60"
+                                    y2="580"
+                                    stroke="#A78BFA"
+                                    strokeWidth="1.2"
+                                    strokeOpacity="0.25"
+                                    strokeDasharray="6 8"
+                                />
+
+                                
+                                <text
+                                    x="300"
+                                    y="360"
+                                    textAnchor="middle"
+                                    className="font-unbounded font-black select-none pointer-events-none"
+                                    fontSize="180"
+                                    fontWeight="900"
+                                    letterSpacing="-0.04em"
+                                    fill="url(#bigiTextGrad)"
+                                    stroke="url(#bigiStrokeGrad)"
+                                    strokeWidth="1.5"
+                                >
+                                    BIGI
+                                </text>
+
+                                
+                                <path
+                                    d="M 60,470 C 220,480 390,380 500,120"
+                                    fill="none"
+                                    stroke="url(#motionArcGrad)"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                />
+
+                                
+                                <path
+                                    d="M 120,500 C 260,500 420,410 520,170"
+                                    fill="none"
+                                    stroke="#8B5CF6"
+                                    strokeWidth="1.2"
+                                    strokeLinecap="round"
+                                    strokeOpacity="0.4"
+                                    strokeDasharray="4 8"
+                                />
+                            </svg>
+                        </div>
+
+                        
                         <img
                             src="/images/atlet-smash.png"
                             alt="Atlet bulu tangkis melayang melakukan smash di udara"
                             width={887}
                             height={1774}
-                            className="h-[180px] min-[360px]:h-[210px] min-[390px]:h-[235px] sm:h-[300px] md:h-[360px] lg:h-[430px] w-auto max-w-full object-contain select-none pointer-events-none drop-shadow-none"
+                            className="h-[180px] min-[360px]:h-[210px] min-[390px]:h-[235px] sm:h-[300px] md:h-[360px] lg:h-[430px] w-auto max-w-full object-contain select-none pointer-events-none drop-shadow-none -translate-y-4 sm:-translate-y-5 lg:-translate-y-6 -translate-x-4 sm:-translate-x-5 lg:-translate-x-6 relative z-10"
                             style={{
-                                maskImage: "linear-gradient(to bottom, black 82%, transparent 98%)",
-                                WebkitMaskImage: "linear-gradient(to bottom, black 82%, transparent 98%)",
+                                maskImage: "linear-gradient(to bottom, black 84%, transparent 98%)",
+                                WebkitMaskImage: "linear-gradient(to bottom, black 84%, transparent 98%)",
                             }}
                             loading="eager"
                         />
                     </motion.div>
 
-                    {/* CTA Buttons (Underneath both columns on mobile, row 2 under text on desktop) */}
+                    
                     <motion.div
                         {...(prefersReducedMotion
                             ? {}
@@ -157,7 +251,7 @@ export default function Home() {
                                   animate: { opacity: 1, y: 0 },
                                   transition: { duration: 0.5, delay: 0.3 },
                               })}
-                        className="col-start-1 col-span-1 min-[340px]:col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3 w-full lg:w-auto lg:mt-8"
+                        className="col-start-1 col-span-1 min-[340px]:col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2 self-start lg:self-start flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3 w-full lg:w-auto mt-4 sm:mt-6 lg:mt-7"
                     >
                         <motion.div
                             whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
@@ -172,11 +266,10 @@ export default function Home() {
                             >
                                 <Button
                                     size="lg"
-                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all gap-2 shadow-xs hover:shadow-md flex items-center justify-center"
+                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all gap-2 shadow-xs hover:shadow-md flex items-center justify-center"
                                 >
                                     <Phone className="size-4" />
                                     <span>Reservasi via WA</span>
-                                    <ExternalLink className="size-3.5 opacity-80" />
                                 </Button>
                             </a>
                         </motion.div>
@@ -193,7 +286,7 @@ export default function Home() {
                                 <Button
                                     variant="outline"
                                     size="lg"
-                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold border-border/80 bg-card hover:bg-muted/70 hover:text-foreground text-foreground gap-2 rounded-lg transition-all shadow-xs hover:shadow-md flex items-center justify-center"
+                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 font-unbounded text-xs sm:text-sm font-semibold tracking-wide border-border/80 bg-card hover:bg-muted/70 hover:text-foreground text-foreground gap-2 rounded-lg transition-all shadow-xs hover:shadow-md flex items-center justify-center"
                                 >
                                     <Calendar className="size-4 text-[var(--brand)]" />
                                     <span>Lihat Open Mabar</span>
@@ -204,14 +297,14 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Facilities Section with Hover Lift Animation */}
-            <section id="fasilitas" className="py-14 sm:py-20 px-4 sm:px-6 bg-muted/30 border-t border-border/70">
+            
+            <section id="fasilitas" className="pt-8 sm:pt-12 lg:pt-16 pb-14 sm:pb-20 px-4 sm:px-6 bg-muted/30 border-t border-border/70 scroll-mt-20 lg:scroll-mt-24">
                 <div className="max-w-6xl mx-auto">
                     <motion.div {...getAnimProps()} className="text-left max-w-3xl mb-10 sm:mb-12">
-                        <span className="text-xs uppercase tracking-widest text-[var(--brand)] font-semibold">
+                        <span className="font-unbounded text-xs uppercase tracking-widest text-[var(--brand)] font-bold">
                             FASILITAS & PROFIL
                         </span>
-                        <h2 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
+                        <h2 className="mt-2 font-unbounded text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight leading-tight">
                             Kenyamanan Maksimal untuk Setiap Smash
                         </h2>
                         <p className="mt-3 text-muted-foreground text-sm sm:text-base leading-relaxed">
@@ -233,7 +326,7 @@ export default function Home() {
                                         <div className="size-10 rounded-lg bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)] mb-5 group-hover:scale-110 transition-transform">
                                             <IconComponent className="size-5" />
                                         </div>
-                                        <h3 className="text-base font-bold text-foreground transition-colors">
+                                        <h3 className="font-unbounded text-sm sm:text-base font-bold text-foreground transition-colors tracking-tight">
                                             {item.judul}
                                         </h3>
                                         <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
@@ -247,7 +340,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Community CTA Section */}
+            
             <section className="py-14 sm:py-20 px-4 sm:px-6 border-t border-border/70">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
@@ -259,7 +352,7 @@ export default function Home() {
                                 <Users className="size-6" />
                             </div>
 
-                            <h2 className="text-xl min-[360px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
+                            <h2 className="font-unbounded text-xl min-[360px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight leading-tight">
                                 Gabung Komunitas Open Mabar Bigi
                             </h2>
 
@@ -273,7 +366,7 @@ export default function Home() {
                                 <Link href="/open-mabar" className="w-full sm:w-auto">
                                     <Button
                                         size="lg"
-                                        className="w-full sm:w-auto h-11 px-7 text-sm font-semibold bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
+                                        className="w-full sm:w-auto h-11 px-7 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
                                     >
                                         <span>Buka Open Mabar</span>
                                         <ArrowRight className="size-4" />
@@ -283,7 +376,7 @@ export default function Home() {
                                 <Link href="/login?redirect=/open-mabar" className="w-full sm:w-auto">
                                     <Button
                                         size="lg"
-                                        className="w-full sm:w-auto h-11 px-7 text-sm font-semibold bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
+                                        className="w-full sm:w-auto h-11 px-7 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
                                     >
                                         <span>Masuk untuk melihat jadwal</span>
                                         <ArrowRight className="size-4" />

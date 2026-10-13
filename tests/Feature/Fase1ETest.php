@@ -30,107 +30,163 @@ class Fase1ETest extends TestCase
         parent::setUp();
         $this->seed();
 
-        $this->user = User::where('email', 'user@bigi.test')->first();
-        $this->member = User::where('email', 'member@bigi.test')->first();
-        $this->admin = User::where('email', 'admin@bigi.test')->first();
-        $this->kasir = User::where('email', 'kasir@bigi.test')->first();
+        $this->user = User::create([
+            'nama' => 'User Biasa',
+            'email' => 'user.e@example.com',
+            'no_whatsapp' => '08144440001',
+            'password' => bcrypt('secret123'),
+            'role' => 'user',
+        ]);
 
-        // Mabar dengan berbagai status dari seeder
-        $this->mabarDisetujui = OpenMabar::where('status', OpenMabar::STATUS_DISETUJUI)->first();
-        $this->mabarMenunggu = OpenMabar::where('status', OpenMabar::STATUS_MENUNGGU)->first();
-        $this->mabarDitolak = OpenMabar::where('status', OpenMabar::STATUS_DITOLAK)->first();
+        $this->member = User::create([
+            'nama' => 'User Member',
+            'email' => 'member.e@example.com',
+            'no_whatsapp' => '08144440002',
+            'password' => bcrypt('secret123'),
+            'role' => 'user',
+            'jenis_pelanggan' => 'member',
+            'tanggal_mulai_member' => Carbon::now()->subDays(10)->toDateString(),
+            'tanggal_akhir_member' => Carbon::now()->addDays(20)->toDateString(),
+            'status_member' => 'aktif',
+        ]);
+
+        $this->admin = User::create([
+            'nama' => 'Admin Uji',
+            'email' => 'admin.e@example.com',
+            'no_whatsapp' => '08144440003',
+            'password' => bcrypt('secret123'),
+            'role' => 'admin',
+        ]);
+
+        $this->kasir = User::create([
+            'nama' => 'Kasir Uji',
+            'email' => 'kasir.e@example.com',
+            'no_whatsapp' => '08144440004',
+            'password' => bcrypt('secret123'),
+            'role' => 'kasir',
+        ]);
+
+        
+        $this->mabarDisetujui = OpenMabar::create([
+            'id_user' => $this->user->id_user,
+            'judul' => 'Mabar Santuy Malam Minggu',
+            'tanggal' => Carbon::now()->addDays(2)->toDateString(),
+            'jam_mulai' => '19:00:00',
+            'jam_selesai' => '22:00:00',
+            'gender' => 'campuran',
+            'batas_usia_min' => 18,
+            'batas_usia_max' => 40,
+            'kuota' => 10,
+            'status' => OpenMabar::STATUS_DISETUJUI,
+        ]);
+
+        $this->mabarMenunggu = OpenMabar::create([
+            'id_user' => $this->member->id_user,
+            'judul' => 'Mabar Menunggu Persetujuan',
+            'tanggal' => Carbon::now()->addDays(5)->toDateString(),
+            'jam_mulai' => '19:00:00',
+            'jam_selesai' => '21:00:00',
+            'gender' => 'campuran',
+            'batas_usia_min' => 20,
+            'batas_usia_max' => 30,
+            'kuota' => 8,
+            'status' => OpenMabar::STATUS_MENUNGGU,
+        ]);
+
+        $this->mabarDitolak = OpenMabar::create([
+            'id_user' => $this->user->id_user,
+            'judul' => 'Mabar Ditolak',
+            'tanggal' => Carbon::now()->addDays(1)->toDateString(),
+            'jam_mulai' => '16:00:00',
+            'jam_selesai' => '18:00:00',
+            'gender' => 'putra',
+            'batas_usia_min' => 15,
+            'batas_usia_max' => 25,
+            'kuota' => 6,
+            'status' => OpenMabar::STATUS_DITOLAK,
+        ]);
     }
 
-    /**
-     * Tamu (unauthenticated) diarahkan ke halaman login.
-     */
+    
     public function test_guests_cannot_access_chat_routes(): void
     {
-        $this->get("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat")
+        $this->get("/chat-panel/{$this->mabarDisetujui->id_mabar}/pesan")
             ->assertRedirect('/login');
 
-        $this->post("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", [
+        $this->post("/chat-panel/{$this->mabarDisetujui->id_mabar}/kirim", [
             'pesan' => 'Halo mabar',
         ])->assertRedirect('/login');
     }
 
-    /**
-     * Admin dan Kasir menerima HTTP 403 saat mengakses rute chat (hanya role:user).
-     */
+    
     public function test_admin_and_kasir_receive_403_on_http_chat_routes(): void
     {
-        // Admin
+        
         $this->actingAs($this->admin)
-            ->get("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat")
+            ->get("/chat-panel/{$this->mabarDisetujui->id_mabar}/pesan")
             ->assertForbidden();
 
         $this->actingAs($this->admin)
-            ->post("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", [
+            ->post("/chat-panel/{$this->mabarDisetujui->id_mabar}/kirim", [
                 'pesan' => 'Pesan dari admin',
             ])->assertForbidden();
 
-        // Kasir
+        
         $this->actingAs($this->kasir)
-            ->get("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat")
+            ->get("/chat-panel/{$this->mabarDisetujui->id_mabar}/pesan")
             ->assertForbidden();
 
         $this->actingAs($this->kasir)
-            ->post("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", [
+            ->post("/chat-panel/{$this->mabarDisetujui->id_mabar}/kirim", [
                 'pesan' => 'Pesan dari kasir',
             ])->assertForbidden();
     }
 
-    /**
-     * Jadwal yang belum disetujui (menunggu / ditolak) tidak bisa dibuka ruang obrolannya (403).
-     */
+    
     public function test_user_cannot_access_chat_for_unapproved_mabar(): void
     {
-        // Jadwal menunggu
+        
         $this->actingAs($this->user)
-            ->get("/open-mabar/{$this->mabarMenunggu->id_mabar}/chat")
+            ->get("/chat-panel/{$this->mabarMenunggu->id_mabar}/pesan")
             ->assertForbidden();
 
         $this->actingAs($this->user)
-            ->post("/open-mabar/{$this->mabarMenunggu->id_mabar}/chat", [
+            ->post("/chat-panel/{$this->mabarMenunggu->id_mabar}/kirim", [
                 'pesan' => 'Coba kirim ke menunggu',
             ])->assertForbidden();
 
-        // Jadwal ditolak
+        
         $this->actingAs($this->user)
-            ->get("/open-mabar/{$this->mabarDitolak->id_mabar}/chat")
+            ->get("/chat-panel/{$this->mabarDitolak->id_mabar}/pesan")
             ->assertForbidden();
 
         $this->actingAs($this->user)
-            ->post("/open-mabar/{$this->mabarDitolak->id_mabar}/chat", [
+            ->post("/chat-panel/{$this->mabarDitolak->id_mabar}/kirim", [
                 'pesan' => 'Coba kirim ke ditolak',
             ])->assertForbidden();
     }
 
-    /**
-     * User login dapat membuka ruang obrolan untuk jadwal yang disetujui.
-     */
+    
     public function test_user_can_access_chat_for_approved_mabar(): void
     {
         $response = $this->actingAs($this->user)
-            ->get("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat");
+            ->get("/chat-panel/{$this->mabarDisetujui->id_mabar}/pesan");
 
         $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page
-            ->component('OpenMabar/Chat')
-            ->has('mabar')
-            ->has('messages')
-        );
+        $response->assertJsonStructure([
+            'status',
+            'mabar' => ['id_mabar', 'judul', 'tanggal', 'jam_mulai', 'jam_selesai', 'kuota', 'status'],
+            'messages',
+        ]);
     }
 
-    /**
-     * Halaman memuat 50 pesan TERAKHIR dalam urutan kronologis, bukan 50 pertama.
-     */
+    
     public function test_chat_loads_last_50_messages_in_chronological_order(): void
     {
-        // Bersihkan chat lama pada mabar ini untuk pengujian terisolasi
+        
         ChatMabar::where('id_mabar', $this->mabarDisetujui->id_mabar)->delete();
 
-        // Buat 60 pesan berurutan
+        
         for ($i = 1; $i <= 60; $i++) {
             ChatMabar::create([
                 'id_mabar' => $this->mabarDisetujui->id_mabar,
@@ -141,42 +197,38 @@ class Fase1ETest extends TestCase
         }
 
         $response = $this->actingAs($this->user)
-            ->get("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat");
+            ->get("/chat-panel/{$this->mabarDisetujui->id_mabar}/pesan");
 
         $response->assertOk();
-        $response->assertInertia(function (Assert $page) {
-            $page->component('OpenMabar/Chat')
-                ->has('messages', 50)
-                // Pesan pertama yang dimuat harus pesan nomor 11 (bukan nomor 1)
-                ->where('messages.0.pesan', 'Pesan nomor 11')
-                // Pesan terakhir yang dimuat harus pesan nomor 60
-                ->where('messages.49.pesan', 'Pesan nomor 60');
-        });
+        $data = $response->json('messages');
+        $this->assertCount(50, $data);
+        
+        $this->assertEquals('Pesan nomor 11', $data[0]['pesan']);
+        
+        $this->assertEquals('Pesan nomor 60', $data[49]['pesan']);
     }
 
-    /**
-     * Validasi pesan: wajib diisi dan maksimal 500 karakter.
-     */
+    
     public function test_validation_rejects_empty_and_too_long_message(): void
     {
-        // Pesan kosong
+        
         $this->actingAs($this->user)
-            ->post("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", [
+            ->postJson("/chat-panel/{$this->mabarDisetujui->id_mabar}/kirim", [
                 'pesan' => '',
             ])
-            ->assertSessionHasErrors(['pesan']);
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['pesan']);
 
-        // Pesan > 500 karakter
+        
         $this->actingAs($this->user)
-            ->post("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", [
+            ->postJson("/chat-panel/{$this->mabarDisetujui->id_mabar}/kirim", [
                 'pesan' => str_repeat('a', 501),
             ])
-            ->assertSessionHasErrors(['pesan']);
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['pesan']);
     }
 
-    /**
-     * Pesan tersimpan di database chat_mabar dan event PesanMabarTerkirim disiarkan.
-     */
+    
     public function test_message_is_persisted_and_event_broadcasted(): void
     {
         Event::fake([PesanMabarTerkirim::class]);
@@ -184,20 +236,20 @@ class Fase1ETest extends TestCase
         $isiPesan = 'Halo semua, jangan lupa bawa raket cadangan ya!';
 
         $response = $this->actingAs($this->user)
-            ->post("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", [
+            ->postJson("/chat-panel/{$this->mabarDisetujui->id_mabar}/kirim", [
                 'pesan' => $isiPesan,
             ]);
 
-        $response->assertRedirect();
+        $response->assertStatus(201);
 
-        // Pastikan tersimpan di database chat_mabar
+        
         $this->assertDatabaseHas('chat_mabar', [
             'id_mabar' => $this->mabarDisetujui->id_mabar,
             'id_user' => $this->user->id_user,
             'pesan' => $isiPesan,
         ]);
 
-        // Pastikan event di-dispatch dengan payload yang benar
+        
         Event::assertDispatched(PesanMabarTerkirim::class, function (PesanMabarTerkirim $event) use ($isiPesan) {
             $channels = $event->broadcastOn();
             $this->assertCount(1, $channels);
@@ -213,13 +265,66 @@ class Fase1ETest extends TestCase
         });
     }
 
-    /**
-     * Otorisasi channel di routes/channels.php:
-     * - user + jadwal disetujui = izin
-     * - user + jadwal menunggu/ditolak = tolak
-     * - admin = izin
-     * - kasir = tolak
-     */
+    
+    public function test_old_chat_routes_return_404(): void
+    {
+        $this->actingAs($this->user)
+            ->get("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat")
+            ->assertNotFound();
+
+        $this->actingAs($this->user)
+            ->post("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", ['pesan' => 'Tes'])
+            ->assertNotFound();
+    }
+
+    
+    public function test_customer_page_props_do_not_contain_old_chat_url_and_can_access_chat_flag(): void
+    {
+        
+        $responseOwner = $this->actingAs($this->user)->get("/open-mabar/{$this->mabarDisetujui->id_mabar}");
+        $responseOwner->assertOk();
+        $responseOwner->assertInertia(fn (Assert $page) => $page
+            ->component('OpenMabar/Detail')
+            ->has('mabar')
+            ->has('pesertaCount')
+            ->where('canAccessChat', true)
+            ->missing('peserta')
+        );
+
+        $propsOwnerJson = json_encode($responseOwner->original->getData()['page']['props'] ?? []);
+        $this->assertStringNotContainsString("/chat'", $propsOwnerJson);
+        $this->assertStringNotContainsString("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", $propsOwnerJson);
+        $this->assertStringNotContainsString("open-mabar.chat", $propsOwnerJson);
+
+        
+        $responseOutsider = $this->actingAs($this->member)->get("/open-mabar/{$this->mabarDisetujui->id_mabar}");
+        $responseOutsider->assertOk();
+        $responseOutsider->assertInertia(fn (Assert $page) => $page
+            ->component('OpenMabar/Detail')
+            ->where('canAccessChat', false)
+            ->missing('peserta')
+        );
+
+        $propsOutsiderJson = json_encode($responseOutsider->original->getData()['page']['props'] ?? []);
+        $this->assertStringNotContainsString("/open-mabar/{$this->mabarDisetujui->id_mabar}/chat", $propsOutsiderJson);
+        $this->assertStringNotContainsString("open-mabar.chat", $propsOutsiderJson);
+
+        
+        $responseIndex = $this->actingAs($this->user)->get('/open-mabar');
+        $responseIndex->assertOk();
+        $propsIndexJson = json_encode($responseIndex->original->getData()['page']['props'] ?? []);
+        $this->assertStringNotContainsString("/chat", $propsIndexJson);
+        $this->assertStringNotContainsString("open-mabar.chat", $propsIndexJson);
+
+        
+        $responseSaya = $this->actingAs($this->user)->get('/open-mabar/saya');
+        $responseSaya->assertOk();
+        $propsSayaJson = json_encode($responseSaya->original->getData()['page']['props'] ?? []);
+        $this->assertStringNotContainsString("/chat", $propsSayaJson);
+        $this->assertStringNotContainsString("open-mabar.chat", $propsSayaJson);
+    }
+
+    
     public function test_broadcast_channel_authorization(): void
     {
         $channels = Broadcast::getChannels();
@@ -227,31 +332,31 @@ class Fase1ETest extends TestCase
 
         $callback = $channels['mabar.{id_mabar}'];
 
-        // 1. User + jadwal disetujui = izin (true)
+        
         $this->assertTrue(
             (bool) $callback($this->user, $this->mabarDisetujui->id_mabar),
             'User harus diizinkan bergabung ke channel mabar yang disetujui.'
         );
 
-        // 2. User + jadwal menunggu = tolak (false)
+        
         $this->assertFalse(
             (bool) $callback($this->user, $this->mabarMenunggu->id_mabar),
             'User harus ditolak bergabung ke channel mabar yang berstatus menunggu.'
         );
 
-        // 3. User + jadwal ditolak = tolak (false)
+        
         $this->assertFalse(
             (bool) $callback($this->user, $this->mabarDitolak->id_mabar),
             'User harus ditolak bergabung ke channel mabar yang berstatus ditolak.'
         );
 
-        // 4. Admin = izin (true)
+        
         $this->assertTrue(
             (bool) $callback($this->admin, $this->mabarDisetujui->id_mabar),
             'Admin harus diizinkan mendengarkan channel mabar yang disetujui.'
         );
 
-        // 5. Kasir = tolak (false)
+        
         $this->assertFalse(
             (bool) $callback($this->kasir, $this->mabarDisetujui->id_mabar),
             'Kasir harus ditolak dari channel obrolan mabar.'

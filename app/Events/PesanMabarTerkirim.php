@@ -18,9 +18,7 @@ class PesanMabarTerkirim implements ShouldBroadcastNow
     {
     }
 
-    /**
-     * Channel siaran privat mabar.{id_mabar}.
-     */
+    
     public function broadcastOn(): array
     {
         return [
@@ -28,17 +26,13 @@ class PesanMabarTerkirim implements ShouldBroadcastNow
         ];
     }
 
-    /**
-     * Nama siaran event.
-     */
+    
     public function broadcastAs(): string
     {
         return 'PesanMabarTerkirim';
     }
 
-    /**
-     * Payload siaran: id, nama pengirim, id pengirim, pesan, waktu.
-     */
+    
     public function broadcastWith(): array
     {
         $waktuFormatted = $this->chat->waktu instanceof Carbon

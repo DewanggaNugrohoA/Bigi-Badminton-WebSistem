@@ -1,28 +1,10 @@
-﻿"use client";
-
-/**
- * Navigation Menu, Base UI Navigation Menu foundation (Phase 5).
- * Shared overlay surface (Portal/Positioner/Popup/Viewport) is rendered
- * by the Root wrapper; per-item Content mounts inside the shared Viewport.
- *
- * Panels use solid `--primitive-surface-overlay` + `--primitive-shadow-overlay`
- * + `--primitive-radius-surface`. Item hover uses `--primitive-surface-hover`,
- * descriptions the muted-foreground role. Positioner: z `--primitive-z-popover`,
- * collisionPadding 12. Viewport transition CSS-driven and RM-gated.
- *
- * D-17: asChild patterns migrated to Base UI's `render` prop.
- *
- * Sub-menu family (Sub / SubTrigger / SubContent) stays custom, Base UI
- * Navigation Menu has no built-in submenu API. Preserved for API compat.
- */
+"use client";
 
 import * as React from "react";
 import { NavigationMenu as BaseNav } from "@base-ui/react/navigation-menu";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
-
-/* ─── Types ─────────────────────────────────────────────────── */
 
 export type NavigationMenuSize = "default" | "compact";
 export type NavigationMenuAlign = "start" | "center" | "end";
@@ -33,11 +15,9 @@ export interface NavigationMenuProps
     "value" | "defaultValue" | "onValueChange" | "delay"
   > {
   size?: NavigationMenuSize;
-  /** Delay in ms before opening a menu on hover. Default 120. */
+  
   delayDuration?: number;
-  /**
-   * @deprecated Base UI owns the hover bridge/close timing; kept for API compat.
-   */
+  
   skipDelayOnSwitch?: boolean;
   value?: string | null;
   defaultValue?: string | null;
@@ -50,18 +30,15 @@ export type NavigationMenuItemProps = React.ComponentPropsWithoutRef<typeof Base
 
 export interface NavigationMenuTriggerProps
   extends React.ComponentPropsWithoutRef<typeof BaseNav.Trigger> {
-  /** Whether to show a chevron indicator. Default true. */
+  
   showChevron?: boolean;
 }
 
 export interface NavigationMenuContentProps
   extends React.ComponentPropsWithoutRef<typeof BaseNav.Content> {
-  /** Force a specific width. Use for mega menus (e.g. "w-[48rem]"). */
+  
   width?: string;
-  /**
-   * @deprecated Base UI Navigation Menu uses a shared Viewport with
-   * automatic alignment; per-content align is not supported.
-   */
+  
   align?: NavigationMenuAlign;
 }
 
@@ -86,13 +63,9 @@ export type NavigationMenuGroupProps = React.HTMLAttributes<HTMLDivElement>;
 
 export type NavigationMenuGroupHeadingProps = React.HTMLAttributes<HTMLHeadingElement>;
 
-/* ─── Density context ───────────────────────────────────────── */
-
 const NavigationMenuSizeContext =
   React.createContext<NavigationMenuSize>("default");
 const useNavSize = () => React.useContext(NavigationMenuSizeContext);
-
-/* ─── Constants ─────────────────────────────────────────────── */
 
 const EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
@@ -115,8 +88,6 @@ const viewportMotionClass = cn(
   "transition-[width,height] duration-[220ms] ease-[var(--primitive-ease,cubic-bezier(0.23,1,0.32,1))]",
   "motion-reduce:transition-none",
 );
-
-/* ─── <NavigationMenu> ──────────────────────────────────────── */
 
 export const NavigationMenu = React.forwardRef<
   HTMLElement,
@@ -180,8 +151,6 @@ export const NavigationMenu = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuList> ──────────────────────────────────── */
-
 export const NavigationMenuList = React.forwardRef<
   HTMLUListElement,
   NavigationMenuListProps
@@ -200,8 +169,6 @@ export const NavigationMenuList = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuItem> ──────────────────────────────────── */
-
 export const NavigationMenuItem = React.forwardRef<
   HTMLLIElement,
   NavigationMenuItemProps
@@ -214,8 +181,6 @@ export const NavigationMenuItem = React.forwardRef<
     />
   );
 });
-
-/* ─── <NavigationMenuTrigger> ───────────────────────────────── */
 
 export const NavigationMenuTrigger = React.forwardRef<
   HTMLButtonElement,
@@ -258,8 +223,6 @@ export const NavigationMenuTrigger = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuContent> ───────────────────────────────── */
-
 export const NavigationMenuContent = React.forwardRef<
   HTMLDivElement,
   NavigationMenuContentProps
@@ -277,8 +240,6 @@ export const NavigationMenuContent = React.forwardRef<
     </BaseNav.Content>
   );
 });
-
-/* ─── <NavigationMenuLink> ──────────────────────────────────── */
 
 export const NavigationMenuLink = React.forwardRef<
   HTMLAnchorElement,
@@ -326,8 +287,6 @@ export const NavigationMenuLink = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuIcon> ──────────────────────────────────── */
-
 export const NavigationMenuIcon = React.forwardRef<
   HTMLSpanElement,
   NavigationMenuIconProps
@@ -347,8 +306,6 @@ export const NavigationMenuIcon = React.forwardRef<
   );
 });
 
-/* ─── <NavigationMenuDescription> ───────────────────────────── */
-
 export const NavigationMenuDescription = React.forwardRef<
   HTMLSpanElement,
   NavigationMenuDescriptionProps
@@ -367,8 +324,6 @@ export const NavigationMenuDescription = React.forwardRef<
     />
   );
 });
-
-/* ─── <NavigationMenuSub> (custom, click-toggle) ────────────── */
 
 type NavigationMenuSubContextValue = {
   open: boolean;
@@ -467,8 +422,8 @@ export const NavigationMenuSubContent = React.forwardRef<
   const { open, contentId } = useNavigationMenuSubContext();
   const prefersReducedMotion = useReducedMotion();
 
-  // Destructure HTML-only event handlers that conflict with Framer Motion's
-  // drag types to prevent TS2322 when spreading onto motion.div.
+  
+  
   const {
     onDrag: _onDrag,
     onDragStart: _onDragStart,
@@ -514,9 +469,7 @@ export const NavigationMenuSubContent = React.forwardRef<
       )}
     </AnimatePresence>
   );
-});
-
-/* ─── <NavigationMenuGroup> ─────────────────────────────────── */
+ });
 
 export const NavigationMenuGroup = React.forwardRef<
   HTMLDivElement,
@@ -534,8 +487,6 @@ export const NavigationMenuGroup = React.forwardRef<
     </div>
   );
 });
-
-/* ─── <NavigationMenuGroupHeading> ──────────────────────────── */
 
 export const NavigationMenuGroupHeading = React.forwardRef<
   HTMLHeadingElement,

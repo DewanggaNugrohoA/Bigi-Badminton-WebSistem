@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useForm, Link, usePage } from '@inertiajs/react';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { WakeGlyph } from '@/components/ui/background-ascii-wake';
+import { AuthImagePanel, AuthMobileBanner } from '@/components/auth-image-panel';
+import { formatIndonesianPhoneInput, handlePhoneKeyDown } from '@/lib/content';
 
 interface SharedProps {
     flash?: {
@@ -17,12 +20,11 @@ export default function Login() {
     const { flash } = usePage<SharedProps>().props;
     const [showPassword, setShowPassword] = useState(false);
 
-    // Get search params for redirect query
     const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const redirectParam = urlParams.get('redirect') || '';
 
     const { data, setData, post, processing, errors } = useForm({
-        email: '',
+        no_whatsapp: '',
         password: '',
         redirect: redirectParam,
     });
@@ -33,51 +35,27 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-dvh w-screen bg-background text-foreground flex overflow-y-auto">
-            <div className="hidden lg:flex flex-1 relative overflow-hidden bg-muted">
-                <div className="absolute top-6 left-6 z-10">
-                    <Link
-                        href="/"
-                        aria-label="Kembali ke beranda"
-                        className="w-10 h-10 bg-background/40 backdrop-blur-md border border-border/40 rounded-full flex items-center justify-center hover:bg-background/60 transition-all text-foreground"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                </div>
+        <div className="min-h-dvh w-full bg-background text-foreground flex flex-col lg:flex-row overflow-x-hidden">
+            <AuthImagePanel
+                imageSrc="/images/login-panel.jpg"
+                imageAlt="Suasana lapangan Bigi Badminton Arena"
+                title="Bigi Badminton"
+                description="Sistem Reservasi & Komunitas Open Mabar. Nikmati kemudahan mencari lawan tanding dan kelola jadwal main bareng secara terstruktur."
+            />
 
-                <div className="absolute inset-0">
-                    <img
-                        src="/images/login-bg.jpg"
-                        alt="Bigi Badminton Arena"
-                        className="w-full h-full object-cover"
+            <div className="flex-1 w-full flex flex-col justify-center items-center bg-background px-5 sm:px-8 py-3 sm:py-6 lg:py-12 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden min-h-dvh lg:min-h-0 box-border pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                
+                <WakeGlyph cellSize={14} className="absolute inset-0 opacity-20 pointer-events-none" />
+
+                <div className="w-full max-w-md my-auto flex flex-col space-y-3 sm:space-y-4 lg:space-y-6 relative z-10">
+                    
+                    <AuthMobileBanner
+                        imageSrc="/images/panel-athletes-transparent.png"
+                        imageAlt="Suasana lapangan Bigi Badminton Arena"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-                </div>
 
-                <div className="absolute bottom-12 left-12 right-12 z-10">
-                    <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">
-                        Bigi Badminton
-                    </h2>
-                    <p className="text-zinc-300 text-sm max-w-md">
-                        Sistem Reservasi & Komunitas Open Mabar. Nikmati kemudahan mencari lawan tanding dan kelola jadwal main bareng secara terstruktur.
-                    </p>
-                </div>
-            </div>
-
-            <div className="flex-1 flex items-center justify-center bg-background px-6 py-12 relative">
-                <div className="lg:hidden absolute top-6 left-6 z-10">
-                    <Link
-                        href="/"
-                        aria-label="Kembali ke beranda"
-                        className="w-10 h-10 bg-secondary/80 rounded-full flex items-center justify-center hover:bg-secondary transition-all text-foreground"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                </div>
-
-                <div className="w-full max-w-md space-y-6">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight mb-2">
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 sm:mb-2">
                             Selamat Datang Kembali
                         </h1>
                         <p className="text-sm text-muted-foreground">
@@ -92,37 +70,51 @@ export default function Login() {
                     </div>
 
                     {flash?.success && (
-                        <div className="p-3 text-sm rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        <div className="p-3 text-sm rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700">
                             {flash.success}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                    {flash?.error && (
+                        <div className="p-3 text-sm rounded-lg bg-rose-50 border border-rose-200 text-rose-700">
+                            {flash.error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4" noValidate>
                         <input type="hidden" name="redirect" value={data.redirect} />
 
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                        <div className="space-y-1.5 sm:space-y-2">
+                            <Label htmlFor="no_whatsapp">Nomor WhatsApp (No. HP)</Label>
                             <Input
-                                id="email"
-                                type="email"
-                                name="email"
-                                value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                                placeholder="nama@email.com"
+                                id="no_whatsapp"
+                                type="tel"
+                                name="no_whatsapp"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={13}
+                                value={data.no_whatsapp}
+                                onChange={(e) => setData('no_whatsapp', formatIndonesianPhoneInput(e.target.value))}
+                                onKeyDown={handlePhoneKeyDown}
+                                placeholder="Contoh: 081234567890"
+                                className="h-12 text-base"
                                 required
-                                autoComplete="email"
-                                aria-invalid={!!errors.email}
-                                aria-describedby={errors.email ? "email-error" : undefined}
+                                autoComplete="tel"
+                                aria-invalid={!!(errors.no_whatsapp || (errors as any).email)}
+                                aria-describedby={(errors.no_whatsapp || (errors as any).email) ? "no_whatsapp-error" : undefined}
                             />
-                            {errors.email && (
-                                <p id="email-error" role="alert" className="text-xs text-destructive">
-                                    {errors.email}
+                            {(errors.no_whatsapp || (errors as any).email) && (
+                                <p id="no_whatsapp-error" role="alert" className="text-xs text-destructive">
+                                    {errors.no_whatsapp || (errors as any).email}
                                 </p>
                             )}
+                            <p className="text-[11px] text-muted-foreground">
+                                Format: diawali 08 (10–13 digit angka).
+                            </p>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Kata sandi</Label>
+                        <div className="space-y-1.5 sm:space-y-2">
+                            <Label htmlFor="password">Kata Sandi</Label>
                             <div className="relative">
                                 <Input
                                     id="password"
@@ -131,7 +123,7 @@ export default function Login() {
                                     value={data.password}
                                     onChange={(e) => setData('password', e.target.value)}
                                     placeholder="Masukkan kata sandi"
-                                    className="pr-10"
+                                    className="h-12 text-base pr-11"
                                     required
                                     autoComplete="current-password"
                                     aria-invalid={!!errors.password}
@@ -160,7 +152,7 @@ export default function Login() {
                         <Button
                             type="submit"
                             disabled={processing}
-                            className="w-full bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90 h-11 text-base font-semibold transition-all mt-2"
+                            className="w-full bg-[var(--brand)] text-white hover:bg-[var(--brand)]/90 h-12 text-base font-semibold transition-all mt-2"
                         >
                             {processing ? 'Memproses...' : 'Masuk'}
                         </Button>

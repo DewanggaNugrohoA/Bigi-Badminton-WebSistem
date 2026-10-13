@@ -116,14 +116,9 @@ Buat 19 model dengan `$table` dan `$primaryKey` eksplisit. Relasi sesuai Class D
 
 ### 6. Seeder (data dev)
 
-Semua akun memakai password `password` (khusus lokal).
-
-- `admin@bigi.test` (admin), `kasir@bigi.test` (kasir), `user@bigi.test` (user, reguler), `member@bigi.test` (user, member aktif dengan tanggal mulai/akhir), satu akun kasir `kasir.nonaktif@bigi.test` dengan `status_akun = nonaktif`.
+Akun staf tidak lagi disediakan via seeder; akun dibuat melalui `php artisan bigi:buat-admin`.
 - 2 `lapangan` ("Lapangan 1", "Lapangan 2", harga placeholder, status tersedia).
 - 6 `produk` contoh (minuman, makanan, shuttlecock) dengan stok.
-- 5 `open_mabar`: 3 `disetujui` (tanggal ke depan, variasi gender dan batas usia, satu punya foto), 1 `menunggu`, 1 `ditolak`. Beberapa `peserta_mabar` dan beberapa `chat_mabar`.
-- 2 `informasi` berstatus `terbit`.
-- 1 `reservasi` milik `member@bigi.test` dengan 1 `detail_reservasi` dan 1 `pembayaran`.
 
 ### 7. Test
 

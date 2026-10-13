@@ -5,11 +5,14 @@ namespace App\Policies;
 use App\Models\OpenMabar;
 use App\Models\User;
 
+/**
+ * Policy otorisasi aksi terhadap kegiatan Open Mabar.
+ */
 class OpenMabarPolicy
 {
     /**
-     * Determine whether the user can view the schedule details.
-     * Schedule can be viewed if it is approved, or if the user is the owner.
+     * User hanya boleh melihat detail mabar yang telah disetujui Admin,
+     * atau mabar miliknya sendiri meskipun masih menunggu persetujuan.
      */
     public function view(User $user, OpenMabar $openMabar): bool
     {
@@ -18,8 +21,8 @@ class OpenMabarPolicy
     }
 
     /**
-     * Determine whether the user can update the schedule.
-     * Only the owner can update, and only if status is 'menunggu' or 'ditolak'.
+     * User hanya boleh mengubah mabar miliknya yang berstatus menunggu atau ditolak.
+     * Mabar yang sudah disetujui tidak boleh diubah langsung oleh user agar tidak membatalkan reservasi jadwal.
      */
     public function update(User $user, OpenMabar $openMabar): bool
     {
@@ -28,11 +31,11 @@ class OpenMabarPolicy
     }
 
     /**
-     * Determine whether the user can delete the schedule.
-     * Only the owner can delete their own schedule.
+     * User hanya boleh menghapus mabar miliknya sendiri yang belum disetujui.
      */
     public function delete(User $user, OpenMabar $openMabar): bool
     {
-        return $openMabar->id_user === $user->id_user;
+        return $openMabar->id_user === $user->id_user
+            && in_array($openMabar->status, [OpenMabar::STATUS_MENUNGGU, OpenMabar::STATUS_DITOLAK], true);
     }
 }
