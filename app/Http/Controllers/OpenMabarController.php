@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOpenMabarRequest;
 use App\Http\Requests\UpdateOpenMabarRequest;
+use App\Models\DetailReservasi;
 use App\Models\Lapangan;
 use App\Models\OpenMabar;
 use App\Models\PesertaMabar;
+use App\Models\Reservasi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,50 +22,103 @@ class OpenMabarController extends Controller
     
     public function index(Request $request)
     {
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today('Asia/Jakarta')->toDateString();
+        $tanggalReq = $request->input('tanggal', $today);
+        try {
+            $tanggal = Carbon::parse($tanggalReq)->toDateString();
+        } catch (\Throwable) {
+            $tanggal = $today;
+        }
 
-        $query = OpenMabar::query()
+        $lapangan = Lapangan::orderBy('id_lapangan', 'asc')->get();
+
+        $detailHariIni = DetailReservasi::whereDate('tanggal_main', $tanggal)
+            ->whereHas('reservasi', function ($q) {
+                $q->where('status_reservasi', '!=', Reservasi::STATUS_BATAL);
+            })
+            ->get();
+
+        $mabarHariIni = OpenMabar::whereDate('tanggal', $tanggal)
+            ->where('status', OpenMabar::STATUS_DISETUJUI)
+            ->whereNotNull('id_lapangan')
+            ->get();
+
+        $slotHours = [];
+        for ($h = 8; $h <= 22; $h++) {
+            $slotHours[] = sprintf('%02d:00', $h);
+        }
+
+        $gridSlots = [];
+        foreach ($lapangan as $lap) {
+            $lapSlots = [];
+            foreach ($slotHours as $timeSlot) {
+                $startSlot = Carbon::parse("{$tanggal} {$timeSlot}:00");
+                $endSlot = $startSlot->copy()->addHour();
+                $strStart = $startSlot->format('H:i:s');
+                $strEnd = $endSlot->format('H:i:s');
+
+                $booking = $detailHariIni->first(function ($item) use ($lap, $strStart, $strEnd) {
+                    return $item->id_lapangan === $lap->id_lapangan
+                        && $item->jam_mulai < $strEnd
+                        && $item->jam_selesai > $strStart;
+                });
+
+                $mabar = $mabarHariIni->first(function ($m) use ($lap, $strStart, $strEnd) {
+                    return $m->id_lapangan === $lap->id_lapangan
+                        && $m->jam_mulai < $strEnd
+                        && $m->jam_selesai > $strStart;
+                });
+
+                $isPerawatan = $lap->status_lapangan === Lapangan::STATUS_PERAWATAN;
+                $isTerisi = $isPerawatan || $booking !== null || $mabar !== null;
+
+                $jamSelesaiH = ((int) substr($timeSlot, 0, 2)) + 1;
+                $jamSelesai = sprintf('%02d:00', min(23, $jamSelesaiH));
+
+                $lapSlots[] = [
+                    'jam' => $timeSlot,
+                    'jam_selesai' => $jamSelesai,
+                    'status' => $isTerisi ? 'terisi' : 'kosong',
+                ];
+            }
+
+            $gridSlots[] = [
+                'id_lapangan' => $lap->id_lapangan,
+                'nama_lapangan' => $lap->nama_lapangan,
+                'status_lapangan' => $lap->status_lapangan,
+                'slots' => $lapSlots,
+            ];
+        }
+
+        $jadwalQuery = OpenMabar::query()
             ->with(['user:id_user,nama', 'lapangan:id_lapangan,nama_lapangan'])
             ->withCount(['pesertaMabar as peserta_terdaftar_count' => function ($q) {
                 $q->where('status_peserta', PesertaMabar::STATUS_TERDAFTAR);
             }])
-            ->where('status', OpenMabar::STATUS_DISETUJUI)
-            ->whereDate('tanggal', '>=', $today);
+            ->where('status', OpenMabar::STATUS_DISETUJUI);
 
-        
-        if ($request->filled('usia')) {
-            $usia = (int) $request->input('usia');
-            $query->where('batas_usia_min', '<=', $usia)
-                  ->where('batas_usia_max', '>=', $usia);
-        }
-
-        
         if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal', $request->input('tanggal'));
+            $jadwalQuery->whereDate('tanggal', $tanggal);
+        } else {
+            $jadwalQuery->whereDate('tanggal', '>=', $today);
         }
 
-        
-        if ($request->filled('gender')) {
-            $query->where('gender', $request->input('gender'));
-        }
-
-        $jadwal = $query->orderBy('tanggal', 'asc')
+        $jadwal = $jadwalQuery->orderBy('tanggal', 'asc')
             ->orderBy('jam_mulai', 'asc')
             ->paginate(9)
             ->withQueryString();
 
         return Inertia::render('OpenMabar/Index', [
+            'gridSlots' => $gridSlots,
             'jadwal' => $jadwal,
             'filters' => [
-                'usia' => $request->input('usia', ''),
-                'tanggal' => $request->input('tanggal', ''),
-                'gender' => $request->input('gender', ''),
+                'tanggal' => $tanggal,
             ],
         ]);
     }
 
     
-    public function create()
+    public function create(Request $request)
     {
         $lapangan = Lapangan::where('status_lapangan', 'tersedia')
             ->select('id_lapangan', 'nama_lapangan')
@@ -71,6 +126,12 @@ class OpenMabarController extends Controller
 
         return Inertia::render('OpenMabar/Create', [
             'lapangan' => $lapangan,
+            'initial' => [
+                'tanggal' => $request->query('tanggal', ''),
+                'id_lapangan' => $request->query('id_lapangan', ''),
+                'jam_mulai' => $request->query('jam_mulai', ''),
+                'jam_selesai' => $request->query('jam_selesai', ''),
+            ],
         ]);
     }
 

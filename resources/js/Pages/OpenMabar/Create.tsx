@@ -13,20 +13,28 @@ interface LapanganOption {
 
 interface CreateProps {
     lapangan: LapanganOption[];
+    initial?: {
+        tanggal?: string;
+        id_lapangan?: string;
+        jam_mulai?: string;
+        jam_selesai?: string;
+    };
 }
 
-export default function OpenMabarCreate({ lapangan }: CreateProps) {
+export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
+    const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+
     const { data, setData, post, processing, errors } = useForm({
         judul: "",
-        tanggal: "",
-        jam_mulai: "",
-        jam_selesai: "",
+        tanggal: initial?.tanggal || urlParams?.get("tanggal") || "",
+        jam_mulai: initial?.jam_mulai || urlParams?.get("jam_mulai") || "",
+        jam_selesai: initial?.jam_selesai || urlParams?.get("jam_selesai") || "",
         gender: "campuran",
         batas_usia_min: "17",
         batas_usia_max: "40",
         kuota: "8",
         deskripsi: "",
-        id_lapangan: "",
+        id_lapangan: initial?.id_lapangan || urlParams?.get("id_lapangan") || "",
         foto: null as File | null,
     });
 
