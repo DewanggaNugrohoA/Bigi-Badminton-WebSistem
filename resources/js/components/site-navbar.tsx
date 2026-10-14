@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, User as UserIcon, Calendar, PlusCircle, List, LogOut, Settings } from "lucide-react";
+import { Menu, User as UserIcon, Calendar, PlusCircle, List, LogOut, Settings, Phone } from "lucide-react";
+import { buildWaLink } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
 interface AuthUser {
@@ -36,10 +37,11 @@ interface SharedProps {
 }
 
 export function SiteNavbar() {
-    const { auth } = usePage<SharedProps>().props;
+    const { auth, config } = usePage<SharedProps>().props;
     const { url } = usePage();
     const currentPath = url.split("?")[0] || "/";
     const user = auth?.user;
+    const waLink = buildWaLink(config?.wa_admin_number);
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"beranda" | "fasilitas" | "mabar">(() => {
@@ -184,16 +186,18 @@ export function SiteNavbar() {
                                                 <div className="text-xs text-muted-foreground font-normal">Temukan jadwal main bareng</div>
                                             </div>
                                         </Link>
-                                        <Link
-                                            href={user ? "/open-mabar/create" : "/login?redirect=/open-mabar/create"}
+                                        <a
+                                            href={waLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors group"
                                         >
-                                            <PlusCircle className="size-5 text-[var(--brand)] shrink-0" />
+                                            <Phone className="size-5 text-[var(--brand)] shrink-0" />
                                             <div>
-                                                <div className="text-[15px] font-semibold text-foreground">Buat Jadwal</div>
-                                                <div className="text-xs text-muted-foreground font-normal">Inisiasi mabar baru</div>
+                                                <div className="text-[15px] font-semibold text-foreground">Booking Lapangan</div>
+                                                <div className="text-xs text-muted-foreground font-normal">Ingin booking lapangan hubungi kami</div>
                                             </div>
-                                        </Link>
+                                        </a>
                                     </div>
                                 </NavigationMenuContent>
                             </NavigationMenuItem>
@@ -351,14 +355,16 @@ export function SiteNavbar() {
                                             <Calendar className="size-4 text-muted-foreground shrink-0" />
                                             <span>Cari Jadwal</span>
                                         </Link>
-                                        <Link
-                                            href={user ? "/open-mabar/create" : "/login?redirect=/open-mabar/create"}
+                                        <a
+                                            href={waLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             onClick={() => setMobileOpen(false)}
-                                            className="px-3 pl-4 min-h-[44px] rounded-lg hover:bg-accent text-sm font-medium flex items-center gap-2.5 transition-colors"
+                                            className="px-3 pl-4 min-h-[44px] rounded-lg hover:bg-accent text-sm font-medium flex items-center gap-2.5 transition-colors text-[var(--brand)]"
                                         >
-                                            <PlusCircle className="size-4 text-muted-foreground shrink-0" />
-                                            <span>Buat Jadwal</span>
-                                        </Link>
+                                            <Phone className="size-4 shrink-0" />
+                                            <span>Ingin booking lapangan hubungi kami</span>
+                                        </a>
                                     </nav>
                                 </div>
 

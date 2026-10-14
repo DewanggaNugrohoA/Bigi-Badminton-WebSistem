@@ -6,6 +6,8 @@ interface AuthImagePanelProps {
     imageAlt: string;
     title: string;
     description: string;
+    backHref?: string;
+    backLabel?: string;
 }
 
 export function AuthImagePanel({
@@ -13,6 +15,8 @@ export function AuthImagePanel({
     imageAlt,
     title,
     description,
+    backHref = '/',
+    backLabel = 'Kembali ke beranda',
 }: AuthImagePanelProps) {
     return (
         <aside
@@ -22,8 +26,8 @@ export function AuthImagePanel({
             
             <div className="absolute top-6 left-6 z-20">
                 <Link
-                    href="/"
-                    aria-label="Kembali ke beranda"
+                    href={backHref}
+                    aria-label={backLabel}
                     className="w-11 h-11 bg-white/80 hover:bg-white active:scale-95 backdrop-blur-md border border-slate-200/80 rounded-full flex items-center justify-center transition-all text-slate-700 hover:text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                 >
                     <ArrowLeft className="w-5 h-5" />
@@ -60,20 +64,24 @@ interface AuthMobileBannerProps {
     imageSrc?: string;
     imageAlt?: string;
     isCompact?: boolean;
+    backHref?: string;
+    backLabel?: string;
 }
 
 export function AuthMobileBanner({
     imageSrc = '/images/panel-athletes-transparent.png',
     imageAlt = 'Ilustrasi Atlet Bigi Badminton',
     isCompact = false,
+    backHref = '/',
+    backLabel = 'Kembali ke beranda',
 }: AuthMobileBannerProps) {
     return (
         <div className="lg:hidden w-full flex flex-col items-center shrink-0 select-none mb-1 sm:mb-2">
             
             <div className="w-full flex items-center justify-start pb-1">
                 <Link
-                    href="/"
-                    aria-label="Kembali ke beranda"
+                    href={backHref}
+                    aria-label={backLabel}
                     className="w-11 h-11 bg-secondary/80 hover:bg-secondary active:scale-95 backdrop-blur-md border border-border/60 rounded-full flex items-center justify-center transition-all text-foreground shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
                 >
                     <ArrowLeft className="w-5 h-5" />
