@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, User as UserIcon, Calendar, PlusCircle, List, LogOut, Settings, Phone } from "lucide-react";
+import { Menu, User as UserIcon, Calendar, Users, PlusCircle, List, LogOut, Settings, Phone } from "lucide-react";
 import { buildWaLink } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
@@ -184,6 +184,16 @@ export function SiteNavbar() {
                                             <div>
                                                 <div className="text-[15px] font-semibold text-foreground">Cari Jadwal</div>
                                                 <div className="text-xs text-muted-foreground font-normal">Temukan jadwal main bareng</div>
+                                            </div>
+                                        </Link>
+                                        <Link
+                                            href={user ? "/open-mabar/mabar-bareng" : "/login?redirect=/open-mabar/mabar-bareng"}
+                                            className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors group"
+                                        >
+                                            <Users className="size-5 text-[var(--brand)] shrink-0" />
+                                            <div>
+                                                <div className="text-[15px] font-semibold text-foreground">Mabar Bareng</div>
+                                                <div className="text-xs text-muted-foreground font-normal">Gabung mabar yang sudah tersedia</div>
                                             </div>
                                         </Link>
                                         <a
@@ -354,6 +364,17 @@ export function SiteNavbar() {
                                         >
                                             <Calendar className="size-4 text-muted-foreground shrink-0" />
                                             <span>Cari Jadwal</span>
+                                        </Link>
+                                        <Link
+                                            href={user ? "/open-mabar/mabar-bareng" : "/login?redirect=/open-mabar/mabar-bareng"}
+                                            onClick={() => setMobileOpen(false)}
+                                            className="px-3 pl-4 py-2 min-h-[44px] rounded-lg hover:bg-accent text-sm font-medium flex items-center gap-2.5 transition-colors"
+                                        >
+                                            <Users className="size-4 text-muted-foreground shrink-0" />
+                                            <div className="flex flex-col text-left">
+                                                <span className="text-foreground">Mabar Bareng</span>
+                                                <span className="text-xs text-muted-foreground font-normal">Gabung mabar yang sudah tersedia</span>
+                                            </div>
                                         </Link>
                                         <a
                                             href={waLink}

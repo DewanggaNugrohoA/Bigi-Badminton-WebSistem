@@ -117,7 +117,47 @@ class OpenMabarController extends Controller
         ]);
     }
 
-    
+    public function mabarBareng(Request $request)
+    {
+        $today = Carbon::today('Asia/Jakarta')->toDateString();
+
+        $query = OpenMabar::query()
+            ->with(['user:id_user,nama', 'lapangan:id_lapangan,nama_lapangan'])
+            ->withCount(['pesertaMabar as peserta_terdaftar_count' => function ($q) {
+                $q->where('status_peserta', PesertaMabar::STATUS_TERDAFTAR);
+            }])
+            ->where('status', OpenMabar::STATUS_DISETUJUI)
+            ->whereDate('tanggal', '>=', $today);
+
+        if ($request->filled('usia')) {
+            $usia = (int) $request->input('usia');
+            $query->where('batas_usia_min', '<=', $usia)
+                  ->where('batas_usia_max', '>=', $usia);
+        }
+
+        if ($request->filled('tanggal')) {
+            $query->whereDate('tanggal', $request->input('tanggal'));
+        }
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->input('gender'));
+        }
+
+        $jadwal = $query->orderBy('tanggal', 'asc')
+            ->orderBy('jam_mulai', 'asc')
+            ->paginate(9)
+            ->withQueryString();
+
+        return Inertia::render('OpenMabar/MabarBareng', [
+            'jadwal' => $jadwal,
+            'filters' => [
+                'usia' => $request->input('usia', ''),
+                'tanggal' => $request->input('tanggal', ''),
+                'gender' => $request->input('gender', ''),
+            ],
+        ]);
+    }
+
     public function create(Request $request)
     {
         $lapangan = Lapangan::where('status_lapangan', 'tersedia')
