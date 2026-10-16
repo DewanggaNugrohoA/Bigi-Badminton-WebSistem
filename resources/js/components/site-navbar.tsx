@@ -182,8 +182,8 @@ export function SiteNavbar() {
                                         >
                                             <Calendar className="size-5 text-[var(--brand)] shrink-0" />
                                             <div>
-                                                <div className="text-[15px] font-semibold text-foreground">Cari Jadwal</div>
-                                                <div className="text-xs text-muted-foreground font-normal">Temukan jadwal main bareng</div>
+                                                <div className="text-[15px] font-semibold text-foreground">Lihat Jadwal</div>
+                                                <div className="text-xs text-muted-foreground font-normal">Lihat slot lapangan yang kosong</div>
                                             </div>
                                         </Link>
                                         <Link
@@ -360,10 +360,13 @@ export function SiteNavbar() {
                                         <Link
                                             href={user ? "/open-mabar" : "/login?redirect=/open-mabar"}
                                             onClick={() => setMobileOpen(false)}
-                                            className="px-3 pl-4 min-h-[44px] rounded-lg hover:bg-accent text-sm font-medium flex items-center gap-2.5 transition-colors"
+                                            className="px-3 pl-4 py-2 min-h-[44px] rounded-lg hover:bg-accent text-sm font-medium flex items-center gap-2.5 transition-colors"
                                         >
                                             <Calendar className="size-4 text-muted-foreground shrink-0" />
-                                            <span>Cari Jadwal</span>
+                                            <div className="flex flex-col text-left">
+                                                <span className="text-foreground">Lihat Jadwal</span>
+                                                <span className="text-xs text-muted-foreground font-normal">Lihat slot lapangan yang kosong</span>
+                                            </div>
                                         </Link>
                                         <Link
                                             href={user ? "/open-mabar/mabar-bareng" : "/login?redirect=/open-mabar/mabar-bareng"}

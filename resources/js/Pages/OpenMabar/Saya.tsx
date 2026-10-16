@@ -12,8 +12,6 @@ interface JadwalSayaItem {
     jam_mulai: string;
     jam_selesai: string;
     gender: "putra" | "putri" | "campuran";
-    batas_usia_min: number;
-    batas_usia_max: number;
     kuota: number;
     status: "menunggu" | "disetujui" | "ditolak";
     foto?: string | null;

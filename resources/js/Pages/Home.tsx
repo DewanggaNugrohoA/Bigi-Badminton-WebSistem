@@ -133,37 +133,37 @@ export default function Home() {
                                 <defs>
                                     
                                     <linearGradient id="bigiTextGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.22" />
-                                        <stop offset="38%" stopColor="#C4B5FD" stopOpacity="0.30" />
-                                        <stop offset="72%" stopColor="#6C3BFF" stopOpacity="0.16" />
-                                        <stop offset="100%" stopColor="#4C1D95" stopOpacity="0.03" />
+                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.30" />
+                                        <stop offset="35%" stopColor="#8A8E95" stopOpacity="0.35" />
+                                        <stop offset="70%" stopColor="#25406A" stopOpacity="0.25" />
+                                        <stop offset="100%" stopColor="#001D50" stopOpacity="0.08" />
                                     </linearGradient>
 
                                     
                                     <linearGradient id="bigiStrokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.38" />
-                                        <stop offset="45%" stopColor="#A78BFA" stopOpacity="0.32" />
-                                        <stop offset="100%" stopColor="#6C3BFF" stopOpacity="0.08" />
+                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.45" />
+                                        <stop offset="45%" stopColor="#8A8E95" stopOpacity="0.35" />
+                                        <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.20" />
                                     </linearGradient>
 
                                     
                                     <linearGradient id="diagShapeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.24" />
-                                        <stop offset="55%" stopColor="#5B2EFF" stopOpacity="0.13" />
-                                        <stop offset="100%" stopColor="#4338CA" stopOpacity="0.02" />
+                                        <stop offset="0%" stopColor="#8A8E95" stopOpacity="0.25" />
+                                        <stop offset="50%" stopColor="#344C70" stopOpacity="0.20" />
+                                        <stop offset="100%" stopColor="#001D50" stopOpacity="0.08" />
                                     </linearGradient>
 
                                     
                                     <linearGradient id="motionArcGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#6C3BFF" stopOpacity="0.1" />
-                                        <stop offset="50%" stopColor="#A78BFA" stopOpacity="0.75" />
+                                        <stop offset="0%" stopColor="#173465" stopOpacity="0.20" />
+                                        <stop offset="50%" stopColor="#60A5FA" stopOpacity="0.80" />
                                         <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.95" />
                                     </linearGradient>
 
                                     
                                     <radialGradient id="auraGrad" cx="52%" cy="46%" r="50%">
-                                        <stop offset="0%" stopColor="#6C3BFF" stopOpacity="0.24" />
-                                        <stop offset="50%" stopColor="#5B2EFF" stopOpacity="0.09" />
+                                        <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
+                                        <stop offset="50%" stopColor="#173465" stopOpacity="0.12" />
                                         <stop offset="100%" stopColor="#000000" stopOpacity="0" />
                                     </radialGradient>
                                 </defs>
@@ -183,9 +183,9 @@ export default function Home() {
                                     y1="20"
                                     x2="60"
                                     y2="580"
-                                    stroke="#A78BFA"
+                                    stroke="#8A8E95"
                                     strokeWidth="1.2"
-                                    strokeOpacity="0.25"
+                                    strokeOpacity="0.35"
                                     strokeDasharray="6 8"
                                 />
 
@@ -218,7 +218,7 @@ export default function Home() {
                                 <path
                                     d="M 120,500 C 260,500 420,410 520,170"
                                     fill="none"
-                                    stroke="#8B5CF6"
+                                    stroke="#60A5FA"
                                     strokeWidth="1.2"
                                     strokeLinecap="round"
                                     strokeOpacity="0.4"

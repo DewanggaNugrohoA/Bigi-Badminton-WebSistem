@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 import {
     Dialog,
@@ -28,21 +28,31 @@ export default function TambahPaketModal({
     onOpenChange,
     customer,
 }: TambahPaketModalProps) {
-    if (!customer) return null;
-
     const todayStr = new Date().toISOString().split("T")[0];
     const defaultEndStr = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
         .toISOString()
         .split("T")[0];
 
-    const [preset, setPreset] = useState<number | "custom">(4);
+    const [preset, setPreset] = useState<number | "custom" | null>(null);
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        jumlah_sesi: "4",
+        jumlah_sesi: "",
         tanggal_mulai: todayStr,
         tanggal_akhir: defaultEndStr,
         catatan: "",
     });
+
+    useEffect(() => {
+        if (open) {
+            setPreset(null);
+            setData({
+                jumlah_sesi: "",
+                tanggal_mulai: todayStr,
+                tanggal_akhir: defaultEndStr,
+                catatan: "",
+            });
+        }
+    }, [open, customer?.id_user]);
 
     const handleSelectPreset = (val: number) => {
         setPreset(val);
@@ -56,13 +66,19 @@ export default function TambahPaketModal({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!customer || !data.jumlah_sesi || Number(data.jumlah_sesi) < 1) {
+            return;
+        }
         post(`/admin/member/${customer.id_user}/paket`, {
             onSuccess: () => {
                 reset();
+                setPreset(null);
                 onOpenChange(false);
             },
         });
     };
+
+    if (!customer) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -123,6 +139,11 @@ export default function TambahPaketModal({
                                     required
                                 />
                             </div>
+                        )}
+                        {!data.jumlah_sesi && (
+                            <p className="text-[11px] text-amber-500 font-medium">
+                                * Pilih salah satu opsi sesi di atas atau isi kustom terlebih dahulu.
+                            </p>
                         )}
                         {errors.jumlah_sesi && (
                             <p className="text-xs text-destructive">{errors.jumlah_sesi}</p>
@@ -196,8 +217,8 @@ export default function TambahPaketModal({
                         </Button>
                         <Button
                             type="submit"
-                            disabled={processing}
-                            className="rounded-md text-xs sm:text-sm h-8 sm:h-9 bg-[var(--brand)] text-white hover:opacity-90"
+                            disabled={processing || !data.jumlah_sesi || Number(data.jumlah_sesi) < 1}
+                            className="rounded-md text-xs sm:text-sm h-8 sm:h-9 bg-[var(--brand)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {processing ? "Menyimpan..." : "Simpan Paket"}
                         </Button>

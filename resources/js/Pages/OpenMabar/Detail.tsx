@@ -24,8 +24,6 @@ interface DetailProps {
         jam_mulai: string;
         jam_selesai: string;
         gender: "putra" | "putri" | "campuran";
-        batas_usia_min: number;
-        batas_usia_max: number;
         kuota: number;
         deskripsi: string | null;
         foto: string | null;
@@ -123,7 +121,7 @@ export default function OpenMabarDetail({
                     className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors"
                 >
                     <ArrowLeft className="size-3.5" />
-                    <span>Kembali ke Cari Jadwal</span>
+                    <span>Kembali ke Lihat Jadwal</span>
                 </Link>
 
                 {errors?.message && (
@@ -197,18 +195,6 @@ export default function OpenMabarDetail({
                                             <p className="text-[11px] text-muted-foreground font-medium">Waktu Main</p>
                                             <p className="font-semibold text-foreground text-xs sm:text-sm">
                                                 {formatJam(mabar.jam_mulai)} - {formatJam(mabar.jam_selesai)} WIB
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-8 rounded-md bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
-                                            <Users className="size-4" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[11px] text-muted-foreground font-medium">Batas Usia</p>
-                                            <p className="font-semibold text-foreground text-xs sm:text-sm">
-                                                {mabar.batas_usia_min} s/d {mabar.batas_usia_max} tahun
                                             </p>
                                         </div>
                                     </div>

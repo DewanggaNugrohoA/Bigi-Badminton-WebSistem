@@ -27,8 +27,8 @@ export function SiteFooter() {
         {
             title: "Open Mabar",
             links: [
-                { label: "Cari Jadwal", href: "/open-mabar" },
-                { label: "Buat Jadwal", href: "/open-mabar/create" },
+                { label: "Lihat Jadwal", href: "/open-mabar" },
+                { label: "Mabar Bareng", href: "/open-mabar/mabar-bareng" },
                 { label: "Jadwal Saya", href: "/open-mabar/saya" },
             ],
         },
@@ -72,7 +72,7 @@ export function SiteFooter() {
             socials={socials}
             legal={[]}
             copyright={`© ${new Date().getFullYear()} ${APP_CONTENT.nama}.`}
-            accent="var(--brand, #6633ee)"
+            accent="var(--brand, #2563eb)"
         />
     );
 }

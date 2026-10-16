@@ -9,8 +9,20 @@ class DetailTransaksiPos extends Model
     protected $table = 'detail_transaksi_pos';
     protected $primaryKey = 'id_detail';
     
-    protected $fillable = ['id_transaksi', 'id_produk', 'jumlah', 'harga', 'subtotal'];
+    protected $fillable = ['id_transaksi', 'id_produk', 'jumlah', 'harga'];
+
+    protected $appends = ['subtotal'];
+
+    /**
+     * Hitung subtotal secara dinamis dari perkalian jumlah barang dibeli dan harga satuan.
+     * Tidak disimpan lagi sebagai kolom di database.
+     */
+    public function getSubtotalAttribute(): float
+    {
+        return (float) ($this->jumlah * $this->harga);
+    }
 
     public function transaksiPos() { return $this->belongsTo(TransaksiPos::class, 'id_transaksi'); }
+    public function transaksi() { return $this->belongsTo(TransaksiPos::class, 'id_transaksi'); }
     public function produk() { return $this->belongsTo(Produk::class, 'id_produk'); }
 }

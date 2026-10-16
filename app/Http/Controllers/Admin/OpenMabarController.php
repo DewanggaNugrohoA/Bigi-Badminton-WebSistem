@@ -27,9 +27,12 @@ class OpenMabarController extends Controller
     
     public function index(Request $request): Response
     {
-        $statusFilter = $request->input('status', 'menunggu');
-        $search = $request->input('q', '');
-        $tanggal = $request->input('tanggal', '');
+        $statusFilter = $request->input('status', 'semua');
+        if (! in_array($statusFilter, ['semua', 'menunggu', 'disetujui', 'ditolak'], true)) {
+            $statusFilter = 'semua';
+        }
+        $search = trim((string) $request->input('q', ''));
+        $tanggal = trim((string) $request->input('tanggal', ''));
 
         $query = OpenMabar::query()
             ->with([
@@ -41,7 +44,7 @@ class OpenMabarController extends Controller
             }]);
 
         
-        if ($statusFilter !== 'semua' && in_array($statusFilter, ['menunggu', 'disetujui', 'ditolak'])) {
+        if ($statusFilter !== 'semua') {
             $query->where('status', $statusFilter);
         }
 
@@ -49,6 +52,7 @@ class OpenMabarController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', "%{$search}%")
+                  ->orWhere('no_hp', 'like', "%{$search}%")
                   ->orWhereHas('user', function ($uq) use ($search) {
                       $uq->where('nama', 'like', "%{$search}%")
                          ->orWhere('no_whatsapp', 'like', "%{$search}%");
@@ -61,10 +65,15 @@ class OpenMabarController extends Controller
             $query->whereDate('tanggal', $tanggal);
         }
 
-        $daftarMabar = $query->orderBy('tanggal', 'desc')
+        $daftarMabar = $query
+            ->orderByRaw("CASE WHEN status = 'menunggu' THEN 0 ELSE 1 END")
+            ->orderBy('tanggal', 'desc')
             ->orderBy('jam_mulai', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate(10)
             ->withQueryString();
+
+        $daftarMabar->getCollection()->each->makeVisible('no_hp');
 
         $daftarLapangan = Lapangan::select('id_lapangan', 'nama_lapangan', 'status_lapangan')->get();
 

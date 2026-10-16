@@ -154,7 +154,7 @@ class ConflictLogicTest extends TestCase
     }
 
     
-    public function test_approved_open_mabar_blocks_court_slot(): void
+    public function test_approved_open_mabar_does_not_automatically_block_court_slot(): void
     {
         $tanggal = Carbon::now()->addDays(13)->toDateString();
 
@@ -173,8 +173,7 @@ class ConflictLogicTest extends TestCase
         ]);
 
         $conflict = $this->service->checkSlotConflict($this->lapangan1->id_lapangan, $tanggal, '19:00', '20:00');
-        $this->assertNotNull($conflict);
-        $this->assertStringContainsString('Open Mabar', $conflict);
+        $this->assertNull($conflict);
     }
 
     

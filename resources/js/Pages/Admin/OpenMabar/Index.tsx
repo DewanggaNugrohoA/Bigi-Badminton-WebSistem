@@ -29,8 +29,10 @@ import {
     AlertCircle,
     CheckCircle2,
     Loader2,
+    Phone,
 } from "lucide-react";
 import { formatTanggal, formatJam } from "@/lib/admin-format";
+import { buildWaLink } from "@/lib/content";
 
 interface LapanganItem {
     id_lapangan: number;
@@ -58,8 +60,7 @@ interface OpenMabarItem {
     biaya_per_peserta?: number;
     level_permainan?: string | null;
     gender?: string;
-    batas_usia_min?: number;
-    batas_usia_max?: number;
+    no_hp?: string | null;
     status: "menunggu" | "disetujui" | "ditolak";
     created_at: string;
     peserta_terdaftar_count: number;
@@ -111,9 +112,15 @@ export default function OpenMabarIndex({
     daftarLapangan,
     filters,
 }: OpenMabarIndexProps) {
-    const [statusFilter, setStatusFilter] = useState(filters.status || "menunggu");
+    const [statusFilter, setStatusFilter] = useState(filters.status || "semua");
     const [search, setSearch] = useState(filters.q || "");
     const [tanggal, setTanggal] = useState(filters.tanggal || "");
+
+    React.useEffect(() => {
+        setStatusFilter(filters.status || "semua");
+        setSearch(filters.q || "");
+        setTanggal(filters.tanggal || "");
+    }, [filters.status, filters.q, filters.tanggal]);
 
     const [detailMabar, setDetailMabar] = useState<OpenMabarItem | null>(null);
     const [approveMabar, setApproveMabar] = useState<OpenMabarItem | null>(null);
@@ -132,13 +139,19 @@ export default function OpenMabarIndex({
     });
 
     const handleFilterApply = (newStatus = statusFilter, newSearch = search, newTanggal = tanggal) => {
+        const params: Record<string, string> = {
+            status: newStatus,
+        };
+        if (newSearch && newSearch.trim() !== "") {
+            params.q = newSearch.trim();
+        }
+        if (newTanggal && newTanggal.trim() !== "") {
+            params.tanggal = newTanggal.trim();
+        }
+
         router.get(
             "/admin/open-mabar",
-            {
-                status: newStatus,
-                q: newSearch,
-                tanggal: newTanggal,
-            },
+            params,
             {
                 preserveState: true,
                 replace: true,
@@ -294,10 +307,10 @@ export default function OpenMabarIndex({
                                     className="h-9 text-sm"
                                     aria-label="Filter Status"
                                 >
+                                    <option value="semua">Semua Status</option>
                                     <option value="menunggu">Menunggu</option>
                                     <option value="disetujui">Disetujui</option>
                                     <option value="ditolak">Ditolak</option>
-                                    <option value="semua">Semua Status</option>
                                 </Select>
                             </div>
 
@@ -330,17 +343,17 @@ export default function OpenMabarIndex({
                                 <Button type="submit" size="sm" variant="secondary" className="h-9 px-4">
                                     Cari
                                 </Button>
-                                {(search || tanggal || statusFilter !== "menunggu") && (
+                                {(search || tanggal || statusFilter !== "semua") && (
                                     <Button
                                         type="button"
                                         size="sm"
                                         variant="ghost"
                                         className="h-9 px-3 text-xs"
                                         onClick={() => {
-                                            setStatusFilter("menunggu");
+                                            setStatusFilter("semua");
                                             setSearch("");
                                             setTanggal("");
-                                            handleFilterApply("menunggu", "", "");
+                                            handleFilterApply("semua", "", "");
                                         }}
                                     >
                                         Reset
@@ -416,8 +429,23 @@ export default function OpenMabarIndex({
                                                     </TableCell>
 
                                                     
-                                                    <TableCell className="py-3 whitespace-nowrap text-foreground align-middle">
-                                                        {mabar.user.nama}
+                                                    <TableCell className="py-3 whitespace-nowrap align-middle">
+                                                        <div className="font-medium text-foreground">{mabar.user?.nama ?? "-"}</div>
+                                                        {mabar.no_hp && (
+                                                            <div className="flex items-center gap-1.5 mt-1">
+                                                                <span className="text-xs text-muted-foreground tabular-nums">{mabar.no_hp}</span>
+                                                                <a
+                                                                    href={buildWaLink(mabar.no_hp, `Halo ${mabar.user?.nama ?? "Pengaju"}, saya dari Admin Bigi Badminton mengenai permohonan Open Mabar "${mabar.judul}".`)}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                                                                    title={`Hubungi ${mabar.user?.nama ?? "Pengaju"} via WhatsApp`}
+                                                                >
+                                                                    <Phone className="size-3" />
+                                                                    <span>Hubungi</span>
+                                                                </a>
+                                                            </div>
+                                                        )}
                                                     </TableCell>
 
                                                     
@@ -537,12 +565,40 @@ export default function OpenMabarIndex({
                             <div className="grid grid-cols-2 gap-3 text-xs">
                                 <div>
                                     <span className="text-muted-foreground block">Pengaju:</span>
-                                    <span className="font-medium text-foreground">{detailMabar.user.nama}</span>
-                                    {detailMabar.user.no_whatsapp && (
-                                        <span className="block text-muted-foreground tabular-nums">
-                                            {detailMabar.user.no_whatsapp}
-                                        </span>
-                                    )}
+                                    <span className="font-medium text-foreground">{detailMabar.user?.nama ?? "-"}</span>
+                                    {detailMabar.no_hp ? (
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <span className="block text-muted-foreground tabular-nums">
+                                                {detailMabar.no_hp}
+                                            </span>
+                                            <a
+                                                href={buildWaLink(detailMabar.no_hp, `Halo ${detailMabar.user?.nama ?? "Pengaju"}, saya dari Admin Bigi Badminton mengenai permohonan Open Mabar "${detailMabar.judul}".`)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                                                title={`Hubungi ${detailMabar.user?.nama ?? "Pengaju"} via WhatsApp`}
+                                            >
+                                                <Phone className="size-3" />
+                                                <span>Hubungi</span>
+                                            </a>
+                                        </div>
+                                    ) : detailMabar.user?.no_whatsapp ? (
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <span className="block text-muted-foreground tabular-nums">
+                                                {detailMabar.user.no_whatsapp}
+                                            </span>
+                                            <a
+                                                href={buildWaLink(detailMabar.user.no_whatsapp, `Halo ${detailMabar.user?.nama ?? "Pengaju"}, saya dari Admin Bigi Badminton mengenai permohonan Open Mabar "${detailMabar.judul}".`)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                                                title={`Hubungi ${detailMabar.user?.nama ?? "Pengaju"} via WhatsApp`}
+                                            >
+                                                <Phone className="size-3" />
+                                                <span>Hubungi</span>
+                                            </a>
+                                        </div>
+                                    ) : null}
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground block">Status Permohonan:</span>
@@ -577,14 +633,6 @@ export default function OpenMabarIndex({
                                         <span className="text-muted-foreground block">Kategori:</span>
                                         <span className="font-medium text-foreground capitalize">
                                             {detailMabar.gender}
-                                        </span>
-                                    </div>
-                                )}
-                                {(detailMabar.batas_usia_min !== undefined && detailMabar.batas_usia_max !== undefined) && (
-                                    <div>
-                                        <span className="text-muted-foreground block">Batasan Usia:</span>
-                                        <span className="font-medium text-foreground tabular-nums">
-                                            {detailMabar.batas_usia_min} - {detailMabar.batas_usia_max} tahun
                                         </span>
                                     </div>
                                 )}
@@ -667,7 +715,7 @@ export default function OpenMabarIndex({
                     <DialogHeader>
                         <DialogTitle>Konfirmasi Persetujuan Mabar</DialogTitle>
                         <DialogDescription>
-                            Sesi open mabar akan dipublikasikan ke daftar publik dan mengunci slot lapangan terkait.
+                            Sesi open mabar akan dipublikasikan ke daftar mabar user. Booking lapangan dapat dicatat secara manual di menu Reservasi Lapangan.
                         </DialogDescription>
                     </DialogHeader>
 

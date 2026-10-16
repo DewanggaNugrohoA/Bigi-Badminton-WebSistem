@@ -116,9 +116,38 @@ export default function BookingModal({
                         <form onSubmit={submitRegular} className="space-y-4">
                             
                             <div className="space-y-1.5">
-                                <Label htmlFor="nama_pemesan">
-                                    Nama Pemesan <span className="text-destructive">*</span>
-                                </Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="nama_pemesan">
+                                        Nama Pemesan <span className="text-destructive">*</span>
+                                    </Label>
+                                    {members.length > 0 && (
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[11px] text-muted-foreground">Dari Member:</span>
+                                            <select
+                                                aria-label="Pilih nama dari member terdaftar"
+                                                className="text-[11px] bg-background border border-border rounded px-1.5 py-0.5 text-foreground cursor-pointer"
+                                                defaultValue=""
+                                                onChange={(e) => {
+                                                    const m = members.find((x) => String(x.id_user) === e.target.value);
+                                                    if (m) {
+                                                        regularForm.setData({
+                                                            ...regularForm.data,
+                                                            nama_pemesan: m.nama,
+                                                            no_whatsapp_pemesan: m.no_whatsapp || "",
+                                                        });
+                                                    }
+                                                }}
+                                            >
+                                                <option value="" disabled>-- Pilih Member --</option>
+                                                {members.map((m) => (
+                                                    <option key={m.id_user} value={m.id_user}>
+                                                        {m.nama}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
                                 <Input
                                     id="nama_pemesan"
                                     placeholder="Contoh: Budi Santoso"
@@ -356,7 +385,24 @@ export default function BookingModal({
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="space-y-1.5">
+                                    <Label>Jumlah Sesi</Label>
+                                    <Select
+                                        value={memberForm.data.jumlah_sesi || "1"}
+                                        onChange={(e) => {
+                                            memberForm.setData("jumlah_sesi", e.target.value);
+                                            setAutofieldPreview(null);
+                                        }}
+                                    >
+                                        <option value="1">1 Sesi (Sekali Main)</option>
+                                        <option value="2">2 Sesi (2 Minggu)</option>
+                                        <option value="3">3 Sesi (3 Minggu)</option>
+                                        <option value="4">4 Sesi (Rutin 1 Bulan)</option>
+                                        <option value="all">Semua Sisa Paket</option>
+                                    </Select>
+                                </div>
+
                                 <div className="space-y-1.5">
                                     <Label>Pilih Hari Rutin</Label>
                                     <Select

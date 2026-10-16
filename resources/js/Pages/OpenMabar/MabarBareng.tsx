@@ -14,8 +14,6 @@ interface JadwalItem {
     jam_mulai: string;
     jam_selesai: string;
     gender: "putra" | "putri" | "campuran";
-    batas_usia_min: number;
-    batas_usia_max: number;
     kuota: number;
     foto?: string | null;
     peserta_terdaftar_count: number;
@@ -44,14 +42,12 @@ interface IndexProps {
         total: number;
     };
     filters: {
-        usia: string;
         tanggal: string;
         gender: string;
     };
 }
 
 export default function MabarBareng({ jadwal, filters }: IndexProps) {
-    const [usia, setUsia] = useState(filters.usia || "");
     const [tanggal, setTanggal] = useState(filters.tanggal || "");
     const [gender, setGender] = useState(filters.gender || "");
 
@@ -60,7 +56,6 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
         router.get(
             "/open-mabar/mabar-bareng",
             {
-                usia: usia || undefined,
                 tanggal: tanggal || undefined,
                 gender: gender || undefined,
             },
@@ -72,7 +67,6 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
     };
 
     const handleReset = () => {
-        setUsia("");
         setTanggal("");
         setGender("");
         router.get("/open-mabar/mabar-bareng", {}, { preserveState: true, preserveScroll: true });
@@ -128,23 +122,7 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
                 
                 <div className="bg-card/90 backdrop-blur-sm border border-border/80 rounded-xl p-4 sm:p-5 shadow-xs">
                     <form onSubmit={handleFilter} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-end">
-                        <div className="sm:col-span-1 lg:col-span-3 space-y-1.5 text-left">
-                            <Label htmlFor="usia" className="text-xs font-semibold text-foreground/80">
-                                Usia Pemain
-                            </Label>
-                            <Input
-                                id="usia"
-                                type="number"
-                                min={1}
-                                max={100}
-                                placeholder="Contoh: 22 th"
-                                value={usia}
-                                onChange={(e) => setUsia(e.target.value)}
-                                className="h-10 text-sm bg-background/80"
-                            />
-                        </div>
-
-                        <div className="sm:col-span-1 lg:col-span-3 space-y-1.5 text-left">
+                        <div className="sm:col-span-1 lg:col-span-4 space-y-1.5 text-left">
                             <Label htmlFor="tanggal" className="text-xs font-semibold text-foreground/80">
                                 Tanggal Main
                             </Label>
@@ -157,7 +135,7 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
                             />
                         </div>
 
-                        <div className="sm:col-span-1 lg:col-span-3 space-y-1.5 text-left">
+                        <div className="sm:col-span-1 lg:col-span-4 space-y-1.5 text-left">
                             <Label htmlFor="gender" className="text-xs font-semibold text-foreground/80">
                                 Kategori Gender
                             </Label>
@@ -174,12 +152,12 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
                             </select>
                         </div>
 
-                        <div className="sm:col-span-1 lg:col-span-3 flex items-center gap-2">
+                        <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-2">
                             <Button type="submit" className="flex-1 h-10 px-4 text-sm font-semibold gap-2 bg-[var(--brand)] hover:opacity-90">
                                 <Filter className="size-4" />
                                 <span>Terapkan</span>
                             </Button>
-                            {(usia || tanggal || gender) && (
+                            {(tanggal || gender) && (
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -273,7 +251,7 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
                                             <div className="flex items-center gap-2">
                                                 <Users className="size-4 text-muted-foreground/80 shrink-0" />
                                                 <span>
-                                                    Usia {item.batas_usia_min} - {item.batas_usia_max} th • Terdaftar: {item.peserta_terdaftar_count}/{item.kuota}
+                                                    Terdaftar: {item.peserta_terdaftar_count}/{item.kuota} orang
                                                 </span>
                                             </div>
                                             {item.user && (

@@ -25,7 +25,7 @@ export default function Register() {
     };
 
     return (
-        <div className="min-h-dvh w-full bg-background text-foreground flex flex-col lg:flex-row overflow-x-hidden">
+        <div className="min-h-dvh w-full bg-transparent text-foreground flex flex-col lg:flex-row overflow-x-hidden">
             <AuthImagePanel
                 imageSrc="/images/daftar-panel.jpg"
                 imageAlt="Komunitas dan fasilitas lapangan Bigi Badminton"
@@ -33,7 +33,7 @@ export default function Register() {
                 description="Daftar akun sekarang untuk mengikuti event Open Mabar, membuat jadwal main bareng, dan berdiskusi di forum chat mabar."
             />
 
-            <div className="flex-1 w-full flex flex-col justify-center items-center bg-background px-5 sm:px-8 py-3 sm:py-6 lg:py-12 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden min-h-dvh lg:min-h-0 box-border pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="flex-1 w-full flex flex-col justify-center items-center bg-transparent px-5 sm:px-8 py-3 sm:py-6 lg:py-12 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden min-h-dvh lg:min-h-0 box-border pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 
                 <WakeGlyph cellSize={14} className="absolute inset-0 opacity-20 pointer-events-none" />
 

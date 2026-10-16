@@ -223,7 +223,7 @@ export default function AdminLayout({
 
 
     return (
-        <div className="min-h-screen flex bg-background text-foreground antialiased selection:bg-[var(--brand)] selection:text-white">
+        <div className="min-h-screen flex bg-transparent text-foreground antialiased selection:bg-[var(--brand)] selection:text-white">
             
             <aside
                 className={cn(
@@ -336,9 +336,9 @@ export default function AdminLayout({
                 )}
             >
                 
-                <header className="sticky top-0 z-30 h-16 bg-background/85 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6">
+                <header className="sticky top-0 z-30 h-16 bg-card/85 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                        
+                        {/* Mobile menu trigger */}
                         <Button
                             type="button"
                             variant="outline"
@@ -349,36 +349,6 @@ export default function AdminLayout({
                         >
                             <Menu className="size-5" />
                         </Button>
-
-                        
-                        <nav aria-label="Breadcrumb" className="min-w-0">
-                            <ol className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground truncate">
-                                <li>
-                                    <Link href="/admin" className="hover:text-foreground transition-colors">
-                                        Admin
-                                    </Link>
-                                </li>
-                                {breadcrumb.length > 0 ? (
-                                    breadcrumb.map((crumb, idx) => (
-                                        <li key={idx} className="flex items-center gap-1.5">
-                                            <span className="text-muted-foreground/60">/</span>
-                                            {crumb.href ? (
-                                                <Link href={crumb.href} className="hover:text-foreground transition-colors truncate">
-                                                    {crumb.label}
-                                                </Link>
-                                            ) : (
-                                                <span className="text-foreground font-medium truncate">{crumb.label}</span>
-                                            )}
-                                        </li>
-                                    ))
-                                ) : (
-                                    <li className="flex items-center gap-1.5">
-                                        <span className="text-muted-foreground/60">/</span>
-                                        <span className="text-foreground font-medium truncate">{title}</span>
-                                    </li>
-                                )}
-                            </ol>
-                        </nav>
                     </div>
 
                     

@@ -237,7 +237,7 @@ export default function KasirLayout({
     );
 
     return (
-        <div className="min-h-screen bg-background text-foreground flex flex-col antialiased">
+        <div className="min-h-screen bg-transparent text-foreground flex flex-col antialiased">
             <aside
                 aria-label="Sidebar Kasir"
                 className={cn(
@@ -332,7 +332,7 @@ export default function KasirLayout({
                     sidebarOpen ? "md:pl-60" : "md:pl-0"
                 )}
             >
-                <header className="sticky top-0 z-30 h-16 bg-background/85 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-4">
+                <header className="sticky top-0 z-30 h-16 bg-card/85 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-4">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <Button
                             type="button"

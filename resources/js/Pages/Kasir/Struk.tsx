@@ -168,7 +168,7 @@ export default function StrukKasir({ transaksi }: Props) {
                                         {item.jumlah} x {formatRupiah(item.harga)}
                                     </span>
                                     <span className="text-foreground font-semibold tabular-nums text-right">
-                                        {formatRupiah(item.subtotal)}
+                                        {formatRupiah(item.jumlah * item.harga)}
                                     </span>
                                 </div>
                             </div>
@@ -178,7 +178,11 @@ export default function StrukKasir({ transaksi }: Props) {
                     <div className="print-item-block py-3 border-b border-dashed border-border flex flex-col gap-1.5 text-xs">
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Subtotal</span>
-                            <span className="tabular-nums text-right font-medium">{formatRupiah(transaksi.subtotal)}</span>
+                            <span className="tabular-nums text-right font-medium">
+                                {formatRupiah(
+                                    transaksi.detail_transaksi_pos.reduce((acc, it) => acc + (it.jumlah * it.harga), 0)
+                                )}
+                            </span>
                         </div>
                         {Number(transaksi.diskon) > 0 && (
                             <div className="flex justify-between text-muted-foreground">

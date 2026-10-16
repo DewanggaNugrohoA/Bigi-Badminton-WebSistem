@@ -86,6 +86,8 @@ Route::middleware('auth:staff')->group(function () {
         Route::post('/admin/reservasi/{id}/pelunasan', [\App\Http\Controllers\Admin\ReservasiController::class, 'pelunasan'])->name('admin.reservasi.pelunasan');
         Route::post('/admin/reservasi/{id}/cancel', [\App\Http\Controllers\Admin\ReservasiController::class, 'cancel'])->name('admin.reservasi.cancel');
         Route::post('/admin/reservasi/{id}/finish', [\App\Http\Controllers\Admin\ReservasiController::class, 'finish'])->name('admin.reservasi.finish');
+        Route::post('/admin/reservasi/{id}/reschedule', [\App\Http\Controllers\Admin\ReservasiController::class, 'reschedule'])->name('admin.reservasi.reschedule');
+        Route::delete('/admin/reservasi/{id}', [\App\Http\Controllers\Admin\ReservasiController::class, 'destroy'])->name('admin.reservasi.destroy');
         Route::get('/admin/reservasi/search-customers', [\App\Http\Controllers\Admin\ReservasiController::class, 'searchCustomers'])->name('admin.reservasi.search-customers');
         Route::post('/admin/reservasi/quick-customer', [\App\Http\Controllers\Admin\ReservasiController::class, 'quickCustomer'])->name('admin.reservasi.quick-customer');
 

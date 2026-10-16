@@ -1,7 +1,6 @@
 import PublicLayout from "@/layouts/public-layout";
-import { Link, router, usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Phone } from "lucide-react";
@@ -66,16 +65,16 @@ export default function OpenMabarIndex({ gridSlots = [], filters }: IndexProps) 
     };
 
     return (
-        <PublicLayout title="Cari Jadwal Open Mabar - Bigi Badminton">
+        <PublicLayout title="Lihat Jadwal - Bigi Badminton">
             <div className="pt-28 pb-16 px-4 sm:px-6 max-w-6xl mx-auto space-y-6 sm:space-y-8">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground font-heading">
-                            Jadwal Open Mabar
+                            Lihat Jadwal
                         </h1>
                         <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                            Temukan teman mabar badminton dan pilih slot main yang cocok untukmu.
+                            Lihat slot lapangan yang kosong dan terisi.
                         </p>
                     </div>
                     <div className="shrink-0">
@@ -143,26 +142,25 @@ export default function OpenMabarIndex({ gridSlots = [], filters }: IndexProps) 
 
                                         if (isKosong) {
                                             return (
-                                                <Link
+                                                <div
                                                     key={slot.jam}
-                                                    href={`/open-mabar/create?tanggal=${tanggal}&id_lapangan=${lap.id_lapangan}&jam_mulai=${slot.jam}&jam_selesai=${slot.jam_selesai}`}
-                                                    className="flex flex-col items-center justify-center min-w-[84px] sm:min-w-[92px] py-2.5 px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-500 text-emerald-400 transition-all text-center group cursor-pointer shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                                                    title={`Pilih ${lap.nama_lapangan} ${slot.jam} (Kosong)`}
+                                                    className="flex flex-col items-center justify-center min-w-[84px] sm:min-w-[92px] py-2.5 px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 select-none text-center shadow-xs"
+                                                    title={`${lap.nama_lapangan} ${slot.jam} - Kosong`}
                                                 >
-                                                    <span className="text-sm sm:text-base font-bold tracking-tight text-foreground group-hover:text-emerald-400">
+                                                    <span className="text-sm sm:text-base font-bold tracking-tight text-foreground">
                                                         {slot.jam}
                                                     </span>
                                                     <span className="text-[11px] font-semibold text-emerald-500 mt-1">
                                                         Kosong
                                                     </span>
-                                                </Link>
+                                                </div>
                                             );
                                         }
 
                                         return (
                                             <div
                                                 key={slot.jam}
-                                                className="flex flex-col items-center justify-center min-w-[84px] sm:min-w-[92px] py-2.5 px-3 rounded-lg border border-border/60 bg-muted/40 text-muted-foreground/60 opacity-70 cursor-not-allowed select-none text-center shadow-xs"
+                                                className="flex flex-col items-center justify-center min-w-[84px] sm:min-w-[92px] py-2.5 px-3 rounded-lg border border-border/60 bg-muted/40 text-muted-foreground/60 opacity-70 select-none text-center shadow-xs"
                                                 title={`${lap.nama_lapangan} ${slot.jam} - Terisi`}
                                             >
                                                 <span className="text-sm sm:text-base font-semibold tracking-tight">

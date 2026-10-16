@@ -21,14 +21,14 @@ export function AuthImagePanel({
     return (
         <aside
             aria-label="Panel Ilustrasi Bigi Badminton"
-            className="hidden lg:flex flex-1 sticky top-0 h-dvh max-h-dvh relative flex-col overflow-hidden bg-gradient-to-br from-white via-violet-50 to-violet-100 border-r border-violet-100/80 select-none"
+            className="hidden lg:flex flex-1 sticky top-0 h-dvh max-h-dvh relative flex-col overflow-hidden bg-gradient-to-br from-slate-100 via-slate-200 to-blue-100 dark:from-slate-900 dark:via-slate-800 dark:to-blue-950 border-r border-border select-none"
         >
             
             <div className="absolute top-6 left-6 z-20">
                 <Link
                     href={backHref}
                     aria-label={backLabel}
-                    className="w-11 h-11 bg-white/80 hover:bg-white active:scale-95 backdrop-blur-md border border-slate-200/80 rounded-full flex items-center justify-center transition-all text-slate-700 hover:text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                    className="w-11 h-11 bg-card/80 hover:bg-card active:scale-95 backdrop-blur-md border border-border/80 rounded-full flex items-center justify-center transition-all text-foreground shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                     <ArrowLeft className="w-5 h-5" />
                 </Link>
@@ -41,17 +41,17 @@ export function AuthImagePanel({
                     alt={imageAlt}
                     width={735}
                     height={970}
-                    className="h-4/5 max-h-[85%] w-auto max-w-[90%] object-contain object-center mix-blend-multiply select-none pointer-events-none"
+                    className="h-4/5 max-h-[85%] w-auto max-w-[90%] object-contain object-center mix-blend-multiply dark:mix-blend-normal select-none pointer-events-none"
                 />
             </div>
 
             
             <div className="relative shrink-0 w-full px-8 pb-8 pt-2">
                 <div className="max-w-md">
-                    <h2 className="text-2xl xl:text-3xl font-extrabold tracking-tight text-slate-900 mb-2">
+                    <h2 className="text-2xl xl:text-3xl font-extrabold tracking-tight text-foreground mb-2">
                         {title}
                     </h2>
-                    <p className="text-slate-600 text-xs xl:text-sm leading-relaxed">
+                    <p className="text-muted-foreground text-xs xl:text-sm leading-relaxed">
                         {description}
                     </p>
                 </div>

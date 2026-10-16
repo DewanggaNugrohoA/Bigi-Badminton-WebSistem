@@ -418,11 +418,11 @@ class AdminOpenMabarApprovalTest extends TestCase
         ]);
 
         $res = $this->actingAs($this->user, 'web')
-            ->get('/open-mabar');
+            ->get('/open-mabar/mabar-bareng');
 
         $res->assertStatus(200);
         $res->assertInertia(fn ($page) => $page
-            ->component('OpenMabar/Index')
+            ->component('OpenMabar/MabarBareng')
             ->where('jadwal.data.0.id_mabar', $approved->id_mabar)
             ->has('jadwal.data', 1)
         );

@@ -78,7 +78,7 @@ export default function StaffLogin() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-background text-foreground flex flex-col justify-center items-center px-4 py-8 relative">
+        <div className="min-h-screen w-full bg-transparent text-foreground flex flex-col justify-center items-center px-4 py-8 relative">
             <div className="w-full max-w-md bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-lg relative z-10">
                 <div className="flex flex-col items-center text-center mb-6">
                     <img

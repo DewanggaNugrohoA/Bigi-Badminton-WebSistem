@@ -11,9 +11,6 @@ import {
     TableCell,
 } from "@/components/ui/table";
 import {
-    DollarSign,
-    CalendarCheck,
-    Users,
     Calendar,
     ArrowUpRight,
     Clock,
@@ -88,13 +85,10 @@ export default function AdminDashboard({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                     
                     <Card className="flex flex-col justify-between h-full border-border/80 hover:border-border transition-colors">
-                        <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 p-4 sm:p-5">
-                            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-center pr-2 leading-snug">
+                        <CardHeader className="pb-2 space-y-0 p-4 sm:p-5">
+                            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center leading-snug">
                                 Pendapatan Hari Ini
                             </CardTitle>
-                            <div className="size-8 rounded-lg bg-[var(--brand)]/10 text-[var(--brand)] flex items-center justify-center shrink-0">
-                                <DollarSign className="size-4.5" />
-                            </div>
                         </CardHeader>
                         <CardContent className="p-4 sm:p-5 pt-0 sm:pt-0 space-y-1">
                             <div className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-mono tabular-nums truncate">
@@ -108,13 +102,10 @@ export default function AdminDashboard({
 
                     
                     <Card className="flex flex-col justify-between h-full border-border/80 hover:border-border transition-colors">
-                        <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 p-4 sm:p-5">
-                            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-center pr-2 leading-snug">
+                        <CardHeader className="pb-2 space-y-0 p-4 sm:p-5">
+                            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center leading-snug">
                                 Reservasi Mendatang
                             </CardTitle>
-                            <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                                <CalendarCheck className="size-4.5" />
-                            </div>
                         </CardHeader>
                         <CardContent className="p-4 sm:p-5 pt-0 sm:pt-0 space-y-1">
                             <div className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-mono tabular-nums truncate">
@@ -132,13 +123,10 @@ export default function AdminDashboard({
                         className="group block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
                     >
                         <Card className="flex flex-col justify-between h-full border-border/80 hover:border-border group-hover:border-amber-500/40 transition-colors">
-                            <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 p-4 sm:p-5">
-                                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors min-h-[2.5rem] flex items-center pr-2 leading-snug">
+                            <CardHeader className="pb-2 space-y-0 p-4 sm:p-5">
+                                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors flex items-center leading-snug">
                                     Open Mabar Menunggu Persetujuan
                                 </CardTitle>
-                                <div className="size-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-                                    <Users className="size-4.5" />
-                                </div>
                             </CardHeader>
                             <CardContent className="p-4 sm:p-5 pt-0 sm:pt-0 space-y-1">
                                 <div className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-mono tabular-nums truncate">
@@ -188,10 +176,7 @@ export default function AdminDashboard({
                                         {jadwalHariIni.map((jadwal) => (
                                             <TableRow key={jadwal.id_detail}>
                                                 <TableCell className="font-semibold text-foreground">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="size-2 rounded-full bg-[var(--brand)]" />
-                                                        <span>{jadwal.nama_lapangan}</span>
-                                                    </div>
+                                                    <span>{jadwal.nama_lapangan}</span>
                                                 </TableCell>
                                                 <TableCell className="text-muted-foreground text-xs font-mono">
                                                     <span className="inline-flex items-center gap-1">

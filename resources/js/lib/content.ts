@@ -96,3 +96,25 @@ export const APP_CONTENT = {
         },
     ] as FasilitasItem[],
 };
+
+export const JAM_BULAT_OPTIONS = [
+    '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
+    '15:00', '16:00', '17:00', '18:00', '19:00', '20:00',
+    '21:00', '22:00', '23:00'
+];
+
+export function formatJamLabel(jam: string): string {
+    const h = parseInt(jam.split(':')[0], 10);
+    if (isNaN(h)) return jam;
+    if (h < 11) return `${jam} WIB (Pagi)`;
+    if (h < 15) return `${jam} WIB (Siang)`;
+    if (h < 18) return `${jam} WIB (Sore)`;
+    return `${jam} WIB (Malam)`;
+}
+
+export function getDefaultJamSelesai(jamMulai: string): string {
+    const h = parseInt(jamMulai.split(':')[0], 10);
+    if (isNaN(h)) return '';
+    const endH = Math.min(23, h + 2);
+    return `${String(endH).padStart(2, '0')}:00`;
+}

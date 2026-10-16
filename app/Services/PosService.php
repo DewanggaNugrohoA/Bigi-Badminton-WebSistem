@@ -239,7 +239,6 @@ class PosService
                     'id_produk' => $line['produk']->id_produk,
                     'jumlah' => $line['jumlah'],
                     'harga' => $line['harga'],
-                    'subtotal' => $line['subtotal'],
                 ]);
 
                 $line['produk']->decrement('stok', $line['jumlah']);

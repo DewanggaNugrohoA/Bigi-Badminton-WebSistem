@@ -59,7 +59,7 @@ export default function VerifikasiOtp({ no_whatsapp }: VerifikasiOtpProps) {
     };
 
     return (
-        <div className="min-h-dvh w-full bg-background text-foreground flex flex-col lg:flex-row overflow-x-hidden">
+        <div className="min-h-dvh w-full bg-transparent text-foreground flex flex-col lg:flex-row overflow-x-hidden">
             <AuthImagePanel
                 imageSrc="/images/login-panel.jpg"
                 imageAlt="Verifikasi akun Bigi Badminton"
@@ -69,7 +69,7 @@ export default function VerifikasiOtp({ no_whatsapp }: VerifikasiOtpProps) {
                 backLabel="Kembali ke pendaftaran"
             />
 
-            <div className="flex-1 w-full flex flex-col justify-center items-center bg-background px-5 sm:px-8 py-3 sm:py-6 lg:py-12 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden min-h-dvh lg:min-h-0 box-border pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="flex-1 w-full flex flex-col justify-center items-center bg-transparent px-5 sm:px-8 py-3 sm:py-6 lg:py-12 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden min-h-dvh lg:min-h-0 box-border pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <WakeGlyph cellSize={14} className="absolute inset-0 opacity-20 pointer-events-none" />
 
                 <div className="w-full max-w-md my-auto flex flex-col space-y-4 sm:space-y-6 relative z-10">

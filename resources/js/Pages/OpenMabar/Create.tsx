@@ -1,10 +1,17 @@
 import PublicLayout from "@/layouts/public-layout";
-import { useForm, Link } from "@inertiajs/react";
+import { useForm, Link, usePage } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Upload } from "lucide-react";
 import React, { useState } from "react";
+import {
+    formatIndonesianPhoneInput,
+    handlePhoneKeyDown,
+    JAM_BULAT_OPTIONS,
+    formatJamLabel,
+    getDefaultJamSelesai,
+} from "@/lib/content";
 
 interface LapanganOption {
     id_lapangan: number;
@@ -22,16 +29,19 @@ interface CreateProps {
 }
 
 export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
+    const { auth } = usePage<{ auth?: { user?: { no_whatsapp?: string } } }>().props;
     const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+
+    const rawJamMulai = (initial?.jam_mulai || urlParams?.get("jam_mulai") || "").substring(0, 5);
+    const rawJamSelesai = (initial?.jam_selesai || urlParams?.get("jam_selesai") || "").substring(0, 5);
 
     const { data, setData, post, processing, errors } = useForm({
         judul: "",
         tanggal: initial?.tanggal || urlParams?.get("tanggal") || "",
-        jam_mulai: initial?.jam_mulai || urlParams?.get("jam_mulai") || "",
-        jam_selesai: initial?.jam_selesai || urlParams?.get("jam_selesai") || "",
+        jam_mulai: rawJamMulai,
+        jam_selesai: rawJamSelesai,
         gender: "campuran",
-        batas_usia_min: "17",
-        batas_usia_max: "40",
+        no_hp: auth?.user?.no_whatsapp || "",
         kuota: "8",
         deskripsi: "",
         id_lapangan: initial?.id_lapangan || urlParams?.get("id_lapangan") || "",
@@ -39,6 +49,19 @@ export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
     });
 
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const handleJamMulaiChange = (newMulai: string) => {
+        setData((prev) => {
+            const next = { ...prev, jam_mulai: newMulai };
+            if (!prev.jam_selesai || prev.jam_selesai <= newMulai) {
+                next.jam_selesai = getDefaultJamSelesai(newMulai);
+            }
+            return next;
+        });
+    };
+
+    const jamMulaiList = JAM_BULAT_OPTIONS.filter((j) => j <= "22:00");
+    const jamSelesaiList = JAM_BULAT_OPTIONS.filter((j) => !data.jam_mulai || j > data.jam_mulai);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
@@ -64,7 +87,7 @@ export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
                         className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground mb-3 transition-colors"
                     >
                         <ArrowLeft className="size-3.5" />
-                        <span>Kembali ke Cari Jadwal</span>
+                        <span>Kembali ke Lihat Jadwal</span>
                     </Link>
                     <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
                         Buat Jadwal Open Mabar
@@ -141,16 +164,22 @@ export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
                                             <Label htmlFor="jam_mulai" className="text-sm font-medium">
                                                 Jam Mulai <span className="text-destructive/70 text-xs">*</span>
                                             </Label>
-                                            <Input
+                                            <select
                                                 id="jam_mulai"
-                                                type="time"
                                                 value={data.jam_mulai}
-                                                onChange={(e) => setData("jam_mulai", e.target.value)}
-                                                className={`h-10 text-sm ${errors.jam_mulai ? "border-destructive" : ""}`}
+                                                onChange={(e) => handleJamMulaiChange(e.target.value)}
+                                                className={`w-full h-10 px-3 rounded-lg border bg-background text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground ${errors.jam_mulai ? "border-destructive" : "border-input"}`}
                                                 required
                                                 aria-describedby={errors.jam_mulai ? "jam-mulai-error" : undefined}
                                                 aria-invalid={!!errors.jam_mulai}
-                                            />
+                                            >
+                                                <option value="" disabled className="bg-background text-muted-foreground">Pilih Jam Mulai</option>
+                                                {jamMulaiList.map((jam) => (
+                                                    <option key={jam} value={jam} className="bg-background text-foreground">
+                                                        {formatJamLabel(jam)}
+                                                    </option>
+                                                ))}
+                                            </select>
                                             {errors.jam_mulai && (
                                                 <p id="jam-mulai-error" role="alert" className="text-xs text-destructive">
                                                     {errors.jam_mulai}
@@ -162,16 +191,24 @@ export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
                                             <Label htmlFor="jam_selesai" className="text-sm font-medium">
                                                 Jam Selesai <span className="text-destructive/70 text-xs">*</span>
                                             </Label>
-                                            <Input
+                                            <select
                                                 id="jam_selesai"
-                                                type="time"
                                                 value={data.jam_selesai}
                                                 onChange={(e) => setData("jam_selesai", e.target.value)}
-                                                className={`h-10 text-sm ${errors.jam_selesai ? "border-destructive" : ""}`}
+                                                className={`w-full h-10 px-3 rounded-lg border bg-background text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground ${errors.jam_selesai ? "border-destructive" : "border-input"}`}
                                                 required
                                                 aria-describedby={errors.jam_selesai ? "jam-selesai-error" : undefined}
                                                 aria-invalid={!!errors.jam_selesai}
-                                            />
+                                            >
+                                                <option value="" disabled className="bg-background text-muted-foreground">
+                                                    {data.jam_mulai ? "Pilih Jam Selesai" : "Pilih Jam Mulai Dulu"}
+                                                </option>
+                                                {jamSelesaiList.map((jam) => (
+                                                    <option key={jam} value={jam} className="bg-background text-foreground">
+                                                        {formatJamLabel(jam)}
+                                                    </option>
+                                                ))}
+                                            </select>
                                             {errors.jam_selesai && (
                                                 <p id="jam-selesai-error" role="alert" className="text-xs text-destructive">
                                                     {errors.jam_selesai}
@@ -179,6 +216,10 @@ export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
                                             )}
                                         </div>
                                     </div>
+
+                                    <p className="text-xs text-muted-foreground">
+                                        Waktu operasional open mabar: 09:00 WIB s.d. 23:00 WIB (11 malam).
+                                    </p>
                                 </div>
 
                                 <div className="border-t border-border/60" />
@@ -237,48 +278,35 @@ export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
                                             )}
                                         </div>
 
-                                        <div className="space-y-1.5">
-                                            <Label htmlFor="batas_usia_min" className="text-sm font-medium">
-                                                Batas Usia Minimal <span className="text-destructive/70 text-xs">*</span>
+                                        <div className="sm:col-span-2 space-y-1.5">
+                                            <Label htmlFor="no_hp" className="text-sm font-medium">
+                                                Nomor HP/WhatsApp <span className="text-destructive/70 text-xs">*</span>
                                             </Label>
                                             <Input
-                                                id="batas_usia_min"
-                                                type="number"
-                                                min={1}
-                                                value={data.batas_usia_min}
-                                                onChange={(e) => setData("batas_usia_min", e.target.value)}
-                                                className={`h-10 text-sm ${errors.batas_usia_min ? "border-destructive" : ""}`}
+                                                id="no_hp"
+                                                type="tel"
+                                                name="no_hp"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                maxLength={13}
+                                                value={data.no_hp}
+                                                onChange={(e) => setData("no_hp", formatIndonesianPhoneInput(e.target.value))}
+                                                onKeyDown={handlePhoneKeyDown}
+                                                placeholder="Contoh: 081234567890"
+                                                className={`h-10 text-sm ${errors.no_hp ? "border-destructive" : ""}`}
                                                 required
-                                                aria-describedby={errors.batas_usia_min ? "usia-min-error" : undefined}
-                                                aria-invalid={!!errors.batas_usia_min}
+                                                autoComplete="tel"
+                                                aria-describedby={errors.no_hp ? "no-hp-error" : "no-hp-help"}
+                                                aria-invalid={!!errors.no_hp}
                                             />
-                                            {errors.batas_usia_min && (
-                                                <p id="usia-min-error" role="alert" className="text-xs text-destructive">
-                                                    {errors.batas_usia_min}
+                                            {errors.no_hp && (
+                                                <p id="no-hp-error" role="alert" className="text-xs text-destructive">
+                                                    {errors.no_hp}
                                                 </p>
                                             )}
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <Label htmlFor="batas_usia_max" className="text-sm font-medium">
-                                                Batas Usia Maksimal <span className="text-destructive/70 text-xs">*</span>
-                                            </Label>
-                                            <Input
-                                                id="batas_usia_max"
-                                                type="number"
-                                                min={1}
-                                                value={data.batas_usia_max}
-                                                onChange={(e) => setData("batas_usia_max", e.target.value)}
-                                                className={`h-10 text-sm ${errors.batas_usia_max ? "border-destructive" : ""}`}
-                                                required
-                                                aria-describedby={errors.batas_usia_max ? "usia-max-error" : undefined}
-                                                aria-invalid={!!errors.batas_usia_max}
-                                            />
-                                            {errors.batas_usia_max && (
-                                                <p id="usia-max-error" role="alert" className="text-xs text-destructive">
-                                                    {errors.batas_usia_max}
-                                                </p>
-                                            )}
+                                            <p id="no-hp-help" className="text-xs text-muted-foreground">
+                                                Nomor hanya dilihat Admin untuk verifikasi, tidak ditampilkan ke pengguna lain.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

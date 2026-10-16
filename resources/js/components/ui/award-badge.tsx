@@ -32,7 +32,7 @@ const backgroundColor = [
   "#f3e3ac", // Gold 1st
   "#ddd",    // Silver 2nd
   "#f1cfa6", // Bronze 3rd
-  "#e9d5ff", // Brand Lavender
+  "#cbd5e1", // Brand Slate
 ];
 
 const titleMap: Record<AwardBadgeType, string> = {

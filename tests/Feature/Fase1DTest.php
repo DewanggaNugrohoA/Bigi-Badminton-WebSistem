@@ -92,6 +92,7 @@ class Fase1DTest extends TestCase
             'jam_mulai' => '20:00:00',
             'jam_selesai' => '23:00:00',
             'gender' => 'putra',
+            'no_hp' => '081234567890',
             'batas_usia_min' => 20,
             'batas_usia_max' => 35,
             'kuota' => 8,
@@ -118,6 +119,7 @@ class Fase1DTest extends TestCase
             'jam_mulai' => '19:00:00',
             'jam_selesai' => '21:00:00',
             'gender' => 'campuran',
+            'no_hp' => '081234567890',
             'batas_usia_min' => 20,
             'batas_usia_max' => 30,
             'kuota' => 8,
@@ -155,7 +157,7 @@ class Fase1DTest extends TestCase
     
     public function test_index_shows_only_approved_upcoming_schedules(): void
     {
-        $response = $this->actingAs($this->user)->get('/open-mabar');
+        $response = $this->actingAs($this->user)->get('/open-mabar/mabar-bareng');
         $response->assertOk();
 
         
@@ -165,30 +167,39 @@ class Fase1DTest extends TestCase
         
         $response->assertDontSee('Mabar Menunggu Persetujuan');
         $response->assertDontSee('Mabar Ditolak');
+        $response->assertDontSee('no_hp');
+        $response->assertDontSee('081234567890');
     }
 
-    
     public function test_index_filters_work_correctly(): void
     {
-        
-        
-        
-        
-        $responseUsia = $this->actingAs($this->user)->get('/open-mabar?usia=16');
-        $responseUsia->assertSee('Mabar Putri Pagi Hari');
-        $responseUsia->assertDontSee('Mabar Santuy Malam Minggu');
-        $responseUsia->assertDontSee('Mabar Putra Kompetitif');
-
-        
-        $responseGender = $this->actingAs($this->user)->get('/open-mabar?gender=putra');
+        // Filter gender di /open-mabar/mabar-bareng
+        $responseGender = $this->actingAs($this->user)->get('/open-mabar/mabar-bareng?gender=putra');
+        $responseGender->assertOk();
         $responseGender->assertSee('Mabar Putra Kompetitif');
         $responseGender->assertDontSee('Mabar Putri Pagi Hari');
+        $responseGender->assertDontSee('Mabar Menunggu Persetujuan');
+        $responseGender->assertDontSee('Mabar Ditolak');
+        $responseGender->assertDontSee('no_hp');
+        $responseGender->assertDontSee('081234567890');
 
-        
+        // Filter tanggal di /open-mabar/mabar-bareng
         $targetDate = Carbon::now()->addDays(2)->toDateString();
-        $responseTanggal = $this->actingAs($this->user)->get('/open-mabar?tanggal=' . $targetDate);
+        $responseTanggal = $this->actingAs($this->user)->get('/open-mabar/mabar-bareng?tanggal=' . $targetDate);
+        $responseTanggal->assertOk();
         $responseTanggal->assertSee('Mabar Santuy Malam Minggu');
         $responseTanggal->assertDontSee('Mabar Putri Pagi Hari');
+        $responseTanggal->assertDontSee('Mabar Menunggu Persetujuan');
+        $responseTanggal->assertDontSee('Mabar Ditolak');
+        $responseTanggal->assertDontSee('no_hp');
+        $responseTanggal->assertDontSee('081234567890');
+    }
+
+    public function test_lihat_jadwal_does_not_contain_no_hp(): void
+    {
+        $response = $this->actingAs($this->user)->get('/open-mabar');
+        $response->assertOk();
+        $response->assertDontSee('no_hp');
     }
 
     
@@ -204,8 +215,7 @@ class Fase1DTest extends TestCase
             'jam_mulai' => '19:00',
             'jam_selesai' => '21:00',
             'gender' => 'campuran',
-            'batas_usia_min' => 18,
-            'batas_usia_max' => 35,
+            'no_hp' => '081234567890',
             'kuota' => 8,
             'deskripsi' => 'Deskripsi kegiatan mabar',
             'foto' => $foto,
@@ -236,8 +246,7 @@ class Fase1DTest extends TestCase
             'jam_mulai' => '20:00',
             'jam_selesai' => '19:00',
             'gender' => 'invalid_gender',
-            'batas_usia_min' => 25,
-            'batas_usia_max' => 20,
+            'no_hp' => 'invalid_phone',
             'kuota' => 0,
         ]);
 
@@ -246,7 +255,7 @@ class Fase1DTest extends TestCase
             'tanggal',
             'jam_selesai',
             'gender',
-            'batas_usia_max',
+            'no_hp',
             'kuota',
         ]);
     }
@@ -259,6 +268,12 @@ class Fase1DTest extends TestCase
         
         $response->assertSee('Mabar Santuy Malam Minggu');
         $response->assertSee('Mabar Ditolak');
+        $response->assertDontSee('081234567890');
+
+        $responseMember = $this->actingAs($this->member)->get('/open-mabar/saya');
+        $responseMember->assertOk();
+        $responseMember->assertSee('Mabar Putra Kompetitif');
+        $responseMember->assertDontSee('081234567890');
     }
 
     
@@ -271,6 +286,35 @@ class Fase1DTest extends TestCase
 
         
         $this->actingAs($this->user)->get('/open-mabar/' . $mabarMenunggu->id_mabar)->assertForbidden();
+
+        $mabarPutra = OpenMabar::where('judul', 'Mabar Putra Kompetitif')->first();
+        $responseDetail = $this->actingAs($this->user)->get('/open-mabar/' . $mabarPutra->id_mabar);
+        $responseDetail->assertOk();
+        $responseDetail->assertDontSee('081234567890');
+    }
+
+    public function test_admin_can_see_creator_phone_number_in_admin_panel(): void
+    {
+        // Buka pertama kali: tampilkan semua status, menunggu di paling atas, no_hp terlihat
+        $response = $this->actingAs($this->admin, 'staff')->get('/admin/open-mabar');
+        $response->assertOk();
+        $response->assertSee('081234567890');
+        $response->assertSee('Mabar Menunggu Persetujuan');
+        $response->assertSee('Mabar Putra Kompetitif');
+        $response->assertSee('Mabar Ditolak');
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/OpenMabar/Index')
+            ->where('filters.status', 'semua')
+            ->where('daftarMabar.data.0.status', OpenMabar::STATUS_MENUNGGU)
+        );
+
+        // Filter status disetujui (misal Mabar Putra Kompetitif)
+        $responseDisetujui = $this->actingAs($this->admin, 'staff')->get('/admin/open-mabar?status=disetujui');
+        $responseDisetujui->assertOk();
+        $responseDisetujui->assertSee('081234567890');
+        $responseDisetujui->assertSee('Mabar Putra Kompetitif');
+        $responseDisetujui->assertDontSee('Mabar Menunggu Persetujuan');
     }
 
     
@@ -297,8 +341,7 @@ class Fase1DTest extends TestCase
             'jam_mulai' => '16:00',
             'jam_selesai' => '18:00',
             'gender' => 'putra',
-            'batas_usia_min' => 15,
-            'batas_usia_max' => 25,
+            'no_hp' => '081234567890',
             'kuota' => 8,
             'foto' => $newPhoto,
         ]);
