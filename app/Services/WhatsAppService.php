@@ -7,19 +7,37 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
-    
+    /**
+     * Kirim kode OTP untuk pendaftaran akun baru.
+     */
     public function sendOtp(string $noWhatsapp, string $otp): bool
+    {
+        $pesan = "Halo! Kode verifikasi pendaftaran Bigi Badminton Anda adalah: *{$otp}*.\n\nKode berlaku selama 10 menit. Mohon tidak membagikan kode ini kepada siapapun.";
+        return $this->sendRawMessage($noWhatsapp, $pesan, $otp);
+    }
+
+    /**
+     * Kirim kode OTP untuk reset / lupa kata sandi.
+     */
+    public function sendResetPasswordOtp(string $noWhatsapp, string $otp): bool
+    {
+        $pesan = "Halo! Kode verifikasi reset kata sandi Bigi Badminton Anda adalah: *{$otp}*.\n\nKode berlaku selama 10 menit. Jangan bagikan kode ini kepada siapapun demi keamanan akun Anda.";
+        return $this->sendRawMessage($noWhatsapp, $pesan, $otp);
+    }
+
+    /**
+     * Pengiriman pesan WhatsApp raw via gateway (Fonnte / generic).
+     */
+    public function sendRawMessage(string $noWhatsapp, string $pesan, ?string $otpForLog = null): bool
     {
         $token = config('bigi.wa_gateway_token') ?: env('WA_GATEWAY_TOKEN');
         $url = config('bigi.wa_gateway_url') ?: env('WA_GATEWAY_URL', 'https://api.fonnte.com/send');
         $provider = config('bigi.wa_gateway_provider') ?: env('WA_GATEWAY_PROVIDER', 'fonnte');
 
-        $pesan = "Halo! Kode verifikasi pendaftaran Bigi Badminton Anda adalah: *{$otp}*.\n\nKode berlaku selama 10 menit. Mohon tidak membagikan kode ini kepada siapapun.";
-
-        
         if (empty($token)) {
             if (app()->environment(['local', 'testing'])) {
-                Log::info("[DEV WA OTP] Kirim OTP ke {$noWhatsapp}: {$otp}");
+                $logContent = $otpForLog ? "OTP: {$otpForLog}" : "Pesan: {$pesan}";
+                Log::info("[DEV WA OTP] Kirim ke {$noWhatsapp}: {$logContent}");
                 return true;
             }
 
@@ -40,7 +58,7 @@ class WhatsAppService
                     ]);
 
                 if ($response->successful()) {
-                    Log::info("[WA OTP Sent] Berhasil kirim OTP ke {$noWhatsapp}");
+                    Log::info("[WA OTP Sent] Berhasil kirim pesan ke {$noWhatsapp}");
                     return true;
                 }
 
@@ -48,7 +66,6 @@ class WhatsAppService
                 return false;
             }
 
-            
             $response = Http::timeout(10)
                 ->withHeaders([
                     'Authorization' => $token,

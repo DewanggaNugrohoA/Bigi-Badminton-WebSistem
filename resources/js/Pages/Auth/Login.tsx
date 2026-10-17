@@ -147,6 +147,14 @@ export default function Login() {
                                     {errors.password}
                                 </p>
                             )}
+                            <div className="flex justify-end pt-0.5">
+                                <Link
+                                    href="/lupa-password"
+                                    className="text-xs text-[var(--brand)] hover:underline font-medium transition-colors"
+                                >
+                                    Lupa kata sandi?
+                                </Link>
+                            </div>
                         </div>
 
                         <Button

@@ -142,3 +142,13 @@
   - **Warna Aksen & Brand (`--brand`, `--primary`)**: Biru safir / kobalt royal (`#2563EB` / `#3B82F6`) untuk tombol utama, tab aktif, dan ring focus yang kontras tinggi dan hidup.
   - **Kartu & Permukaan**: Menggunakan slate navy gelap _frosted_ (`#0A1936` / `#0C1C3A`) dengan border halus (`#19325C`), memberikan kedalaman visual mewah (luxury glassmorphism) dan kontras keterbacaan data maksimal.
   - **Penyelarasan Komponen**: Header panel admin, tabel jadwal, serta elemen SVG beranda telah diselaraskan dengan palet abu-abu perak dan biru dongker pekat ini.
+
+## 17. Fitur Lupa Kata Sandi via WhatsApp OTP
+- Berdasarkan permintaan eksplisit pengguna (didukung mockup/tangkapan layar halaman login):
+  - Disediakan tautan "Lupa kata sandi?" di bawah input kata sandi (rata kanan) pada halaman login pengguna (`/login`).
+  - Alur lupa kata sandi memanfaatkan verifikasi OTP WhatsApp:
+    1. Pengguna memasukkan nomor WhatsApp terdaftar pada formulir `/lupa-password`.
+    2. Sistem memvalidasi keberadaan nomor, memformat awalan 08/62, menghasilkan kode OTP 6 digit acak yang di-hash dengan HMAC-SHA256 ke dalam tabel `password_reset_otp`, serta mengirimkan kode ke WhatsApp pengguna.
+    3. Pengguna diarahkan ke halaman `/lupa-password/verifikasi` untuk memasukkan kode OTP 6 digit dan kata sandi baru (beserta konfirmasi). Terdapat cooldown timer 60 detik untuk kirim ulang kode dan pembatasan percobaan salah maksimal 5 kali.
+    4. Setelah sukses diverifikasi, kata sandi akun pengguna diperbarui, sesi OTP dihapus, dan pengguna diarahkan ke `/login` dengan notifikasi sukses.
+  - Tabel pendukung: `password_reset_otp` (`id_reset`, `no_whatsapp`, `kode_otp`, `expires_at`, `timestamps`).

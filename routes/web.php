@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KasirController;
@@ -23,6 +24,13 @@ Route::middleware('guest:web')->group(function () {
     Route::get('/register/verifikasi', [RegisterController::class, 'verifikasiCreate'])->name('register.verifikasi');
     Route::post('/register/verifikasi', [RegisterController::class, 'verifikasiStore'])->middleware('throttle:15,1');
     Route::post('/register/kirim-ulang-otp', [RegisterController::class, 'kirimUlangOtp'])->middleware('throttle:5,1')->name('register.kirim-ulang-otp');
+
+    // Lupa kata sandi via OTP WhatsApp
+    Route::get('/lupa-password', [ResetPasswordController::class, 'showRequestForm'])->name('password.request');
+    Route::post('/lupa-password', [ResetPasswordController::class, 'sendResetOtp'])->middleware('throttle:15,1')->name('password.send');
+    Route::get('/lupa-password/verifikasi', [ResetPasswordController::class, 'showResetForm'])->name('password.verifikasi');
+    Route::post('/lupa-password/kirim-ulang-otp', [ResetPasswordController::class, 'resendOtp'])->middleware('throttle:5,1')->name('password.resend');
+    Route::post('/lupa-password/reset', [ResetPasswordController::class, 'resetPassword'])->middleware('throttle:15,1')->name('password.update');
 });
 
 // Tamu staf (karyawan belum login): Login khusus internal staf (Admin & Kasir)
