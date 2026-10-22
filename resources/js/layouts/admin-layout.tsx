@@ -37,7 +37,6 @@ import {
     playWaNotificationSound,
     isNotificationSoundEnabled,
     setNotificationSoundEnabled,
-    unlockAudio,
 } from "@/lib/sound";
 
 interface AdminLayoutProps {
@@ -222,15 +221,6 @@ export default function AdminLayout({
             clearInterval(interval);
         };
     }, [handleNewMabarNotification]);
-
-    const handleTestSound = () => {
-        unlockAudio();
-        playWaNotificationSound();
-        toast.info("Uji Coba Suara Notifikasi", {
-            description: "Suara nada notifikasi WA berhasil dibunyikan.",
-            duration: 3000,
-        });
-    };
 
     const toggleSound = () => {
         const next = !soundEnabled;
@@ -538,7 +528,7 @@ export default function AdminLayout({
 
                                 <DropdownMenuSeparator />
 
-                                <div className="pt-1.5 px-1 space-y-1">
+                                <div className="pt-1.5 px-1">
                                     <button
                                         type="button"
                                         onClick={toggleSound}
@@ -551,15 +541,6 @@ export default function AdminLayout({
                                         <span className="text-[11px] font-semibold text-muted-foreground">
                                             {soundEnabled ? "Aktif" : "Mati"}
                                         </span>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleTestSound}
-                                        className="flex items-center gap-2 w-full px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-                                    >
-                                        <Volume2 className="size-3.5 text-[var(--brand)]" />
-                                        <span>Tes Bunyi Notifikasi (WA)</span>
                                     </button>
                                 </div>
                             </DropdownMenuContent>
