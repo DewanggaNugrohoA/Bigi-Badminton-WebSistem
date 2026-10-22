@@ -394,18 +394,18 @@ export default function LaporanIndex({
         >
             <Head title="Laporan - Bigi Badminton" />
 
-            <div className="hidden print:block mb-6 border-b border-border pb-4">
+            <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight text-foreground">
-                            Bigi Badminton - Laporan Eksekutif
+                        <h1 className="text-xl font-bold tracking-tight text-black">
+                            BIGI BADMINTON - LAPORAN EKSEKUTIF
                         </h1>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs text-black mt-1 font-medium">
                             Periode: {formatTanggal(filters.start_date)} s.d. {formatTanggal(filters.end_date)}
                         </p>
                     </div>
-                    <div className="text-right text-[11px] text-muted-foreground">
-                        <p>Dicetak oleh: {auth?.user?.nama || "Admin"}</p>
+                    <div className="text-right text-[11px] text-black">
+                        <p className="font-semibold">Dicetak oleh: {auth?.user?.nama || "Admin"}</p>
                         <p>Waktu cetak: {printTimestamp}</p>
                     </div>
                 </div>
@@ -1117,58 +1117,58 @@ export default function LaporanIndex({
 
 
                     <TabsContent value="keuangan" className="space-y-10 pt-4">
-                        <div className="border border-border p-5 sm:p-6 bg-card">
-                            <div className="border-b border-border pb-3 mb-4">
-                                <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                        <div className="border border-border p-5 sm:p-6 bg-card print:border-black print:border print:bg-white print:p-4">
+                            <div className="border-b border-border pb-3 mb-4 print:border-b-2 print:border-black">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-foreground print:text-black">
                                     Ringkasan Keuangan
                                 </h2>
                             </div>
 
                             <div className="space-y-6 text-xs">
                                 <div>
-                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider pb-1 mb-2 border-b border-border/40">
+                                    <div className="text-xs font-bold text-foreground print:text-black uppercase tracking-wider pb-1 mb-2 border-b border-border/60 print:border-b print:border-black">
                                         Pendapatan
                                     </div>
-                                    <div className="divide-y divide-border/40">
+                                    <div className="divide-y divide-border/40 print:divide-slate-300">
                                         <div className="flex justify-between py-2 items-center">
-                                            <span className="text-foreground">Pendapatan POS</span>
-                                            <span className="tabular-nums font-medium text-foreground">
+                                            <span className="text-foreground font-medium print:text-black">Pendapatan POS</span>
+                                            <span className="tabular-nums font-semibold text-foreground print:text-black">
                                                 {formatRupiah(ringkasan.pendapatan_pos)}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between py-1.5 items-center pl-4 text-muted-foreground">
+                                        <div className="flex justify-between py-1.5 items-center pl-4 text-foreground/80 print:text-black">
                                             <span>Tunai</span>
-                                            <span className="tabular-nums">
+                                            <span className="tabular-nums font-medium">
                                                 {formatRupiah(ringkasan.pos_tunai)}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between py-1.5 items-center pl-4 text-muted-foreground">
+                                        <div className="flex justify-between py-1.5 items-center pl-4 text-foreground/80 print:text-black">
                                             <span>QRIS</span>
-                                            <span className="tabular-nums">
+                                            <span className="tabular-nums font-medium">
                                                 {formatRupiah(ringkasan.pos_qris)}
                                             </span>
                                         </div>
                                         <div className="flex justify-between py-2 items-center pt-3">
-                                            <span className="text-foreground">Pendapatan Sewa Lapangan</span>
-                                            <span className="tabular-nums font-medium text-foreground">
+                                            <span className="text-foreground font-medium print:text-black">Pendapatan Sewa Lapangan</span>
+                                            <span className="tabular-nums font-semibold text-foreground print:text-black">
                                                 {formatRupiah(ringkasan.pendapatan_sewa_lapangan)}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between py-1.5 items-center pl-4 text-muted-foreground">
+                                        <div className="flex justify-between py-1.5 items-center pl-4 text-foreground/80 print:text-black">
                                             <span>DP</span>
-                                            <span className="tabular-nums">
+                                            <span className="tabular-nums font-medium">
                                                 {formatRupiah(ringkasan.pembayaran_sewa_breakdown?.dp || 0)}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between py-1.5 items-center pl-4 text-muted-foreground">
+                                        <div className="flex justify-between py-1.5 items-center pl-4 text-foreground/80 print:text-black">
                                             <span>Lunas</span>
-                                            <span className="tabular-nums">
+                                            <span className="tabular-nums font-medium">
                                                 {formatRupiah(ringkasan.pembayaran_sewa_breakdown?.lunas || 0)}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between py-3 items-center border-t-2 border-foreground/30 mt-2 font-semibold">
-                                            <span className="text-foreground text-sm">Total Pendapatan (POS + Sewa)</span>
-                                            <span className="tabular-nums text-sm text-foreground">
+                                        <div className="flex justify-between py-3 items-center border-t-2 border-foreground/30 print:border-black mt-2 font-bold text-sm">
+                                            <span className="text-foreground print:text-black">Total Pendapatan (POS + Sewa)</span>
+                                            <span className="tabular-nums text-foreground print:text-black font-extrabold">
                                                 {formatRupiah(totalPendapatan)}
                                             </span>
                                         </div>
@@ -1176,24 +1176,24 @@ export default function LaporanIndex({
                                 </div>
 
                                 <div>
-                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider pb-1 mb-2 border-b border-border/40">
+                                    <div className="text-xs font-bold text-foreground print:text-black uppercase tracking-wider pb-1 mb-2 border-b border-border/60 print:border-b print:border-black">
                                         Koreksi Kas
                                     </div>
-                                    <div className="divide-y divide-border/40">
+                                    <div className="divide-y divide-border/40 print:divide-slate-300">
                                         <div className="flex justify-between py-2 items-center">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-foreground">Total Nilai Void / Retur</span>
-                                                <span className="text-[11px] text-muted-foreground">
+                                                <span className="text-foreground font-medium print:text-black">Total Nilai Void / Retur</span>
+                                                <span className="text-[11px] text-foreground/70 print:text-black">
                                                     ({ringkasan.jumlah_void_retur} kasus)
                                                 </span>
                                             </div>
-                                            <span className="tabular-nums font-medium text-foreground">
+                                            <span className="tabular-nums font-semibold text-foreground print:text-black">
                                                 {formatRupiah(ringkasan.total_nominal_void_retur)}
                                             </span>
                                         </div>
                                         <div className="flex justify-between py-2 items-center">
-                                            <span className="text-foreground">Total Selisih Kas Shift</span>
-                                            <span className="tabular-nums font-medium text-foreground">
+                                            <span className="text-foreground font-medium print:text-black">Total Selisih Kas Shift</span>
+                                            <span className="tabular-nums font-semibold text-foreground print:text-black">
                                                 {formatRupiah(ringkasan.total_selisih_kas_shift)}
                                             </span>
                                         </div>
@@ -1201,19 +1201,19 @@ export default function LaporanIndex({
                                 </div>
 
                                 <div>
-                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider pb-1 mb-2 border-b border-border/40">
+                                    <div className="text-xs font-bold text-foreground print:text-black uppercase tracking-wider pb-1 mb-2 border-b border-border/60 print:border-b print:border-black">
                                         Di Luar Total Pendapatan
                                     </div>
-                                    <div className="divide-y divide-border/40">
+                                    <div className="divide-y divide-border/40 print:divide-slate-300">
                                         <div className="flex justify-between py-2 items-center">
-                                            <span className="text-foreground">Piutang Sewa (Belum Lunas)</span>
-                                            <span className="tabular-nums font-medium text-foreground">
+                                            <span className="text-foreground font-medium print:text-black">Piutang Sewa (Belum Lunas)</span>
+                                            <span className="tabular-nums font-semibold text-foreground print:text-black">
                                                 {formatRupiah(ringkasan.sisa_tagihan_belum_lunas)}
                                             </span>
                                         </div>
                                         <div className="flex justify-between py-2 items-center">
-                                            <span className="text-foreground">DP Reservasi Batal</span>
-                                            <span className="tabular-nums font-medium text-foreground">
+                                            <span className="text-foreground font-medium print:text-black">DP Reservasi Batal</span>
+                                            <span className="tabular-nums font-semibold text-foreground print:text-black">
                                                 {formatRupiah(ringkasan.dp_reservasi_batal)}
                                             </span>
                                         </div>
@@ -1221,35 +1221,35 @@ export default function LaporanIndex({
                                 </div>
                             </div>
 
-                            <div className="mt-6 pt-3 border-t border-border">
-                                <p className="text-[11px] text-muted-foreground">
+                            <div className="mt-6 pt-3 border-t border-border print:border-black">
+                                <p className="text-[11px] text-foreground/80 print:text-black">
                                     Catatan: Piutang sewa belum lunas dan DP reservasi batal tidak termasuk ke dalam kalkulasi total pendapatan.
                                 </p>
                             </div>
                         </div>
 
                         <div>
-                            <div className="border-b border-border pb-2 mb-3">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            <div className="border-b border-border pb-2 mb-3 print:border-b-2 print:border-black">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground print:text-black">
                                     Rincian Metode Pembayaran Sewa Lapangan
                                 </h3>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border border border-border bg-card">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border border border-border bg-card print:border-black print:divide-black">
                                 <div className="p-4">
-                                    <div className="text-[11px] text-muted-foreground">Transfer Bank</div>
-                                    <div className="text-sm font-semibold text-foreground mt-1 tabular-nums">
+                                    <div className="text-xs font-semibold text-foreground/80 print:text-black uppercase tracking-wider">Transfer Bank</div>
+                                    <div className="text-sm font-bold text-foreground print:text-black mt-1 tabular-nums">
                                         {formatRupiah(ringkasan.pembayaran_sewa_breakdown?.transfer || 0)}
                                     </div>
                                 </div>
                                 <div className="p-4">
-                                    <div className="text-[11px] text-muted-foreground">Tunai</div>
-                                    <div className="text-sm font-semibold text-foreground mt-1 tabular-nums">
+                                    <div className="text-xs font-semibold text-foreground/80 print:text-black uppercase tracking-wider">Tunai</div>
+                                    <div className="text-sm font-bold text-foreground print:text-black mt-1 tabular-nums">
                                         {formatRupiah(ringkasan.pembayaran_sewa_breakdown?.tunai || 0)}
                                     </div>
                                 </div>
                                 <div className="p-4">
-                                    <div className="text-[11px] text-muted-foreground">QRIS</div>
-                                    <div className="text-sm font-semibold text-foreground mt-1 tabular-nums">
+                                    <div className="text-xs font-semibold text-foreground/80 print:text-black uppercase tracking-wider">QRIS</div>
+                                    <div className="text-sm font-bold text-foreground print:text-black mt-1 tabular-nums">
                                         {formatRupiah(ringkasan.pembayaran_sewa_breakdown?.qris || 0)}
                                     </div>
                                 </div>
@@ -1407,7 +1407,7 @@ export default function LaporanIndex({
                                                         </TableCell>
                                                         <TableCell className="text-center whitespace-nowrap">
                                                             {shift.status === "ditutup" ? (
-                                                                <Badge variant={badgeVariant} className="text-[11px] py-0 px-2 font-mono">
+                                                                <Badge variant="outline" className="text-[11px] py-0 px-2 font-mono font-semibold border-border text-foreground">
                                                                     {badgeLabel}
                                                                 </Badge>
                                                             ) : (
@@ -1416,8 +1416,8 @@ export default function LaporanIndex({
                                                         </TableCell>
                                                         <TableCell className="text-center whitespace-nowrap">
                                                             <Badge
-                                                                variant={shift.status === "ditutup" ? "neutral" : "info"}
-                                                                className="text-[11px] py-0 px-2 uppercase"
+                                                                variant="outline"
+                                                                className="text-[11px] py-0 px-2 uppercase font-medium border-border text-foreground"
                                                             >
                                                                 {shift.status}
                                                             </Badge>
@@ -1500,8 +1500,8 @@ export default function LaporanIndex({
                                                     </TableCell>
                                                     <TableCell className="text-center whitespace-nowrap">
                                                         <Badge
-                                                            variant={item.jenis === "void" ? "danger" : "warning"}
-                                                            className="text-[11px] py-0 px-2 uppercase font-mono"
+                                                            variant="outline"
+                                                            className="text-[11px] py-0 px-2 uppercase font-mono font-bold border-border text-foreground"
                                                         >
                                                             {item.jenis}
                                                         </Badge>
@@ -1516,7 +1516,7 @@ export default function LaporanIndex({
                                                         {formatTanggal(item.tanggal)} {formatJam(item.tanggal.substring(11, 16))}
                                                     </TableCell>
                                                     <TableCell className="text-center whitespace-nowrap">
-                                                        <Badge variant="neutral" className="text-[11px] py-0 px-2">
+                                                        <Badge variant="outline" className="text-[11px] py-0 px-2 border-border text-foreground">
                                                             Dicatat kasir
                                                         </Badge>
                                                     </TableCell>
@@ -1685,8 +1685,8 @@ export default function LaporanIndex({
                                                         </TableCell>
                                                         <TableCell className="text-center whitespace-nowrap">
                                                             <Badge
-                                                                variant={item.selisih === 0 ? "success" : item.selisih < 0 ? "danger" : "warning"}
-                                                                className="text-[11px] py-0 px-2 font-mono"
+                                                                variant="outline"
+                                                                className="text-[11px] py-0 px-2 font-mono font-semibold border-border text-foreground"
                                                             >
                                                                 {item.selisih > 0 ? `+${item.selisih}` : item.selisih}
                                                             </Badge>
@@ -1776,8 +1776,8 @@ export default function LaporanIndex({
                                                     </TableCell>
                                                     <TableCell className="text-center whitespace-nowrap">
                                                         <Badge
-                                                            variant={item.stok === 0 ? "danger" : "warning"}
-                                                            className="text-[11px] py-0 px-2"
+                                                            variant="outline"
+                                                            className="text-[11px] py-0 px-2 border-border text-foreground font-semibold"
                                                         >
                                                             {item.stok === 0 ? "Habis" : "Menipis"}
                                                         </Badge>

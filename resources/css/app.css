@@ -210,24 +210,90 @@
 }
 
 @media print {
+  /* Sembunyikan elemen navigasi, sidebar, header app, notifikasi, dan tombol interaktif */
   header,
   aside,
   nav,
+  button,
+  a[href*="/ekspor"],
   [data-slot="sidebar"],
   [data-sonner-toaster],
-  .no-print {
+  .no-print,
+  .print\:hidden {
     display: none !important;
   }
 
+  /* Reset halaman: flat hitam putih murni (100% monochrome formal) */
   html, body {
     background: #ffffff !important;
-    color: #0f172a !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
+  /* Seluruh teks dipaksa hitam pekat murni, hilangkan semua pewarnaan */
+  *, *::before, *::after {
+    color: #000000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: #000000 !important;
+  }
+
+  /* Latar belakang datar putih bersih tanpa warna atau gradasi */
+  body, main, div, section, article, table, thead, tbody, tr, th, td {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    background-image: none !important;
+  }
+
+  /* Garis border hitam bersih dan terstruktur */
+  .border,
+  .border-b,
+  .border-t,
+  .border-l,
+  .border-r,
+  [class*="border"] {
+    border-color: #000000 !important;
+  }
+
+  /* Header tabel formal laporan: teks tebal hitam, garis bawah tebal */
+  th, [data-slot="table-head"] {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    background-color: #ffffff !important;
+    border-bottom: 2px solid #000000 !important;
+    text-transform: uppercase;
+  }
+
+  td, [data-slot="table-cell"] {
+    color: #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+  }
+
+  /* Badge dan tag status: flat monokrom dengan border hitam bersih */
+  [data-slot="badge"],
+  .badge {
+    background: transparent !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 2px !important;
+    font-weight: 600 !important;
+    padding: 1px 4px !important;
+  }
+
+  /* Tata letak laporan mencakup penuh lebar kertas */
   main {
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
     width: 100% !important;
+  }
+
+  @page {
+    margin: 12mm 15mm;
+    size: auto;
   }
 }
