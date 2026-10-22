@@ -70,6 +70,8 @@ Route::middleware(['auth:web', 'role:user,web'])->group(function () {
     Route::get('/pengaturan/akun', [\App\Http\Controllers\AkunController::class, 'edit'])->name('pengaturan.akun');
     Route::put('/pengaturan/akun/profil', [\App\Http\Controllers\AkunController::class, 'updateProfil'])->name('pengaturan.akun.profil');
     Route::put('/pengaturan/akun/password', [\App\Http\Controllers\AkunController::class, 'updatePassword'])->name('pengaturan.akun.password');
+    Route::post('/pengaturan/akun/lupa-password/kirim-otp', [\App\Http\Controllers\AkunController::class, 'kirimOtpLupaPassword'])->name('pengaturan.akun.lupa-password.kirim-otp');
+    Route::post('/pengaturan/akun/lupa-password/verifikasi', [\App\Http\Controllers\AkunController::class, 'verifikasiOtpLupaPassword'])->name('pengaturan.akun.lupa-password.verifikasi');
 });
 
 // =========================================================================
@@ -143,8 +145,5 @@ Route::middleware('auth:staff')->group(function () {
 
         Route::get('/kasir/opname', [KasirController::class, 'opnameIndex'])->name('kasir.opname.index');
         Route::post('/kasir/opname', [KasirController::class, 'opnameStore'])->name('kasir.opname.store');
-
-        Route::get('/kasir/void', [KasirController::class, 'voidIndex'])->name('kasir.void.index');
-        Route::post('/kasir/void', [KasirController::class, 'voidStore'])->name('kasir.void.store');
     });
 });

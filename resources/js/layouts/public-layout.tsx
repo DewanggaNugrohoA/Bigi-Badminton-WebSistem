@@ -1,5 +1,6 @@
 import { Head, usePage } from "@inertiajs/react";
 import { ReactNode, useEffect, useRef } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { SiteNavbar } from "@/components/site-navbar";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
@@ -30,6 +31,8 @@ export default function PublicLayout({
     className,
 }: PublicLayoutProps) {
     const { flash } = usePage<SharedProps>().props;
+    const { url } = usePage();
+    const prefersReducedMotion = useReducedMotion();
     const lastFlash = useRef<{ success?: string | null; error?: string | null }>({});
 
     useEffect(() => {
@@ -59,14 +62,18 @@ export default function PublicLayout({
 
             {title && <Head title={title} />}
             <SiteNavbar />
-            <main
+            <motion.main
+                key={url ? url.split("?")[0] : "page"}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
                     "flex-1 relative z-0",
                     !showFooter && "flex flex-col min-h-0 overflow-hidden"
                 )}
             >
                 {children}
-            </main>
+            </motion.main>
             {showFooter && <SiteFooter />}
             <FloatingChat />
             <Toaster position="top-right" richColors />

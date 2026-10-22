@@ -7,7 +7,6 @@ import {
     Package,
     Boxes,
     ClipboardCheck,
-    Ban,
     Menu,
     LogOut,
     Sun,
@@ -74,7 +73,6 @@ interface MenuGroup {
  * Definisi grup navigasi sidebar Panel Kasir:
  * - Transaksi: Antarmuka kasir penjualan POS, shift kerja, dan riwayat struk
  * - Inventori: Katalog master produk, penambahan stok (restock), dan opname berkala
- * - Koreksi: Form pembatalan transaksi (void/retur) barang
  */
 const MENU_GROUPS: MenuGroup[] = [
     {
@@ -91,12 +89,6 @@ const MENU_GROUPS: MenuGroup[] = [
             { title: "Produk", href: "/kasir/produk", icon: Package },
             { title: "Restock", href: "/kasir/restock", icon: Boxes },
             { title: "Stok Opname", href: "/kasir/opname", icon: ClipboardCheck },
-        ],
-    },
-    {
-        title: "Koreksi",
-        items: [
-            { title: "Void/Retur", href: "/kasir/void", icon: Ban },
         ],
     },
 ];

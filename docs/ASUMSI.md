@@ -152,3 +152,10 @@
     3. Pengguna diarahkan ke halaman `/lupa-password/verifikasi` untuk memasukkan kode OTP 6 digit dan kata sandi baru (beserta konfirmasi). Terdapat cooldown timer 60 detik untuk kirim ulang kode dan pembatasan percobaan salah maksimal 5 kali.
     4. Setelah sukses diverifikasi, kata sandi akun pengguna diperbarui, sesi OTP dihapus, dan pengguna diarahkan ke `/login` dengan notifikasi sukses.
   - Tabel pendukung: `password_reset_otp` (`id_reset`, `no_whatsapp`, `kode_otp`, `expires_at`, `timestamps`).
+
+## 18. Penghapusan Menu & Rute Void/Retur Kasir
+- Berdasarkan permintaan eksplisit pengguna:
+  - Menu navigasi "Koreksi -> Void/Retur" pada sidebar Panel Kasir (`resources/js/layouts/kasir-layout.tsx`) telah dihapus.
+  - Halaman antarmuka kasir untuk void/retur (`resources/js/Pages/Kasir/Void/Index.tsx`) telah dihapus.
+  - Rute HTTP `/kasir/void` (`GET` dan `POST`) pada `routes/web.php` serta method pendukung di `KasirController` telah dihapus.
+  - Model `ReturVoid` dan tabel database `retur_void` tetap dipertahankan untuk integritas data audit dan laporan keuangan internal.

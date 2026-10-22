@@ -91,7 +91,7 @@ export const APP_CONTENT = {
             deskripsi: 'Fasilitas sanitasi yang selalu dirawat berkala demi kenyamanan para pemain.',
         },
         {
-            judul: 'Free Wi-Fi Berkecepatan Tinggi',
+            judul: 'Wi-Fi Gratis Berkecepatan Tinggi',
             deskripsi: 'Akses internet nirkabel gratis untuk pemain dan pengunjung.',
         },
     ] as FasilitasItem[],

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MabarImage } from "@/components/mabar-image";
-import { Calendar, Clock, Users, User, Filter, RotateCcw, PlusCircle, ArrowRight } from "lucide-react";
+import { Calendar, Clock, Users, User, Filter, RotateCcw, PlusCircle, ArrowRight, Sparkles } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface JadwalItem {
     id_mabar: number;
@@ -48,6 +49,7 @@ interface IndexProps {
 }
 
 export default function MabarBareng({ jadwal, filters }: IndexProps) {
+    const prefersReducedMotion = useReducedMotion();
     const [tanggal, setTanggal] = useState(filters.tanggal || "");
     const [gender, setGender] = useState(filters.gender || "");
 
@@ -98,29 +100,71 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
 
     return (
         <PublicLayout title="Mabar Bareng - Bigi Badminton">
-            <div className="pt-28 pb-16 px-4 sm:px-6 max-w-6xl mx-auto space-y-6">
-                
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-                            Mabar Bareng
-                        </h1>
-                        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                            Gabung mabar yang sudah tersedia dan temukan teman main badminton.
-                        </p>
-                    </div>
-                    <div className="shrink-0">
-                        <Link href="/open-mabar/create">
-                            <Button className="h-10 px-5 text-sm font-semibold gap-2 bg-[var(--brand)] hover:opacity-90 shadow-xs">
-                                <PlusCircle className="size-4" />
-                                <span>Buat Jadwal</span>
-                            </Button>
-                        </Link>
-                    </div>
+            <div className="relative overflow-hidden w-full">
+                {/* Atmospheric Background Court Layers (Terkurung rapi hanya di halaman ini) */}
+                <div className="absolute inset-0 size-full pointer-events-none overflow-hidden select-none -z-10">
+                    <img
+                        src="/images/hero-bright-court.jpg"
+                        alt="Bigi Court"
+                        className="size-full object-cover object-[center_35%] opacity-10 filter blur-[0.5px]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/95 to-background" />
+                    <div className="absolute -top-32 -left-32 size-[450px] bg-sky-500/10 rounded-full blur-3xl" />
+                    <div className="absolute top-1/2 -right-32 size-[450px] bg-indigo-500/10 rounded-full blur-3xl" />
                 </div>
 
+                <div className="pt-28 pb-16 px-4 sm:px-6 max-w-6xl mx-auto space-y-6 sm:space-y-8 relative z-10">
                 
-                <div className="bg-card/90 backdrop-blur-sm border border-border/80 rounded-xl p-4 sm:p-5 shadow-xs">
+                {/* Hero Header Banner Mabar Bareng dengan Foto Lapangan */}
+                <motion.div
+                    initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-sky-500/25 bg-slate-950 p-6 sm:p-8 lg:p-10 text-white shadow-xl"
+                >
+                    {/* Background Foto Lapangan & Overlay Gradien Gelap */}
+                    <div className="absolute inset-0 size-full pointer-events-none overflow-hidden select-none z-0">
+                        <img
+                            src="/images/hero-bright-court.jpg"
+                            alt="Lapangan Bigi Badminton"
+                            className="size-full object-cover object-[center_28%] opacity-35 brightness-95"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/35" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/60 to-transparent" />
+                        
+                        {/* Ambient Glows */}
+                        <div className="absolute -top-16 -left-16 size-64 bg-sky-500/25 rounded-full blur-3xl" />
+                        <div className="absolute -bottom-16 -right-16 size-64 bg-indigo-500/25 rounded-full blur-3xl" />
+                    </div>
+
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div className="max-w-2xl space-y-2.5 text-left">
+                            <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white drop-shadow-md">
+                                Mabar Bareng{" "}
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-blue-200 to-indigo-200">
+                                    Bigi Badminton
+                                </span>
+                            </h1>
+
+                            <p className="text-white/85 text-xs sm:text-sm leading-relaxed max-w-xl font-normal drop-shadow-sm">
+                                Temukan lawan dan kawan bertanding badminton di Lapangan 1 &amp; 2 GOR Bigi. Pilih jadwal sesi mabar di bawah atau buat jadwal Anda sendiri!
+                            </p>
+                        </div>
+
+                        <div className="shrink-0 flex items-center gap-3">
+                            <Link href="/open-mabar/create" className="w-full sm:w-auto">
+                                <Button className="w-full sm:w-auto h-11 px-6 rounded-full font-bold text-xs sm:text-sm gap-2 bg-white text-slate-950 hover:bg-slate-100 shadow-xl active:scale-95 transition-all">
+                                    <PlusCircle className="size-4" />
+                                    <span>Buat Jadwal Baru</span>
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </motion.div>
+
+                
+                {/* Form Filter Pencarian Jadwal */}
+                <div className="bg-card/90 backdrop-blur-sm border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs">
                     <form onSubmit={handleFilter} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-end">
                         <div className="sm:col-span-1 lg:col-span-4 space-y-1.5 text-left">
                             <Label htmlFor="tanggal" className="text-xs font-semibold text-foreground/80">
@@ -195,12 +239,16 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {jadwal.data.map((item) => {
+                        {jadwal.data.map((item, idx) => {
                             const isPenuh = item.peserta_terdaftar_count >= item.kuota;
                             return (
-                                <div
+                                <motion.div
                                     key={item.id_mabar}
-                                    className="bg-card border border-border/80 rounded-xl p-5 hover:border-[var(--brand)]/40 hover:shadow-sm shadow-xs transition-colors flex flex-col justify-between h-full text-left"
+                                    initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.4, delay: (idx % 6) * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                                    whileHover={prefersReducedMotion ? {} : { y: -5, transition: { duration: 0.25, ease: "easeOut" } }}
+                                    className="bg-card/95 backdrop-blur-md border border-border/80 rounded-2xl p-5 hover:border-[var(--brand)]/50 hover:shadow-xl hover:shadow-[var(--brand)]/10 transition-all duration-300 flex flex-col justify-between h-full text-left"
                                 >
                                     <div>
                                         
@@ -269,7 +317,7 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
                                             <ArrowRight className="size-3.5" />
                                         </Button>
                                     </Link>
-                                </div>
+                                </motion.div>
                             );
                         })}
                     </div>
@@ -314,6 +362,7 @@ export default function MabarBareng({ jadwal, filters }: IndexProps) {
                         })}
                     </div>
                 )}
+            </div>
             </div>
         </PublicLayout>
     );

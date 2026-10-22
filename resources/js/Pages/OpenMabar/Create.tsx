@@ -83,11 +83,22 @@ export default function OpenMabarCreate({ lapangan, initial }: CreateProps) {
             <div className="pt-28 pb-24 px-4 sm:px-6 max-w-6xl mx-auto space-y-6">
                 <div>
                     <Link
-                        href="/open-mabar"
+                        href="/open-mabar/saya"
+                        onClick={(e) => {
+                            if (
+                                typeof window !== "undefined" &&
+                                window.history.length > 1 &&
+                                document.referrer &&
+                                document.referrer.includes(window.location.host)
+                            ) {
+                                e.preventDefault();
+                                window.history.back();
+                            }
+                        }}
                         className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground mb-3 transition-colors"
                     >
                         <ArrowLeft className="size-3.5" />
-                        <span>Kembali ke Lihat Jadwal</span>
+                        <span>Kembali ke Jadwal Saya</span>
                     </Link>
                     <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
                         Buat Jadwal Open Mabar
