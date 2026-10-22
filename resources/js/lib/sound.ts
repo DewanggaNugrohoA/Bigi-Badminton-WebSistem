@@ -8,6 +8,7 @@
 const STORAGE_KEY_SOUND = "admin_notif_sound_enabled";
 
 let sharedAudioContext: AudioContext | null = null;
+let sharedAudioElement: HTMLAudioElement | null = null;
 let isAudioUnlocked = false;
 
 function getAudioContext(): AudioContext | null {
@@ -26,42 +27,50 @@ function getAudioContext(): AudioContext | null {
     }
 }
 
+function getSharedAudioElement(): HTMLAudioElement | null {
+    if (typeof window === "undefined") return null;
+    if (!sharedAudioElement) {
+        try {
+            sharedAudioElement = new Audio("/sounds/wa-notification.wav");
+            sharedAudioElement.volume = 0.9;
+            sharedAudioElement.preload = "auto";
+        } catch {
+            return null;
+        }
+    }
+    return sharedAudioElement;
+}
+
 /**
  * Membuka izin audio browser (Autoplay Policy) pada interaksi pertama pengguna.
  */
 export function unlockAudio(): void {
-    if (isAudioUnlocked || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
 
     const ctx = getAudioContext();
-    if (ctx) {
-        if (ctx.state === "suspended") {
-            ctx.resume().then(() => {
-                isAudioUnlocked = true;
-            }).catch(() => {});
-        } else {
+    if (ctx && ctx.state === "suspended") {
+        ctx.resume().then(() => {
             isAudioUnlocked = true;
-        }
+        }).catch(() => {});
     }
 
-    // Buat dummy audio sebentar untuk membuka hak audio HTML5
-    try {
-        const dummy = new Audio();
-        dummy.volume = 0;
-        dummy.play().catch(() => {});
-    } catch {}
+    const audio = getSharedAudioElement();
+    if (audio) {
+        try {
+            audio.load();
+        } catch {}
+    }
 }
 
 if (typeof window !== "undefined") {
-    const handleFirstInteraction = () => {
+    const handleInteraction = () => {
         unlockAudio();
-        window.removeEventListener("click", handleFirstInteraction);
-        window.removeEventListener("keydown", handleFirstInteraction);
-        window.removeEventListener("touchstart", handleFirstInteraction);
     };
 
-    window.addEventListener("click", handleFirstInteraction, { passive: true, once: true });
-    window.addEventListener("keydown", handleFirstInteraction, { passive: true, once: true });
-    window.addEventListener("touchstart", handleFirstInteraction, { passive: true, once: true });
+    window.addEventListener("click", handleInteraction, { passive: true });
+    window.addEventListener("keydown", handleInteraction, { passive: true });
+    window.addEventListener("touchstart", handleInteraction, { passive: true });
+    window.addEventListener("pointerdown", handleInteraction, { passive: true });
 }
 
 /**
@@ -91,7 +100,7 @@ export function setNotificationSoundEnabled(enabled: boolean): void {
  * Sintesis nada WhatsApp menggunakan Web Audio API murni.
  * Menghasilkan nada 2-chime harmonik (C6 -> G6) khas notifikasi perpesanan instan.
  */
-function playSynthesizedWaChime(): void {
+export function playSynthesizedWaChime(): void {
     const ctx = getAudioContext();
     if (!ctx) return;
 
@@ -142,24 +151,26 @@ export function playWaNotificationSound(): Promise<void> {
         return Promise.resolve();
     }
 
+    unlockAudio();
+
     return new Promise((resolve) => {
-        try {
-            const audio = new Audio("/sounds/wa-notification.wav");
-            audio.volume = 0.85;
+        const audio = getSharedAudioElement();
+        if (audio) {
+            audio.currentTime = 0;
             const playPromise = audio.play();
 
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => resolve())
                     .catch(() => {
-                        // Jika Audio element gagal (misal file belum termuat atau error codec), gunakan synth
+                        // Jika Audio element gagal (misal Autoplay policy), fallback ke synth
                         playSynthesizedWaChime();
                         resolve();
                     });
             } else {
                 resolve();
             }
-        } catch {
+        } else {
             playSynthesizedWaChime();
             resolve();
         }

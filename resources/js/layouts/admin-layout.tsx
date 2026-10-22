@@ -146,7 +146,9 @@ export default function AdminLayout({
     const [isDark, setIsDark] = useState(true);
     const [pendingMabarCount, setPendingMabarCount] = useState<number>(0);
     const [soundEnabled, setSoundEnabled] = useState<boolean>(() => isNotificationSoundEnabled());
+    const isInitializedRef = useRef<boolean>(false);
     const lastKnownIdRef = useRef<number | null>(null);
+    const lastCountRef = useRef<number | null>(null);
 
     const handleNewMabarNotification = useCallback((data: MabarNotificationPayload) => {
         playWaNotificationSound();
@@ -165,7 +167,8 @@ export default function AdminLayout({
         "MabarDiajukan",
         (payload) => {
             if (payload && payload.id_mabar) {
-                if (lastKnownIdRef.current === null || payload.id_mabar > lastKnownIdRef.current) {
+                const currentLastId = lastKnownIdRef.current ?? 0;
+                if (payload.id_mabar > currentLastId) {
                     lastKnownIdRef.current = payload.id_mabar;
                     setPendingMabarCount((prev) => prev + 1);
                     handleNewMabarNotification(payload);
@@ -179,7 +182,7 @@ export default function AdminLayout({
     useEffect(() => {
         let isMounted = true;
 
-        const checkPendingMabar = async (isInitial = false) => {
+        const checkPendingMabar = async () => {
             try {
                 const res = await fetch("/admin/open-mabar/notifikasi", {
                     headers: {
@@ -191,34 +194,54 @@ export default function AdminLayout({
                 const data: { pending_count: number; latest: MabarNotificationPayload | null } = await res.json();
                 if (!isMounted) return;
 
+                // Jika pertama kali halaman dimuat, inisialisasi baseline tanpa membunyikan suara
+                if (!isInitializedRef.current) {
+                    isInitializedRef.current = true;
+                    lastKnownIdRef.current = data.latest ? data.latest.id_mabar : 0;
+                    lastCountRef.current = data.pending_count;
+                    setPendingMabarCount(data.pending_count);
+                    return;
+                }
+
+                const latestId = data.latest ? data.latest.id_mabar : 0;
+                const prevId = lastKnownIdRef.current ?? 0;
+                const prevCount = lastCountRef.current ?? 0;
+
+                const isNewArrival =
+                    (latestId > 0 && latestId > prevId) ||
+                    (data.pending_count > prevCount && latestId > 0);
+
+                lastKnownIdRef.current = Math.max(latestId, prevId);
+                lastCountRef.current = data.pending_count;
                 setPendingMabarCount(data.pending_count);
 
-                if (data.latest && data.latest.id_mabar) {
-                    if (isInitial) {
-                        lastKnownIdRef.current = data.latest.id_mabar;
-                    } else if (lastKnownIdRef.current !== null && data.latest.id_mabar > lastKnownIdRef.current) {
-                        lastKnownIdRef.current = data.latest.id_mabar;
-                        handleNewMabarNotification(data.latest);
-                    } else if (lastKnownIdRef.current === null) {
-                        lastKnownIdRef.current = data.latest.id_mabar;
-                    }
+                if (isNewArrival && data.latest) {
+                    handleNewMabarNotification(data.latest);
                 }
             } catch {
-                // Ignore network hiccup during background polling
+                // Abaikan jika ada gangguan koneksi sementara
             }
         };
 
-        checkPendingMabar(true);
+        checkPendingMabar();
 
+        // Polling berkala setiap 5 detik
         const interval = setInterval(() => {
+            checkPendingMabar();
+        }, 5000);
+
+        // Langsung cek seketika saat admin membuka/beralih kembali ke tab ini
+        const handleVisibilityChange = () => {
             if (typeof document !== "undefined" && document.visibilityState === "visible") {
-                checkPendingMabar(false);
+                checkPendingMabar();
             }
-        }, 7000);
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
 
         return () => {
             isMounted = false;
             clearInterval(interval);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
     }, [handleNewMabarNotification]);
 
@@ -477,7 +500,7 @@ export default function AdminLayout({
                                         type="button"
                                         variant="outline"
                                         size="icon"
-                                        className="relative size-9"
+                                        className="relative size-9 !overflow-visible"
                                         aria-label="Notifikasi Pengajuan Open Mabar"
                                     >
                                         {pendingMabarCount > 0 ? (
@@ -486,7 +509,7 @@ export default function AdminLayout({
                                             <Bell className="size-4 text-muted-foreground" />
                                         )}
                                         {pendingMabarCount > 0 && (
-                                            <span className="absolute -top-1 -right-1 size-4 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-xs">
+                                            <span className="pointer-events-none absolute -top-1.5 -right-1.5 min-w-4.5 h-4.5 px-1 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs ring-2 ring-background z-20 leading-none">
                                                 {pendingMabarCount > 9 ? "9+" : pendingMabarCount}
                                             </span>
                                         )}
