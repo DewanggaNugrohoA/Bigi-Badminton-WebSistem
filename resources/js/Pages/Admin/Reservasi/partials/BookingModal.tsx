@@ -116,38 +116,9 @@ export default function BookingModal({
                         <form onSubmit={submitRegular} className="space-y-4">
                             
                             <div className="space-y-1.5">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="nama_pemesan">
-                                        Nama Pemesan <span className="text-destructive">*</span>
-                                    </Label>
-                                    {members.length > 0 && (
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-[11px] text-muted-foreground">Dari Member:</span>
-                                            <select
-                                                aria-label="Pilih nama dari member terdaftar"
-                                                className="text-[11px] bg-background border border-border rounded px-1.5 py-0.5 text-foreground cursor-pointer"
-                                                defaultValue=""
-                                                onChange={(e) => {
-                                                    const m = members.find((x) => String(x.id_user) === e.target.value);
-                                                    if (m) {
-                                                        regularForm.setData({
-                                                            ...regularForm.data,
-                                                            nama_pemesan: m.nama,
-                                                            no_whatsapp_pemesan: m.no_whatsapp || "",
-                                                        });
-                                                    }
-                                                }}
-                                            >
-                                                <option value="" disabled>-- Pilih Member --</option>
-                                                {members.map((m) => (
-                                                    <option key={m.id_user} value={m.id_user}>
-                                                        {m.nama}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    )}
-                                </div>
+                                <Label htmlFor="nama_pemesan">
+                                    Nama Pemesan <span className="text-destructive">*</span>
+                                </Label>
                                 <Input
                                     id="nama_pemesan"
                                     placeholder="Contoh: Budi Santoso"
