@@ -289,15 +289,10 @@ export default function AdminDashboard({
                             </div>
 
                             <div className="text-left sm:text-right min-h-[58px] flex flex-col justify-center">
-                                <div className="flex items-center sm:justify-end gap-1.5 h-5">
+                                <div className="flex items-center sm:justify-end h-5">
                                     <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-200 font-semibold">
                                         {activeMonth ? activeMonth.nama_lengkap : "Volume"}
                                     </span>
-                                    {activeMonth?.is_current && (
-                                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-[var(--brand)]/15 text-[var(--brand)]">
-                                            Bulan Berjalan
-                                        </span>
-                                    )}
                                 </div>
                                 <div className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-foreground font-heading mt-0.5">
                                     {formatRupiah(displayedVolume)}
