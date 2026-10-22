@@ -316,7 +316,7 @@ export default function AdminLayout({
 
             <div
                 className={cn(
-                    "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out print:pl-0",
+                    "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out print:!pl-0 print:!p-0 print:!m-0 print:!w-full print:!max-w-full",
                     sidebarOpen ? "md:pl-60" : "md:pl-0"
                 )}
             >
@@ -375,7 +375,7 @@ export default function AdminLayout({
                                         aria-label="Menu profil admin"
                                     >
                                         <div className="size-6 rounded-full bg-[var(--brand)] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                                            {user?.nama ? user.nama.charAt(0).toUpperCase() : "A"}
+                                             {user?.nama ? user.nama.charAt(0).toUpperCase() : "A"}
                                         </div>
                                         <span className="text-xs font-medium hidden sm:inline-block max-w-[100px] truncate">
                                             {user?.nama || "Admin"}
@@ -415,11 +415,11 @@ export default function AdminLayout({
                     </div>
                 </header>
 
-                <main className="flex-1 w-full min-w-0">
+                <main className="flex-1 w-full min-w-0 print:!w-full print:!max-w-full print:!p-0 print:!m-0">
                     {fullWidth ? (
                         children
                     ) : (
-                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8 print:p-0 print:m-0 print:max-w-none">
+                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8 print:!p-0 print:!m-0 print:!max-w-none print:!w-full">
                             {children}
                         </div>
                     )}

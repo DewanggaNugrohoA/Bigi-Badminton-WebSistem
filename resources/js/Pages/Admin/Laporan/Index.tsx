@@ -394,24 +394,24 @@ export default function LaporanIndex({
         >
             <Head title="Laporan - Bigi Badminton" />
 
-            <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h1 className="text-xl font-bold tracking-tight text-black">
+            <div className="hidden print:block mb-4 border-b-2 border-black pb-3 w-full">
+                <div className="flex justify-between items-start gap-4 w-full">
+                    <div className="shrink-0">
+                        <h1 className="text-lg font-bold tracking-tight text-black">
                             BIGI BADMINTON - LAPORAN EKSEKUTIF
                         </h1>
-                        <p className="text-xs text-black mt-1 font-medium">
+                        <p className="text-xs text-black mt-0.5 font-medium">
                             Periode: {formatTanggal(filters.start_date)} s.d. {formatTanggal(filters.end_date)}
                         </p>
                     </div>
-                    <div className="text-right text-[11px] text-black">
+                    <div className="text-right text-[10px] text-black shrink-0">
                         <p className="font-semibold">Dicetak oleh: {auth?.user?.nama || "Admin"}</p>
                         <p>Waktu cetak: {printTimestamp}</p>
                     </div>
                 </div>
             </div>
 
-            <div className="flex flex-col gap-6 max-w-6xl print:max-w-none print:w-full print:gap-4">
+            <div className="flex flex-col gap-6 w-full max-w-6xl print:max-w-none print:w-full print:gap-4">
                 <div className="print:hidden flex flex-col gap-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-4">
                         <div>
@@ -620,14 +620,14 @@ export default function LaporanIndex({
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">WhatsApp</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Sisa Sesi Paket</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kunjungan</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Mabar Dibuat</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Mabar Diikuti</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Kunjungan Terakhir</TableHead>
+                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">WhatsApp</TableHead>
+                                            <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Sisa Sesi Paket</TableHead>
+                                            <TableHead className="w-[11%] print:w-[11%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kunjungan</TableHead>
+                                            <TableHead className="w-[11%] print:w-[11%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Mabar Dibuat</TableHead>
+                                            <TableHead className="w-[11%] print:w-[11%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Mabar Diikuti</TableHead>
+                                            <TableHead className="w-[13%] print:w-[13%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Kunjungan Terakhir</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -640,13 +640,13 @@ export default function LaporanIndex({
                                         ) : (
                                             daftarPemain.data.map((item) => (
                                                 <TableRow key={item.key} className="border-b border-border/60">
-                                                    <TableCell className="text-xs whitespace-nowrap font-medium text-foreground">
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
                                                         {item.nama}
                                                     </TableCell>
-                                                    <TableCell className="text-xs whitespace-nowrap tabular-nums text-foreground">
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal tabular-nums text-foreground">
                                                         {item.no_whatsapp ? item.no_whatsapp : "-"}
                                                     </TableCell>
-                                                    <TableCell className="text-center whitespace-nowrap text-xs">
+                                                    <TableCell className="text-center whitespace-nowrap print:whitespace-normal text-xs">
                                                         {item.jenis_label === "Member" ? (
                                                             <span className="font-medium text-foreground">
                                                                 Member
@@ -661,19 +661,19 @@ export default function LaporanIndex({
                                                             </span>
                                                         )}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
                                                         {item.sisa_sesi_paket !== null ? item.sisa_sesi_paket : "-"}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground">
+                                                    <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground print:whitespace-normal">
                                                         {item.kunjungan_periode}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
                                                         {item.open_mabar_dibuat}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
                                                         {item.open_mabar_diikuti}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-center whitespace-nowrap text-foreground">
+                                                    <TableCell className="text-xs text-center whitespace-nowrap print:whitespace-normal text-foreground">
                                                         {item.kunjungan_terakhir ? formatTanggal(item.kunjungan_terakhir) : "-"}
                                                     </TableCell>
                                                 </TableRow>
@@ -1021,16 +1021,16 @@ export default function LaporanIndex({
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Tanggal</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Lapangan</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Karpet/Vinil</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Net</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Tiang</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Lampu</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Lantai</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Dinding</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Catatan</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Pemeriksa</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Tanggal</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Lapangan</TableHead>
+                                            <TableHead className="w-[8%] print:w-[8%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Karpet/Vinil</TableHead>
+                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Net</TableHead>
+                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Tiang</TableHead>
+                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Lampu</TableHead>
+                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Lantai</TableHead>
+                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Dinding</TableHead>
+                                            <TableHead className="w-[18%] print:w-[18%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Catatan</TableHead>
+                                            <TableHead className="w-[13%] print:w-[13%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Pemeriksa</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -1058,22 +1058,22 @@ export default function LaporanIndex({
 
                                                 return (
                                                     <TableRow key={item.id} className="border-border text-xs">
-                                                        <TableCell className="tabular-nums text-foreground whitespace-nowrap">
+                                                        <TableCell className="tabular-nums text-foreground whitespace-nowrap print:whitespace-normal">
                                                             {formatTanggal(item.tanggal_pemeriksaan)}
                                                         </TableCell>
-                                                        <TableCell className="font-medium text-foreground whitespace-nowrap">
+                                                        <TableCell className="font-medium text-foreground whitespace-nowrap print:whitespace-normal">
                                                             {item.lapangan?.nama_lapangan ?? `Lapangan #${item.id_lapangan}`}
                                                         </TableCell>
-                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.karpet_vinil)}</TableCell>
-                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.net)}</TableCell>
-                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.tiang)}</TableCell>
-                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.lampu)}</TableCell>
-                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.lantai)}</TableCell>
-                                                        <TableCell className="whitespace-nowrap">{renderKondisi(item.dinding)}</TableCell>
-                                                        <TableCell className="max-w-[200px] truncate text-muted-foreground" title={item.catatan || ""}>
+                                                        <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.karpet_vinil)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.net)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.tiang)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.lampu)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.lantai)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.dinding)}</TableCell>
+                                                        <TableCell className="max-w-[200px] truncate text-muted-foreground print:max-w-none print:whitespace-normal" title={item.catatan || ""}>
                                                             {item.catatan || "-"}
                                                         </TableCell>
-                                                        <TableCell className="text-muted-foreground whitespace-nowrap">
+                                                        <TableCell className="text-muted-foreground whitespace-nowrap print:whitespace-normal">
                                                             {item.pemeriksa?.nama ?? "-"}
                                                         </TableCell>
                                                     </TableRow>
@@ -1234,20 +1234,20 @@ export default function LaporanIndex({
                                     Rincian Metode Pembayaran Sewa Lapangan
                                 </h3>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border border border-border bg-card print:border-black print:divide-black">
-                                <div className="p-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border border border-border bg-card print:border-black print:divide-black print:grid-cols-3 print:divide-y-0 print:divide-x print:w-full">
+                                <div className="p-4 print:p-2.5">
                                     <div className="text-xs font-semibold text-foreground/80 print:text-black uppercase tracking-wider">Transfer Bank</div>
                                     <div className="text-sm font-bold text-foreground print:text-black mt-1 tabular-nums">
                                         {formatRupiah(ringkasan.pembayaran_sewa_breakdown?.transfer || 0)}
                                     </div>
                                 </div>
-                                <div className="p-4">
+                                <div className="p-4 print:p-2.5">
                                     <div className="text-xs font-semibold text-foreground/80 print:text-black uppercase tracking-wider">Tunai</div>
                                     <div className="text-sm font-bold text-foreground print:text-black mt-1 tabular-nums">
                                         {formatRupiah(ringkasan.pembayaran_sewa_breakdown?.tunai || 0)}
                                     </div>
                                 </div>
-                                <div className="p-4">
+                                <div className="p-4 print:p-2.5">
                                     <div className="text-xs font-semibold text-foreground/80 print:text-black uppercase tracking-wider">QRIS</div>
                                     <div className="text-sm font-bold text-foreground print:text-black mt-1 tabular-nums">
                                         {formatRupiah(ringkasan.pembayaran_sewa_breakdown?.qris || 0)}
@@ -1257,11 +1257,11 @@ export default function LaporanIndex({
                         </div>
 
                         <div>
-                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
                                     Pendapatan POS per Hari
                                 </h3>
-                                <span className="text-[11px] text-muted-foreground tabular-nums">
+                                <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
                                     {posHarian.total} entri
                                 </span>
                             </div>
@@ -1270,16 +1270,16 @@ export default function LaporanIndex({
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jumlah Transaksi</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Tunai</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">QRIS</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Pendapatan</TableHead>
+                                            <TableHead className="w-[24%] print:w-[24%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jumlah Transaksi</TableHead>
+                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Tunai</TableHead>
+                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">QRIS</TableHead>
+                                            <TableHead className="w-[22%] print:w-[22%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Pendapatan</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {posHarian.data.length === 0 ? (
-                                            <TableRow>
+                                             <TableRow>
                                                 <TableCell colSpan={5} className="text-center py-6 text-xs text-muted-foreground">
                                                     Tidak ada data penjualan POS pada periode ini.
                                                 </TableCell>
@@ -1287,19 +1287,19 @@ export default function LaporanIndex({
                                         ) : (
                                             posHarian.data.map((item) => (
                                                 <TableRow key={item.tgl} className="border-b border-border/60">
-                                                    <TableCell className="text-xs whitespace-nowrap font-medium text-foreground">
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
                                                         {formatTanggal(item.tgl)}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-center tabular-nums text-foreground">
+                                                    <TableCell className="text-xs text-center tabular-nums text-foreground print:whitespace-normal">
                                                         {item.total_transaksi}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
                                                         {formatRupiah(item.tunai)}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
                                                         {formatRupiah(item.qris)}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right font-semibold text-foreground tabular-nums">
+                                                    <TableCell className="text-xs text-right font-semibold text-foreground tabular-nums print:whitespace-normal">
                                                         {formatRupiah(item.total)}
                                                     </TableCell>
                                                 </TableRow>
@@ -1339,11 +1339,11 @@ export default function LaporanIndex({
                         </div>
 
                         <div>
-                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
                                     Rekapitulasi Shift Kasir & Selisih Kas
                                 </h3>
-                                <span className="text-[11px] text-muted-foreground tabular-nums">
+                                <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
                                     {rekapShift.total} shift
                                 </span>
                             </div>
@@ -1352,14 +1352,14 @@ export default function LaporanIndex({
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Buka</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Tutup</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Modal Awal</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kas Sistem</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kas Hitung</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Selisih</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
+                                            <TableHead className="w-[15%] print:w-[15%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Buka</TableHead>
+                                            <TableHead className="w-[15%] print:w-[15%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Tutup</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Modal Awal</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kas Sistem</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kas Hitung</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Selisih</TableHead>
+                                            <TableHead className="w-[8%] print:w-[8%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -1396,28 +1396,28 @@ export default function LaporanIndex({
                                                                 ? `${formatTanggalRingkas(shift.waktu_tutup)} ${formatJam(shift.waktu_tutup.substring(11, 16))}`
                                                                 : "Masih Terbuka"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                        <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
                                                             {formatRupiah(shift.modal_awal)}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                        <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
                                                             {shift.kas_sistem !== null ? formatRupiah(shift.kas_sistem) : "-"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground">
+                                                        <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground print:whitespace-normal">
                                                             {shift.kas_fisik !== null ? formatRupiah(shift.kas_fisik) : "-"}
                                                         </TableCell>
-                                                        <TableCell className="text-center whitespace-nowrap">
+                                                        <TableCell className="text-center whitespace-nowrap print:whitespace-normal">
                                                             {shift.status === "ditutup" ? (
-                                                                <Badge variant="outline" className="text-[11px] py-0 px-2 font-mono font-semibold border-border text-foreground">
+                                                                <Badge variant="outline" className="text-[11px] print:text-[7pt] py-0 px-1.5 font-mono font-semibold border-border text-foreground print:whitespace-normal">
                                                                     {badgeLabel}
                                                                 </Badge>
                                                             ) : (
                                                                 <span className="text-xs text-muted-foreground">-</span>
                                                             )}
                                                         </TableCell>
-                                                        <TableCell className="text-center whitespace-nowrap">
+                                                        <TableCell className="text-center whitespace-nowrap print:whitespace-normal">
                                                             <Badge
                                                                 variant="outline"
-                                                                className="text-[11px] py-0 px-2 uppercase font-medium border-border text-foreground"
+                                                                className="text-[11px] print:text-[7pt] py-0 px-1.5 uppercase font-medium border-border text-foreground print:whitespace-normal"
                                                             >
                                                                 {shift.status}
                                                             </Badge>
@@ -1460,11 +1460,11 @@ export default function LaporanIndex({
                         </div>
 
                         <div>
-                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
                                     Monitoring Void & Retur
                                 </h3>
-                                <span className="text-[11px] text-muted-foreground tabular-nums">
+                                <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
                                     {riwayatVoidRetur.total} entri
                                 </span>
                             </div>
@@ -1473,13 +1473,13 @@ export default function LaporanIndex({
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nomor Transaksi</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Alasan</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Nilai</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Catat</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
+                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nomor Transaksi</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
+                                            <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
+                                            <TableHead className="w-[22%] print:w-[22%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Alasan</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Nilai</TableHead>
+                                            <TableHead className="w-[13%] print:w-[13%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Catat</TableHead>
+                                            <TableHead className="w-[9%] print:w-[9%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -1492,31 +1492,31 @@ export default function LaporanIndex({
                                         ) : (
                                             riwayatVoidRetur.data.map((item) => (
                                                 <TableRow key={item.id_retur} className="border-b border-border/60">
-                                                    <TableCell className="text-xs font-mono font-medium whitespace-nowrap text-foreground">
+                                                    <TableCell className="text-xs font-mono font-medium whitespace-nowrap print:whitespace-normal text-foreground">
                                                         {item.transaksi_pos?.no_transaksi || "-"}
                                                     </TableCell>
-                                                    <TableCell className="text-xs font-medium text-foreground whitespace-nowrap">
+                                                    <TableCell className="text-xs font-medium text-foreground whitespace-nowrap print:whitespace-normal">
                                                         {item.pengaju?.nama || "-"}
                                                     </TableCell>
-                                                    <TableCell className="text-center whitespace-nowrap">
+                                                    <TableCell className="text-center whitespace-nowrap print:whitespace-normal">
                                                         <Badge
                                                             variant="outline"
-                                                            className="text-[11px] py-0 px-2 uppercase font-mono font-bold border-border text-foreground"
+                                                            className="text-[11px] print:text-[7pt] py-0 px-1.5 uppercase font-mono font-bold border-border text-foreground print:whitespace-normal"
                                                         >
                                                             {item.jenis}
                                                         </Badge>
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-foreground max-w-[260px] truncate">
+                                                    <TableCell className="text-xs text-foreground max-w-[260px] truncate print:max-w-none print:whitespace-normal">
                                                         {item.alasan}
                                                     </TableCell>
-                                                    <TableCell className="text-xs tabular-nums text-right font-semibold whitespace-nowrap text-foreground">
+                                                    <TableCell className="text-xs tabular-nums text-right font-semibold whitespace-nowrap print:whitespace-normal text-foreground">
                                                         {formatRupiah(item.transaksi_pos?.total || 0)}
                                                     </TableCell>
-                                                    <TableCell className="text-xs whitespace-nowrap text-foreground">
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground">
                                                         {formatTanggal(item.tanggal)} {formatJam(item.tanggal.substring(11, 16))}
                                                     </TableCell>
-                                                    <TableCell className="text-center whitespace-nowrap">
-                                                        <Badge variant="outline" className="text-[11px] py-0 px-2 border-border text-foreground">
+                                                    <TableCell className="text-center whitespace-nowrap print:whitespace-normal">
+                                                        <Badge variant="outline" className="text-[11px] print:text-[7pt] py-0 px-1.5 border-border text-foreground print:whitespace-normal">
                                                             Dicatat kasir
                                                         </Badge>
                                                     </TableCell>
@@ -1558,11 +1558,11 @@ export default function LaporanIndex({
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:grid-cols-1 print:gap-6">
                             <div>
-                                <div className="border-b border-border pb-2 mb-3 flex items-center justify-between">
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
                                         Riwayat Restock Barang
                                     </h3>
-                                    <span className="text-[11px] text-muted-foreground tabular-nums">
+                                    <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
                                         {riwayatRestock.total} log
                                     </span>
                                 </div>
@@ -1571,11 +1571,11 @@ export default function LaporanIndex({
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Produk</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Jumlah</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Keterangan</TableHead>
+                                                <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                                <TableHead className="w-[25%] print:w-[25%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Produk</TableHead>
+                                                <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Jumlah</TableHead>
+                                                <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
+                                                <TableHead className="w-[27%] print:w-[27%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Keterangan</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1588,19 +1588,19 @@ export default function LaporanIndex({
                                             ) : (
                                                 riwayatRestock.data.map((item) => (
                                                     <TableRow key={item.id_restock} className="border-b border-border/60">
-                                                        <TableCell className="text-xs whitespace-nowrap text-foreground">
+                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground">
                                                             {formatTanggal(item.tanggal)}
                                                         </TableCell>
-                                                        <TableCell className="text-xs font-medium whitespace-nowrap text-foreground">
+                                                        <TableCell className="text-xs font-medium whitespace-nowrap print:whitespace-normal text-foreground">
                                                             {item.produk?.nama_produk || "-"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground">
+                                                        <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground print:whitespace-normal">
                                                             +{item.jumlah}
                                                         </TableCell>
-                                                        <TableCell className="text-xs whitespace-nowrap text-foreground">
+                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground">
                                                             {item.user?.nama || "Kasir"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">
+                                                        <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate print:max-w-none print:whitespace-normal">
                                                             {item.keterangan || "-"}
                                                         </TableCell>
                                                     </TableRow>
@@ -1640,11 +1640,11 @@ export default function LaporanIndex({
                             </div>
 
                             <div>
-                                <div className="border-b border-border pb-2 mb-3 flex items-center justify-between">
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
                                         Riwayat Stok Opname
                                     </h3>
-                                    <span className="text-[11px] text-muted-foreground tabular-nums">
+                                    <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
                                         {riwayatOpname.total} log
                                     </span>
                                 </div>
@@ -1653,12 +1653,12 @@ export default function LaporanIndex({
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Produk</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Sistem</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Fisik</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Selisih</TableHead>
-                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
+                                                <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                                <TableHead className="w-[26%] print:w-[26%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Produk</TableHead>
+                                                <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Sistem</TableHead>
+                                                <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Fisik</TableHead>
+                                                <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Selisih</TableHead>
+                                                <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1671,27 +1671,27 @@ export default function LaporanIndex({
                                             ) : (
                                                 riwayatOpname.data.map((item) => (
                                                     <TableRow key={item.id_opname} className="border-b border-border/60">
-                                                        <TableCell className="text-xs whitespace-nowrap text-foreground">
+                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground">
                                                             {formatTanggal(item.tanggal)}
                                                         </TableCell>
-                                                        <TableCell className="text-xs font-medium whitespace-nowrap text-foreground">
+                                                        <TableCell className="text-xs font-medium whitespace-nowrap print:whitespace-normal text-foreground">
                                                             {item.produk?.nama_produk || "-"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums text-foreground">
+                                                        <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
                                                             {item.stok_sistem}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground">
+                                                        <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground print:whitespace-normal">
                                                             {item.stok_fisik}
                                                         </TableCell>
-                                                        <TableCell className="text-center whitespace-nowrap">
+                                                        <TableCell className="text-center whitespace-nowrap print:whitespace-normal">
                                                             <Badge
                                                                 variant="outline"
-                                                                className="text-[11px] py-0 px-2 font-mono font-semibold border-border text-foreground"
+                                                                className="text-[11px] print:text-[7pt] py-0 px-1.5 font-mono font-semibold border-border text-foreground print:whitespace-normal"
                                                             >
                                                                 {item.selisih > 0 ? `+${item.selisih}` : item.selisih}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell className="text-xs whitespace-nowrap text-foreground">
+                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground">
                                                             {item.user?.nama || "Kasir"}
                                                         </TableCell>
                                                     </TableRow>
@@ -1732,11 +1732,11 @@ export default function LaporanIndex({
                         </div>
 
                         <div>
-                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
                                     Peringatan Stok Produk Menipis
                                 </h3>
-                                <span className="text-[11px] text-muted-foreground tabular-nums">
+                                <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
                                     {stokMenipis.length} produk butuh restock
                                 </span>
                             </div>
@@ -1745,11 +1745,11 @@ export default function LaporanIndex({
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama Produk</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kategori</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Stok Saat Ini</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Batas Minimum</TableHead>
-                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
+                                            <TableHead className="w-[30%] print:w-[30%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama Produk</TableHead>
+                                            <TableHead className="w-[20%] print:w-[20%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kategori</TableHead>
+                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Stok Saat Ini</TableHead>
+                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Batas Minimum</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -1762,22 +1762,22 @@ export default function LaporanIndex({
                                         ) : (
                                             stokMenipis.map((item) => (
                                                 <TableRow key={item.id_produk} className="border-b border-border/60">
-                                                    <TableCell className="text-xs font-medium whitespace-nowrap text-foreground">
+                                                    <TableCell className="text-xs font-medium whitespace-nowrap print:whitespace-normal text-foreground">
                                                         {item.nama_produk}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap print:whitespace-normal">
                                                         {item.kategori}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground">
+                                                    <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground print:whitespace-normal">
                                                         {item.stok}
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums text-muted-foreground">
+                                                    <TableCell className="text-xs text-right tabular-nums text-muted-foreground print:whitespace-normal">
                                                         {item.stok_minimum}
                                                     </TableCell>
-                                                    <TableCell className="text-center whitespace-nowrap">
+                                                    <TableCell className="text-center whitespace-nowrap print:whitespace-normal">
                                                         <Badge
                                                             variant="outline"
-                                                            className="text-[11px] py-0 px-2 border-border text-foreground font-semibold"
+                                                            className="text-[11px] print:text-[7pt] py-0 px-1.5 border-border text-foreground font-semibold print:whitespace-normal"
                                                         >
                                                             {item.stok === 0 ? "Habis" : "Menipis"}
                                                         </Badge>
