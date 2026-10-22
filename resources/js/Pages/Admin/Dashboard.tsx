@@ -247,68 +247,74 @@ export default function AdminDashboard({
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
                     {/* Kartu Grafik Area Tren Mulus (12 Bulan Sepanjang Tahun) */}
                     <div className="lg:col-span-7 xl:col-span-7 p-5 sm:p-6 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between">
-                        {/* Header Kartu: Ringkasan Bulan Terpilih (Kiri) + Filter Kategori (Kanan) */}
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-4 border-b border-border/40 gap-4">
-                            {/* Sisi Kiri: Nama Bulan, Total Nominal, dan Rincian Sewa vs POS */}
-                            <div className="space-y-1">
-                                <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                                    {activeMonth ? activeMonth.nama_lengkap : "Volume"}
-                                </div>
-                                <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground font-heading">
-                                    {formatRupiah(displayedVolume)}
-                                </div>
-                                {activeMonth && (
-                                    <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground flex-wrap">
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border/50 text-[11px] whitespace-nowrap shadow-2xs">
-                                            <span className="text-muted-foreground">Sewa:</span>
-                                            <strong className="text-foreground font-mono font-medium">{formatRupiah(activeMonth.rental)}</strong>
-                                        </span>
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border/50 text-[11px] whitespace-nowrap shadow-2xs">
-                                            <span className="text-muted-foreground">POS:</span>
-                                            <strong className="text-foreground font-mono font-medium">{formatRupiah(activeMonth.pos)}</strong>
-                                        </span>
+                        {/* Header Kartu: Baris 1 (Nominal & Filter) + Baris 2 (Rincian Sewa & POS) - Tinggi Terkunci Permanen */}
+                        <div className="pb-3 border-b border-border/40 space-y-2.5">
+                            {/* Baris 1: Bulan & Total Nominal (Kiri) + Segmented Filter (Kanan) */}
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="space-y-0.5">
+                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                                        {activeMonth ? activeMonth.nama_lengkap : "Volume"}
                                     </div>
-                                )}
+                                    <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground font-heading leading-tight">
+                                        {formatRupiah(displayedVolume)}
+                                    </div>
+                                </div>
+
+                                {/* Filter Kategori Segmented Control */}
+                                <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/50 text-xs shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => setChartMode("total")}
+                                        className={cn(
+                                            "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
+                                            chartMode === "total"
+                                                ? "bg-background text-foreground shadow-xs font-semibold"
+                                                : "text-muted-foreground hover:text-foreground"
+                                        )}
+                                    >
+                                        Total
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setChartMode("rental")}
+                                        className={cn(
+                                            "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
+                                            chartMode === "rental"
+                                                ? "bg-background text-foreground shadow-xs font-semibold"
+                                                : "text-muted-foreground hover:text-foreground"
+                                        )}
+                                    >
+                                        Sewa Lapangan
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setChartMode("pos")}
+                                        className={cn(
+                                            "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
+                                            chartMode === "pos"
+                                                ? "bg-background text-foreground shadow-xs font-semibold"
+                                                : "text-muted-foreground hover:text-foreground"
+                                        )}
+                                    >
+                                        POS Kasir
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Sisi Kanan: Filter Kategori Segmented Control */}
-                            <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/50 text-xs shrink-0 self-start sm:self-auto">
-                                <button
-                                    type="button"
-                                    onClick={() => setChartMode("total")}
-                                    className={cn(
-                                        "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
-                                        chartMode === "total"
-                                            ? "bg-background text-foreground shadow-xs font-semibold"
-                                            : "text-muted-foreground hover:text-foreground"
-                                    )}
-                                >
-                                    Total
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setChartMode("rental")}
-                                    className={cn(
-                                        "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
-                                        chartMode === "rental"
-                                            ? "bg-background text-foreground shadow-xs font-semibold"
-                                            : "text-muted-foreground hover:text-foreground"
-                                    )}
-                                >
-                                    Sewa Lapangan
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setChartMode("pos")}
-                                    className={cn(
-                                        "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
-                                        chartMode === "pos"
-                                            ? "bg-background text-foreground shadow-xs font-semibold"
-                                            : "text-muted-foreground hover:text-foreground"
-                                    )}
-                                >
-                                    POS Kasir
-                                </button>
+                            {/* Baris 2: Rincian Sewa & POS (Lebar Penuh & Tinggi Terkunci h-7, Selalu 1 Baris Tanpa Wrapping) */}
+                            <div className="h-7 flex items-center gap-2 text-xs">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border/50 text-[11px] whitespace-nowrap shadow-2xs">
+                                    <span className="text-muted-foreground">Sewa:</span>
+                                    <strong className="text-foreground font-mono font-medium">
+                                        {formatRupiah(activeMonth?.rental || 0)}
+                                    </strong>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border/50 text-[11px] whitespace-nowrap shadow-2xs">
+                                    <span className="text-muted-foreground">POS:</span>
+                                    <strong className="text-foreground font-mono font-medium">
+                                        {formatRupiah(activeMonth?.pos || 0)}
+                                    </strong>
+                                </span>
                             </div>
                         </div>
 
