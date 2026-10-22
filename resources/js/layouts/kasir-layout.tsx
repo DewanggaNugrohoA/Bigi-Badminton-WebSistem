@@ -105,27 +105,23 @@ export default function KasirLayout({
     fullWidth = false,
 }: KasirLayoutProps) {
     const { auth, flash } = usePage<SharedProps>().props;
+    const { url } = usePage();
     const user = auth?.user;
-    const currentUrl = typeof window !== "undefined" ? window.location.pathname : "";
+    const pathname = url.split("?")[0].split("#")[0];
 
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+        if (typeof window === "undefined") return false;
+        try {
+            const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+            return saved !== null ? saved === "true" : false;
+        } catch {
+            return false;
+        }
+    });
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isDark, setIsDark] = useState(true);
 
     const lastFlash = useRef<{ success?: string | null; error?: string | null }>({});
-
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-            if (saved !== null) {
-                setSidebarOpen(saved === "true");
-            } else {
-                setSidebarOpen(false);
-            }
-        } catch {
-            setSidebarOpen(false);
-        }
-    }, []);
 
     const toggleSidebar = () => {
         setSidebarOpen((prev) => {
@@ -185,9 +181,9 @@ export default function KasirLayout({
 
     const isItemActive = (href: string) => {
         if (href === "/kasir") {
-            return currentUrl === "/kasir";
+            return pathname === "/kasir";
         }
-        return currentUrl === href || currentUrl.startsWith(href + "/");
+        return pathname === href || pathname.startsWith(href + "/");
     };
 
     const renderNavItems = (isMobile = false) => (
@@ -210,7 +206,7 @@ export default function KasirLayout({
                                         if (isMobile) setMobileOpen(false);
                                     }}
                                     className={cn(
-                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
                                         isActive
                                             ? "bg-[var(--brand)] text-white shadow-xs font-semibold"
                                             : "text-muted-foreground hover:text-foreground hover:bg-muted/60"

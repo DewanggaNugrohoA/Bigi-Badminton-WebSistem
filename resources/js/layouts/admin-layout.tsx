@@ -108,24 +108,22 @@ export default function AdminLayout({
     const user = auth?.user;
     const pathname = url.split("?")[0].split("#")[0];
 
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+        if (typeof window === "undefined") return true;
+        try {
+            const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+            if (saved !== null) {
+                return saved === "true";
+            }
+            return window.innerWidth >= 768;
+        } catch {
+            return true;
+        }
+    });
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isDark, setIsDark] = useState(true);
 
     const lastFlash = useRef<{ success?: string | null; error?: string | null }>({});
-
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-            if (saved !== null) {
-                setSidebarOpen(saved === "true");
-            } else {
-                setSidebarOpen(window.innerWidth >= 768);
-            }
-        } catch {
-            setSidebarOpen(true);
-        }
-    }, []);
 
     const toggleSidebar = () => {
         setSidebarOpen((prev) => {
@@ -208,7 +206,7 @@ export default function AdminLayout({
                                         if (isMobile) setMobileOpen(false);
                                     }}
                                     className={cn(
-                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
                                         isActive
                                             ? "bg-[var(--brand)] text-white shadow-xs font-semibold"
                                             : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
