@@ -473,30 +473,10 @@ export default function ReservasiIndex({
                 
                 {/* Matriks Slot Lapangan Real-time: 2 Kolom Sebelahan (Lapangan 1 & Lapangan 2) Seperti di Menu User */}
                 <Card className="p-0 overflow-hidden border-border/80 shadow-xs">
-                    <CardHeader className="p-4 sm:p-5 border-b border-border/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <CardHeader className="p-4 sm:p-5 border-b border-border/70 flex flex-row items-center justify-between">
                         <CardTitle className="text-base sm:text-lg font-bold">
                             Matriks Slot Lapangan ({tanggalLabel})
                         </CardTitle>
-
-                        {/* Legend Indikator Status Slot */}
-                        <div className="flex items-center gap-3 text-xs flex-wrap">
-                            <div className="flex items-center gap-1.5">
-                                <span className="size-2.5 rounded-full bg-emerald-500" />
-                                <span className="text-muted-foreground text-[11px]">Kosong</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="size-2.5 rounded-full bg-amber-500" />
-                                <span className="text-muted-foreground text-[11px]">DP</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="size-2.5 rounded-full bg-[var(--brand)]" />
-                                <span className="text-muted-foreground text-[11px]">Lunas</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="size-2.5 rounded-full bg-rose-500" />
-                                <span className="text-muted-foreground text-[11px]">Perawatan</span>
-                            </div>
-                        </div>
                     </CardHeader>
 
                     <CardContent className="p-4 sm:p-6">
@@ -586,14 +566,9 @@ export default function ReservasiIndex({
                                                                 : `Klik untuk pesan ${slot.jam}`
                                                         }
                                                     >
-                                                        <div className="flex items-center justify-between w-full">
-                                                            <span className="text-[11px] font-mono font-bold text-foreground">
-                                                                {slot.jam}
-                                                            </span>
-                                                            {isTersedia && (
-                                                                <span className="size-1.5 rounded-full bg-emerald-500 group-hover:scale-125 transition-transform" />
-                                                            )}
-                                                        </div>
+                                                        <span className="text-[11px] font-mono font-bold text-foreground">
+                                                            {slot.jam}
+                                                        </span>
 
                                                         <div className="text-[10px] leading-tight mt-1 min-w-0 w-full">
                                                             {isTersedia && (
