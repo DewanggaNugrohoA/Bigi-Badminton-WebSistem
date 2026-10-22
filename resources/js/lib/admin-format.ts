@@ -22,6 +22,20 @@ export function formatTanggal(dateStr: string): string {
     }
 }
 
+export function formatTanggalRingkas(dateStr: string): string {
+    if (!dateStr) return "-";
+    try {
+        const d = new Date(dateStr);
+        return new Intl.DateTimeFormat("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        }).format(d);
+    } catch {
+        return dateStr;
+    }
+}
+
 export function formatJam(timeStr: string): string {
     if (!timeStr) return "-";
     const parts = timeStr.split(":");

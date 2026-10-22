@@ -228,8 +228,11 @@
     background: #ffffff !important;
     background-color: #ffffff !important;
     color: #000000 !important;
-    font-size: 11pt !important;
-    line-height: 1.4 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.35 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -240,6 +243,14 @@
     text-shadow: none !important;
     box-shadow: none !important;
     -webkit-text-fill-color: #000000 !important;
+  }
+
+  /* Hilangkan scrollbar dan batasan overflow di kertas cetak */
+  div, section, article, main, [data-slot="table-container"], .overflow-x-auto, [class*="overflow"] {
+    overflow: visible !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* Latar belakang datar putih bersih tanpa warna atau gradasi */
@@ -259,18 +270,45 @@
     border-color: #000000 !important;
   }
 
-  /* Header tabel formal laporan: teks tebal hitam, garis bawah tebal */
+  /* Pastikan tabel 100% fit di halaman tanpa terpotong atau overflow */
+  table, [data-slot="table"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+  }
+
+  /* Header tabel formal laporan: teks tebal hitam, izinkan wrap agar muat di kertas */
   th, [data-slot="table-head"] {
     color: #000000 !important;
     font-weight: 700 !important;
+    font-size: 8pt !important;
+    line-height: 1.2 !important;
     background-color: #ffffff !important;
     border-bottom: 2px solid #000000 !important;
-    text-transform: uppercase;
+    text-transform: uppercase !important;
+    padding: 3px 5px !important;
+    height: auto !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
   }
 
+  /* Sel tabel: padding ringkas dan izinkan wrap */
   td, [data-slot="table-cell"] {
     color: #000000 !important;
+    font-size: 8pt !important;
+    line-height: 1.25 !important;
+    padding: 3px 5px !important;
     border-bottom: 1px solid #000000 !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  /* Format angka tabular-nums */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums !important;
   }
 
   /* Badge dan tag status: flat monokrom dengan border hitam bersih */
@@ -281,10 +319,13 @@
     border: 1px solid #000000 !important;
     border-radius: 2px !important;
     font-weight: 600 !important;
+    font-size: 7.5pt !important;
     padding: 1px 4px !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
   }
 
-  /* Tata letak laporan mencakup penuh lebar kertas */
+  /* Tata letak laporan mencakup penuh lebar kertas tanpa offset */
   main {
     padding: 0 !important;
     margin: 0 !important;
@@ -293,7 +334,7 @@
   }
 
   @page {
-    margin: 12mm 15mm;
+    margin: 8mm 10mm;
     size: auto;
   }
 }

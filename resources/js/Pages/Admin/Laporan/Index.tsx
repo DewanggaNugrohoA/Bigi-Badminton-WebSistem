@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import AdminLayout from "@/layouts/admin-layout";
-import { formatRupiah, formatTanggal, formatJam } from "@/lib/admin-format";
+import { formatRupiah, formatTanggal, formatTanggalRingkas, formatJam } from "@/lib/admin-format";
 import { Button } from "@/components/ui/material-design-3-button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -616,18 +616,18 @@ export default function LaporanIndex({
                                 </form>
                             </div>
 
-                            <div className="overflow-x-auto max-w-full border border-border">
+                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">WhatsApp</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Sisa Sesi Paket</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kunjungan</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Mabar Dibuat</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Mabar Diikuti</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Kunjungan Terakhir</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">WhatsApp</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Sisa Sesi Paket</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kunjungan</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Mabar Dibuat</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Mabar Diikuti</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Kunjungan Terakhir</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -722,7 +722,7 @@ export default function LaporanIndex({
                                 </h2>
                             </div>
 
-                            <div className="overflow-x-auto">
+                            <div className="overflow-x-auto print:overflow-visible">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60">
@@ -1017,7 +1017,7 @@ export default function LaporanIndex({
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto">
+                            <div className="overflow-x-auto print:overflow-visible">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60">
@@ -1266,15 +1266,15 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto max-w-full border border-border">
+                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jumlah Transaksi</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Tunai</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">QRIS</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Pendapatan</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jumlah Transaksi</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Tunai</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">QRIS</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Pendapatan</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -1348,18 +1348,18 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto max-w-full border border-border">
+                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Buka</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Tutup</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Modal Awal</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kas Sistem</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kas Hitung</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Selisih</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Buka</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Tutup</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Modal Awal</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kas Sistem</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Kas Hitung</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Selisih</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -1385,15 +1385,15 @@ export default function LaporanIndex({
 
                                                 return (
                                                     <TableRow key={shift.id_shift} className="border-b border-border/60">
-                                                        <TableCell className="text-xs font-medium whitespace-nowrap text-foreground">
+                                                        <TableCell className="text-xs font-medium whitespace-nowrap print:whitespace-normal text-foreground">
                                                             {shift.user?.nama || "Kasir"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs whitespace-nowrap text-foreground">
-                                                            {formatTanggal(shift.waktu_buka)} {formatJam(shift.waktu_buka.substring(11, 16))}
+                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground">
+                                                            {formatTanggalRingkas(shift.waktu_buka)} {formatJam(shift.waktu_buka.substring(11, 16))}
                                                         </TableCell>
-                                                        <TableCell className="text-xs whitespace-nowrap text-foreground">
+                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground">
                                                             {shift.waktu_tutup
-                                                                ? `${formatTanggal(shift.waktu_tutup)} ${formatJam(shift.waktu_tutup.substring(11, 16))}`
+                                                                ? `${formatTanggalRingkas(shift.waktu_tutup)} ${formatJam(shift.waktu_tutup.substring(11, 16))}`
                                                                 : "Masih Terbuka"}
                                                         </TableCell>
                                                         <TableCell className="text-xs text-right tabular-nums text-foreground">
@@ -1469,17 +1469,17 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto max-w-full border border-border">
+                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Nomor Transaksi</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Alasan</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Nilai</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Catat</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nomor Transaksi</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Alasan</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Nilai</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu Catat</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -1556,7 +1556,7 @@ export default function LaporanIndex({
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:grid-cols-1 print:gap-6">
                             <div>
                                 <div className="border-b border-border pb-2 mb-3 flex items-center justify-between">
                                     <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -1567,15 +1567,15 @@ export default function LaporanIndex({
                                     </span>
                                 </div>
 
-                                <div className="overflow-x-auto max-w-full border border-border">
+                                <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Produk</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Jumlah</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Keterangan</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Produk</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Jumlah</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Keterangan</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1649,16 +1649,16 @@ export default function LaporanIndex({
                                     </span>
                                 </div>
 
-                                <div className="overflow-x-auto max-w-full border border-border">
+                                <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Produk</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Sistem</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Fisik</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Selisih</TableHead>
-                                                <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Produk</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Sistem</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Fisik</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Selisih</TableHead>
+                                                <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kasir</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1741,15 +1741,15 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto max-w-full border border-border">
+                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama Produk</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold">Kategori</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Stok Saat Ini</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Batas Minimum</TableHead>
-                                            <TableHead className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama Produk</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Kategori</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Stok Saat Ini</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Batas Minimum</TableHead>
+                                            <TableHead className="whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
