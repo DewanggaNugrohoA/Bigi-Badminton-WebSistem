@@ -92,8 +92,8 @@ export default function AdminDashboard({
     const { auth } = usePage<SharedProps>().props;
     const adminFirstName = auth?.user?.nama ? auth.user.nama.split(" ")[0] : "Admin";
 
-    // Mode tab grafik (Total Pendapatan vs Rata-rata)
-    const [chartMode, setChartMode] = useState<"total" | "avg">("total");
+    // Mode filter grafik (Total, Sewa Lapangan, POS Kasir)
+    const [chartMode, setChartMode] = useState<"total" | "rental" | "pos">("total");
 
     // Bulan yang sedang dipilih/di-hover di grafik (default bulan berjalan)
     const currentMonthIndex = rekapBulanan.findIndex((m) => m.is_current);
@@ -108,11 +108,15 @@ export default function AdminDashboard({
 
     const activeMonth = rekapBulanan[activeIndex] || null;
 
-    // Skala maksimum untuk grafik bulanan
+    // Skala maksimum untuk grafik bulanan sesuai mode filter aktif
     const maxMonthlyVolume = useMemo(() => {
-        const highest = Math.max(...rekapBulanan.map((m) => m.total), 0);
-        return Math.max(highest, 1500000);
-    }, [rekapBulanan]);
+        let highest = 0;
+        for (const m of rekapBulanan) {
+            const val = chartMode === "rental" ? m.rental : chartMode === "pos" ? m.pos : m.total;
+            if (val > highest) highest = val;
+        }
+        return Math.max(highest, 1200000);
+    }, [rekapBulanan, chartMode]);
 
     // Format nilai Y-Axis dalam satuan Ringkas (K / Jt)
     const formatYAxis = (val: number) => {
@@ -125,15 +129,76 @@ export default function AdminDashboard({
         return `Rp ${val}`;
     };
 
-    // Nilai yang tampil di header grafik
+    // Nilai aktif yang tampil di header grafik
     const displayedVolume = useMemo(() => {
         if (!activeMonth) return kpi?.pendapatan_bulan_ini || 0;
-        if (chartMode === "avg") {
-            const resCount = kpi?.reservasi_bulan_ini || 1;
-            return Math.round(activeMonth.total / (resCount > 0 ? resCount : 1));
-        }
+        if (chartMode === "rental") return activeMonth.rental;
+        if (chartMode === "pos") return activeMonth.pos;
         return activeMonth.total;
     }, [activeMonth, chartMode, kpi]);
+
+    // Label singkat bulan Indonesia
+    const labelBulanIndo = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+    // Koordinat titik untuk kurva area SVG (Spline Area)
+    const chartPoints = useMemo(() => {
+        if (!rekapBulanan.length) return [];
+        const count = rekapBulanan.length;
+        const paddingLeft = 54;
+        const paddingRight = 18;
+        const baselineY = 152;
+        const topY = 22;
+        const usableW = 560 - paddingLeft - paddingRight;
+        const usableH = baselineY - topY;
+
+        return rekapBulanan.map((item, idx) => {
+            const x = paddingLeft + (idx / Math.max(1, count - 1)) * usableW;
+            const val = chartMode === "rental" ? item.rental : chartMode === "pos" ? item.pos : item.total;
+            const norm = maxMonthlyVolume > 0 ? Math.min(1, Math.max(0, val / maxMonthlyVolume)) : 0;
+            const y = baselineY - norm * usableH;
+            return {
+                x,
+                y,
+                val,
+                item,
+                index: idx,
+                label: labelBulanIndo[idx] || item.label,
+            };
+        });
+    }, [rekapBulanan, chartMode, maxMonthlyVolume]);
+
+    // Menghasilkan SVG cubic bezier path yang mulus untuk Area & Garis
+    const { linePath, areaPath } = useMemo(() => {
+        if (chartPoints.length < 2) return { linePath: "", areaPath: "" };
+        const baselineY = 152;
+        let d = `M ${chartPoints[0].x.toFixed(1)} ${chartPoints[0].y.toFixed(1)}`;
+
+        for (let i = 0; i < chartPoints.length - 1; i++) {
+            const p0 = chartPoints[i];
+            const p1 = chartPoints[i + 1];
+            const pPrev = chartPoints[Math.max(0, i - 1)];
+            const pNext = chartPoints[Math.min(chartPoints.length - 1, i + 2)];
+
+            let cp1x = p0.x + (p1.x - pPrev.x) / 5;
+            let cp1y = p0.y + (p1.y - pPrev.y) / 5;
+            let cp2x = p1.x - (pNext.x - p0.x) / 5;
+            let cp2y = p1.y - (pNext.y - p0.y) / 5;
+
+            // Jika kedua titik bernilai 0 di baseline, kunci control points tetap horizontal
+            if (p0.y >= baselineY - 0.5 && p1.y >= baselineY - 0.5) {
+                cp1y = baselineY;
+                cp2y = baselineY;
+            }
+
+            cp1y = Math.min(baselineY, Math.max(12, cp1y));
+            cp2y = Math.min(baselineY, Math.max(12, cp2y));
+
+            d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;
+        }
+
+        const area = `${d} L ${chartPoints[chartPoints.length - 1].x.toFixed(1)} ${baselineY} L ${chartPoints[0].x.toFixed(1)} ${baselineY} Z`;
+        return { linePath: d, areaPath: area };
+    }, [chartPoints]);
 
     const getStatusBadge = (status: string) => {
         const item = STATUS_RESERVASI_MAP[status];
@@ -178,18 +243,18 @@ export default function AdminDashboard({
                     </div>
                 )}
 
-                {/* Bagian Atas: Grafik Batang Bulanan (Kiri) + 4 Metrik Minimalis (Kanan) */}
+                {/* Bagian Atas: Grafik Area Tren Mulus (Kiri) + 4 Metrik Minimalis (Kanan) */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
-                    {/* Kartu Grafik Batang Minimalis (12 Bulan Sepanjang Tahun) */}
+                    {/* Kartu Grafik Area Tren Mulus (12 Bulan Sepanjang Tahun) */}
                     <div className="lg:col-span-7 xl:col-span-7 p-5 sm:p-6 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between">
-                        {/* Header Kartu: Segmented Control (Kiri) + Volume Bulan Terpilih (Kanan) */}
-                        <div className="flex items-center justify-between pb-4 border-b border-border/40 gap-3">
-                            <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/50 text-xs">
+                        {/* Header Kartu: Filter Kategori (Kiri) + Volume Bulan Terpilih & Rincian (Kanan) */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-border/40 gap-3">
+                            <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/50 text-xs self-start">
                                 <button
                                     type="button"
                                     onClick={() => setChartMode("total")}
                                     className={cn(
-                                        "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs",
+                                        "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
                                         chartMode === "total"
                                             ? "bg-background text-foreground shadow-xs font-semibold"
                                             : "text-muted-foreground hover:text-foreground"
@@ -199,120 +264,226 @@ export default function AdminDashboard({
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setChartMode("avg")}
+                                    onClick={() => setChartMode("rental")}
                                     className={cn(
-                                        "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs",
-                                        chartMode === "avg"
+                                        "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
+                                        chartMode === "rental"
                                             ? "bg-background text-foreground shadow-xs font-semibold"
                                             : "text-muted-foreground hover:text-foreground"
                                     )}
                                 >
-                                    Rata-rata Transaksi
+                                    Sewa Lapangan
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setChartMode("pos")}
+                                    className={cn(
+                                        "px-2.5 sm:px-3 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
+                                        chartMode === "pos"
+                                            ? "bg-background text-foreground shadow-xs font-semibold"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                >
+                                    POS Kasir
                                 </button>
                             </div>
 
-                            <div className="text-right">
-                                <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-200 block font-semibold">
-                                    {activeMonth ? activeMonth.nama_lengkap : "Volume"}
-                                </span>
-                                <div className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-foreground font-heading">
+                            <div className="text-left sm:text-right">
+                                <div className="flex items-center sm:justify-end gap-1.5">
+                                    <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-200 font-semibold">
+                                        {activeMonth ? activeMonth.nama_lengkap : "Volume"}
+                                    </span>
+                                    {activeMonth?.is_current && (
+                                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-[var(--brand)]/15 text-[var(--brand)]">
+                                            Bulan Berjalan
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-foreground font-heading mt-0.5">
                                     {formatRupiah(displayedVolume)}
                                 </div>
+                                {activeMonth && (
+                                    <div className="text-[11px] text-muted-foreground font-medium mt-0.5 flex items-center sm:justify-end gap-2">
+                                        <span>Sewa: <strong className="text-foreground">{formatRupiah(activeMonth.rental)}</strong></span>
+                                        <span>•</span>
+                                        <span>POS: <strong className="text-foreground">{formatRupiah(activeMonth.pos)}</strong></span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Area Grafik Batang 12 Bulan */}
-                        <div className="relative pt-6 pb-2">
-                            {/* Grid Garis Horizontal dan Label Sumbu Y */}
-                            <div className="absolute inset-x-0 top-6 bottom-8 flex flex-col justify-between pointer-events-none">
-                                <div className="flex items-center w-full">
-                                    <span className="text-[10px] text-muted-foreground/60 w-12 font-mono shrink-0">
-                                        {formatYAxis(maxMonthlyVolume)}
-                                    </span>
-                                    <div className="flex-1 border-b border-border/20" />
-                                </div>
-                                <div className="flex items-center w-full">
-                                    <span className="text-[10px] text-muted-foreground/60 w-12 font-mono shrink-0">
-                                        {formatYAxis(maxMonthlyVolume * 0.66)}
-                                    </span>
-                                    <div className="flex-1 border-b border-border/20" />
-                                </div>
-                                <div className="flex items-center w-full">
-                                    <span className="text-[10px] text-muted-foreground/60 w-12 font-mono shrink-0">
-                                        {formatYAxis(maxMonthlyVolume * 0.33)}
-                                    </span>
-                                    <div className="flex-1 border-b border-border/20" />
-                                </div>
-                                <div className="flex items-center w-full">
-                                    <span className="text-[10px] text-muted-foreground/60 w-12 font-mono shrink-0">
-                                        Rp 0
-                                    </span>
-                                    <div className="flex-1 border-b border-border/30" />
-                                </div>
-                            </div>
+                        {/* Area Grafik SVG Spline Area */}
+                        <div className="relative pt-5 pb-1">
+                            <div className="w-full h-52 relative">
+                                <svg
+                                    viewBox="0 0 560 190"
+                                    className="w-full h-full overflow-visible"
+                                    preserveAspectRatio="none"
+                                >
+                                    <defs>
+                                        <linearGradient id="revenue-area-grad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="var(--brand)" stopOpacity="0.4" />
+                                            <stop offset="60%" stopColor="var(--brand)" stopOpacity="0.1" />
+                                            <stop offset="100%" stopColor="var(--brand)" stopOpacity="0.0" />
+                                        </linearGradient>
+                                    </defs>
 
-                            {/* Batang 12 Bulan */}
-                            <div className="h-48 flex items-end justify-between gap-1.5 sm:gap-3 pl-12 pr-1">
-                                {rekapBulanan.map((item, idx) => {
-                                    const heightPercent =
-                                        maxMonthlyVolume > 0
-                                            ? Math.max(10, Math.round((item.total / maxMonthlyVolume) * 100))
-                                            : 10;
-                                    const isSelected = idx === activeIndex;
+                                    {/* Grid Garis Horizontal dan Label Sumbu Y */}
+                                    <g className="opacity-60">
+                                        <line x1="50" y1="22" x2="550" y2="22" stroke="currentColor" strokeDasharray="3 3" className="text-border/40" />
+                                        <text x="44" y="25" textAnchor="end" className="text-[9.5px] fill-muted-foreground font-mono">
+                                            {formatYAxis(maxMonthlyVolume)}
+                                        </text>
 
-                                    return (
-                                        <div
-                                            key={item.bulan}
-                                            className="flex-1 flex flex-col items-center h-full justify-end cursor-pointer group"
-                                            onMouseEnter={() => setHoveredMonthIndex(idx)}
-                                            onMouseLeave={() => setHoveredMonthIndex(null)}
-                                        >
-                                            {/* Batang Minimalis */}
-                                            <div
-                                                className={cn(
-                                                    "w-full max-w-[28px] rounded-t-sm transition-all duration-200",
-                                                    isSelected
-                                                        ? "bg-[var(--brand)] shadow-sm ring-2 ring-[var(--brand)]/20"
-                                                        : "bg-muted-foreground/15 hover:bg-muted-foreground/35 group-hover:scale-y-105"
+                                        <line x1="50" y1="65" x2="550" y2="65" stroke="currentColor" strokeDasharray="3 3" className="text-border/30" />
+                                        <text x="44" y="68" textAnchor="end" className="text-[9.5px] fill-muted-foreground font-mono">
+                                            {formatYAxis(maxMonthlyVolume * 0.66)}
+                                        </text>
+
+                                        <line x1="50" y1="108" x2="550" y2="108" stroke="currentColor" strokeDasharray="3 3" className="text-border/30" />
+                                        <text x="44" y="111" textAnchor="end" className="text-[9.5px] fill-muted-foreground font-mono">
+                                            {formatYAxis(maxMonthlyVolume * 0.33)}
+                                        </text>
+
+                                        <line x1="50" y1="152" x2="550" y2="152" stroke="currentColor" className="text-border/50" />
+                                        <text x="44" y="155" textAnchor="end" className="text-[9.5px] fill-muted-foreground font-mono">
+                                            Rp 0
+                                        </text>
+                                    </g>
+
+                                    {/* Area Gradien di Bawah Kurva */}
+                                    {areaPath && (
+                                        <path
+                                            d={areaPath}
+                                            fill="url(#revenue-area-grad)"
+                                            className="transition-all duration-300 ease-out"
+                                        />
+                                    )}
+
+                                    {/* Garis Tren Kurva Mulus */}
+                                    {linePath && (
+                                        <path
+                                            d={linePath}
+                                            fill="none"
+                                            stroke="var(--brand)"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="transition-all duration-300 ease-out"
+                                        />
+                                    )}
+
+                                    {/* Sumbu X Label Bulan & Indikator Titik */}
+                                    {chartPoints.map((pt, idx) => {
+                                        const isSelected = idx === activeIndex;
+
+                                        return (
+                                            <g key={pt.item.bulan}>
+                                                {/* Garis Vertikal Penunjuk saat Aktif */}
+                                                {isSelected && (
+                                                    <line
+                                                        x1={pt.x}
+                                                        y1="22"
+                                                        x2={pt.x}
+                                                        y2="152"
+                                                        stroke="var(--brand)"
+                                                        strokeDasharray="3 3"
+                                                        strokeWidth="1.5"
+                                                        className="opacity-60"
+                                                    />
                                                 )}
-                                                style={{ height: `${heightPercent}%` }}
-                                            />
 
-                                            {/* Label Bulan (Jan - Des) */}
-                                            <span
-                                                className={cn(
-                                                    "mt-3 text-[11px] transition-colors leading-none",
-                                                    isSelected
-                                                        ? "font-bold text-foreground"
-                                                        : "text-muted-foreground font-medium"
+                                                {/* Titik Data pada Kurva */}
+                                                {isSelected ? (
+                                                    <g>
+                                                        <circle
+                                                            cx={pt.x}
+                                                            cy={pt.y}
+                                                            r="8"
+                                                            className="fill-[var(--brand)]/20 animate-ping"
+                                                        />
+                                                        <circle
+                                                            cx={pt.x}
+                                                            cy={pt.y}
+                                                            r="6"
+                                                            className="fill-[var(--brand)]/40"
+                                                        />
+                                                        <circle
+                                                            cx={pt.x}
+                                                            cy={pt.y}
+                                                            r="4"
+                                                            className="fill-background stroke-[var(--brand)] stroke-2"
+                                                        />
+                                                    </g>
+                                                ) : pt.val > 0 ? (
+                                                    <circle
+                                                        cx={pt.x}
+                                                        cy={pt.y}
+                                                        r="3.5"
+                                                        className="fill-[var(--brand)]/70 hover:fill-[var(--brand)] transition-colors"
+                                                    />
+                                                ) : (
+                                                    <circle
+                                                        cx={pt.x}
+                                                        cy={pt.y}
+                                                        r="2"
+                                                        className="fill-muted-foreground/30"
+                                                    />
                                                 )}
-                                            >
-                                                {item.label}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
+
+                                                {/* Label Bulan (Jan - Des) */}
+                                                <text
+                                                    x={pt.x}
+                                                    y="174"
+                                                    textAnchor="middle"
+                                                    className={cn(
+                                                        "text-[11px] transition-colors select-none",
+                                                        isSelected
+                                                            ? "fill-foreground font-bold text-xs"
+                                                            : "fill-muted-foreground/80 font-medium"
+                                                    )}
+                                                >
+                                                    {pt.label}
+                                                </text>
+
+                                                {/* Hitbox Area Hover per Bulan */}
+                                                <rect
+                                                    x={pt.x - 20}
+                                                    y="15"
+                                                    width="40"
+                                                    height="165"
+                                                    fill="transparent"
+                                                    className="cursor-pointer"
+                                                    onMouseEnter={() => setHoveredMonthIndex(idx)}
+                                                    onMouseLeave={() => setHoveredMonthIndex(null)}
+                                                />
+                                            </g>
+                                        );
+                                    })}
+                                </svg>
                             </div>
                         </div>
                     </div>
 
-                    {/* Sisi Kanan: 4 Kartu Metrik Minimalis (Grid 2x2 Rapih & Proporsional) */}
-                    <div className="lg:col-span-5 xl:col-span-5 grid grid-cols-2 gap-3.5 sm:gap-4 content-between">
+                    {/* Sisi Kanan: 4 Kartu Metrik Minimalis (Grid 2x2 Rapih & Proporsional Tanpa Gap Tengah) */}
+                    <div className="lg:col-span-5 xl:col-span-5 grid grid-cols-2 grid-rows-2 gap-3.5 sm:gap-4">
                         {/* Metrik 1: Total Pendapatan Bulan Ini */}
-                        <div className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between gap-2.5 min-h-[120px]">
+                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
                             <div className="flex items-center gap-2 min-w-0">
-                                <TrendingUp className="size-4 shrink-0 text-muted-foreground" />
-                                <span className="text-xs font-semibold text-foreground leading-tight">
+                                <div className="size-7 rounded-lg bg-[var(--brand)]/10 text-[var(--brand)] flex items-center justify-center shrink-0">
+                                    <TrendingUp className="size-4" />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground leading-tight truncate">
                                     Total Pendapatan
                                 </span>
                             </div>
-                            <div className="space-y-1">
-                                <div className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-foreground font-heading whitespace-nowrap">
+                            <div className="space-y-1 my-auto py-1.5">
+                                <div className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-foreground font-heading truncate">
                                     {formatRupiah(kpi?.pendapatan_bulan_ini || 0)}
                                 </div>
                                 <div>
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                                        +{kpi?.persen_perubahan_bulan ?? 0}%
+                                        +{kpi?.persen_perubahan_bulan ?? 0}% bln ini
                                     </span>
                                 </div>
                             </div>
@@ -321,17 +492,19 @@ export default function AdminDashboard({
                         {/* Metrik 2: Open Mabar Menunggu Persetujuan */}
                         <Link
                             href="/admin/open-mabar?status=menunggu"
-                            className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between gap-2.5 min-h-[120px] hover:border-amber-500/40 transition-colors group"
+                            className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-amber-500/40 transition-colors group"
                         >
                             <div className="flex items-center gap-2 min-w-0 text-muted-foreground group-hover:text-foreground">
-                                <Users className="size-4 shrink-0 text-muted-foreground group-hover:text-amber-500 transition-colors" />
-                                <span className="text-xs font-semibold text-foreground leading-tight">
+                                <div className="size-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                    <Users className="size-4" />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground leading-tight truncate">
                                     Mabar Menunggu
                                 </span>
                             </div>
-                            <div className="space-y-1">
+                            <div className="space-y-1 my-auto py-1.5">
                                 <div className="flex items-baseline gap-1.5 flex-wrap">
-                                    <span className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-foreground font-heading">
+                                    <span className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-foreground font-heading">
                                         {kpi?.open_mabar_menunggu ?? 0}
                                     </span>
                                     <span className="text-xs text-muted-foreground font-medium">
@@ -339,7 +512,7 @@ export default function AdminDashboard({
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/20 transition-colors">
                                         Verifikasi &rarr;
                                     </span>
                                 </div>
@@ -347,16 +520,18 @@ export default function AdminDashboard({
                         </Link>
 
                         {/* Metrik 3: Reservasi Bulan Ini */}
-                        <div className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between gap-2.5 min-h-[120px]">
+                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
                             <div className="flex items-center gap-2 min-w-0">
-                                <CalendarCheck className="size-4 shrink-0 text-muted-foreground" />
-                                <span className="text-xs font-semibold text-foreground leading-tight">
+                                <div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                    <CalendarCheck className="size-4" />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground leading-tight truncate">
                                     Reservasi Bulan Ini
                                 </span>
                             </div>
-                            <div className="space-y-1">
+                            <div className="space-y-1 my-auto py-1.5">
                                 <div className="flex items-baseline gap-1.5 flex-wrap">
-                                    <span className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-foreground font-heading">
+                                    <span className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-foreground font-heading">
                                         {kpi?.reservasi_bulan_ini ?? 0}
                                     </span>
                                     <span className="text-xs text-muted-foreground font-medium">
@@ -372,15 +547,17 @@ export default function AdminDashboard({
                         </div>
 
                         {/* Metrik 4: Rata-rata per Reservasi */}
-                        <div className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between gap-2.5 min-h-[120px]">
+                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
                             <div className="flex items-center gap-2 min-w-0">
-                                <Receipt className="size-4 shrink-0 text-muted-foreground" />
-                                <span className="text-xs font-semibold text-foreground leading-tight">
+                                <div className="size-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <Receipt className="size-4" />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground leading-tight truncate">
                                     Rata-rata Transaksi
                                 </span>
                             </div>
-                            <div className="space-y-1">
-                                <div className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-foreground font-heading whitespace-nowrap">
+                            <div className="space-y-1 my-auto py-1.5">
+                                <div className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-foreground font-heading truncate">
                                     {formatRupiah(kpi?.rata_rata_transaksi || 0)}
                                 </div>
                                 <div>
