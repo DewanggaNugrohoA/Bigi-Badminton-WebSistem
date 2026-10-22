@@ -129,105 +129,129 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
         <KasirLayout title="Stock Opname">
             <Head title="Stock Opname - Bigi Badminton" />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div className="lg:col-span-5 xl:col-span-4 bg-card border border-border rounded-xl p-6 shadow-xs">
-                    <div className="border-b border-border pb-4 mb-5">
-                        <h2 className="text-base font-semibold text-foreground">Form Stock Opname</h2>
+            <div className="flex flex-col gap-6">
+                {/* Form Stock Opname */}
+                <div className="bg-card border border-border rounded-xl p-5 sm:p-6 shadow-xs">
+                    <div className="border-b border-border pb-3.5 mb-5">
+                        <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                            <ClipboardCheck className="size-4.5 text-[var(--brand)]" />
+                            Form Penyesuaian Stok (Stock Opname)
+                        </h2>
                         <p className="text-xs text-muted-foreground mt-0.5">
                             Cocokkan stok sistem dengan perhitungan fisik langsung di toko.
                         </p>
                     </div>
 
-                    <form onSubmit={handleOpenConfirm} className="flex flex-col gap-4">
-                        <div>
-                            <Label htmlFor="id_produk" className="text-xs font-medium">Pilih Produk</Label>
-                            <select
-                                id="id_produk"
-                                value={selectedProdukId}
-                                onChange={(e) => {
-                                    setSelectedProdukId(e.target.value);
-                                    setStokFisikInput("");
-                                }}
-                                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            >
-                                {produkList.map((prod) => (
-                                    <option key={prod.id_produk} value={prod.id_produk}>
-                                        {prod.nama_produk} ({prod.kategori})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                    <form onSubmit={handleOpenConfirm} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
+                            <div className="sm:col-span-2 lg:col-span-4">
+                                <Label htmlFor="id_produk" className="text-xs font-medium">Pilih Produk</Label>
+                                <select
+                                    id="id_produk"
+                                    value={selectedProdukId}
+                                    onChange={(e) => {
+                                        setSelectedProdukId(e.target.value);
+                                        setStokFisikInput("");
+                                    }}
+                                    className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                >
+                                    {produkList.map((prod) => (
+                                        <option key={prod.id_produk} value={prod.id_produk}>
+                                            {prod.nama_produk} ({prod.kategori})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                        <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-muted/20 border border-border/60">
-                            <div>
-                                <span className="text-[11px] text-muted-foreground">Stok Sistem:</span>
-                                <div className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                                    {stokSistem} unit
+                            <div className="sm:col-span-1 lg:col-span-3">
+                                <Label className="text-xs font-medium">Catatan Sistem vs Selisih</Label>
+                                <div className="grid grid-cols-2 gap-2 p-2 rounded-lg bg-muted/30 border border-border/70 h-10 items-center text-xs mt-1">
+                                    <div>
+                                        <span className="text-[10px] text-muted-foreground block leading-tight">Sistem:</span>
+                                        <span className="font-semibold tabular-nums text-foreground">{stokSistem} unit</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-muted-foreground block leading-tight">Selisih:</span>
+                                        <span className="font-semibold tabular-nums">
+                                            {selisih === 0 ? (
+                                                <span className="text-muted-foreground">0 (Sesuai)</span>
+                                            ) : selisih > 0 ? (
+                                                <span className="text-amber-500 font-bold">+{selisih}</span>
+                                            ) : (
+                                                <span className="text-destructive font-bold">{selisih}</span>
+                                            )}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <span className="text-[11px] text-muted-foreground">Selisih:</span>
-                                <div className="text-sm font-semibold tabular-nums mt-0.5">
-                                    {selisih === 0 ? (
-                                        <span className="text-muted-foreground">0 (Sesuai)</span>
-                                    ) : selisih > 0 ? (
-                                        <span className="text-amber-500">+{selisih} (Lebih)</span>
-                                    ) : (
-                                        <span className="text-destructive">{selisih} (Kurang)</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
 
-                        <div>
-                            <Label htmlFor="stok_fisik" className="text-xs font-medium">Stok Fisik Dihitung</Label>
-                            <Input
-                                id="stok_fisik"
-                                type="text"
-                                inputMode="numeric"
-                                placeholder={`Ketik stok fisik (saat ini ${stokSistem})`}
-                                value={stokFisikInput}
-                                onChange={(e) => setStokFisikInput(e.target.value.replace(/\D/g, ""))}
-                                className="h-10 mt-1 tabular-nums text-xs"
-                            />
+                            <div className="sm:col-span-1 lg:col-span-2">
+                                <Label htmlFor="stok_fisik" className="text-xs font-medium">Stok Fisik Dihitung</Label>
+                                <Input
+                                    id="stok_fisik"
+                                    type="text"
+                                    inputMode="numeric"
+                                    placeholder={`Saat ini ${stokSistem}`}
+                                    value={stokFisikInput}
+                                    onChange={(e) => setStokFisikInput(e.target.value.replace(/\D/g, ""))}
+                                    className="h-10 mt-1 tabular-nums text-xs"
+                                />
+                            </div>
+
+                            {selisih === 0 && (
+                                <div className="sm:col-span-2 lg:col-span-3">
+                                    <Button
+                                        type="submit"
+                                        disabled={form.processing || !selectedProduk}
+                                        className="w-full h-10 bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white text-xs font-medium"
+                                    >
+                                        <ClipboardCheck className="size-4 mr-1.5" />
+                                        Sesuaikan Stok Opname
+                                    </Button>
+                                </div>
+                            )}
                         </div>
 
                         {selisih !== 0 && (
-                            <div>
-                                <Label htmlFor="keterangan" className="text-xs font-medium text-destructive">
-                                    Alasan Selisih (Wajib diisi)
-                                </Label>
-                                <Textarea
-                                    id="keterangan"
-                                    rows={2}
-                                    placeholder="Contoh: Barang rusak/bocor, hilang saat display..."
-                                    value={keteranganInput}
-                                    onChange={(e) => setKeteranganInput(e.target.value)}
-                                    className="mt-1 text-xs resize-none"
-                                />
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end pt-1">
+                                <div className="lg:col-span-9">
+                                    <Label htmlFor="keterangan" className="text-xs font-medium text-destructive">
+                                        Alasan Selisih (Wajib diisi jika terdapat selisih fisik vs sistem)
+                                    </Label>
+                                    <Input
+                                        id="keterangan"
+                                        type="text"
+                                        placeholder="Contoh: Barang rusak/bocor, hilang saat display, salah hitung saat restock..."
+                                        value={keteranganInput}
+                                        onChange={(e) => setKeteranganInput(e.target.value)}
+                                        className="h-10 mt-1 text-xs"
+                                    />
+                                </div>
+                                <div className="lg:col-span-3">
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            form.processing ||
+                                            !selectedProduk ||
+                                            !keteranganInput.trim()
+                                        }
+                                        className="w-full h-10 bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white text-xs font-medium"
+                                    >
+                                        <ClipboardCheck className="size-4 mr-1.5" />
+                                        Sesuaikan Stok Opname
+                                    </Button>
+                                </div>
                             </div>
                         )}
 
                         {form.errors.items && (
                             <p className="text-xs text-destructive">{form.errors.items}</p>
                         )}
-
-                        <Button
-                            type="submit"
-                            disabled={
-                                form.processing ||
-                                !selectedProduk ||
-                                (selisih !== 0 && !keteranganInput.trim())
-                            }
-                            className="w-full h-10 bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white text-xs font-medium mt-2"
-                        >
-                            <ClipboardCheck className="size-4 mr-1.5" />
-                            Sesuaikan Stok Opname
-                        </Button>
                     </form>
                 </div>
 
-                <div className="lg:col-span-7 xl:col-span-8 bg-card border border-border rounded-xl p-6 shadow-xs">
+                {/* Riwayat Stock Opname (Full-Width Card) */}
+                <div className="bg-card border border-border rounded-xl p-5 sm:p-6 shadow-xs w-full">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4 mb-4">
                         <div>
                             <h2 className="text-base font-semibold text-foreground">Riwayat Stock Opname</h2>
@@ -256,13 +280,13 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="whitespace-nowrap text-xs">Tanggal</TableHead>
-                                    <TableHead className="whitespace-nowrap text-xs">Produk</TableHead>
-                                    <TableHead className="whitespace-nowrap text-xs text-right">Sistem</TableHead>
-                                    <TableHead className="whitespace-nowrap text-xs text-right">Fisik</TableHead>
-                                    <TableHead className="whitespace-nowrap text-xs text-right">Selisih</TableHead>
-                                    <TableHead className="whitespace-nowrap text-xs">Kasir</TableHead>
-                                    <TableHead className="whitespace-nowrap text-xs">Keterangan</TableHead>
+                                    <TableHead className="whitespace-nowrap text-xs w-44">Tanggal</TableHead>
+                                    <TableHead className="whitespace-nowrap text-xs min-w-[140px]">Produk</TableHead>
+                                    <TableHead className="whitespace-nowrap text-xs text-right w-20">Sistem</TableHead>
+                                    <TableHead className="whitespace-nowrap text-xs text-right w-20">Fisik</TableHead>
+                                    <TableHead className="whitespace-nowrap text-xs text-right w-24">Selisih</TableHead>
+                                    <TableHead className="whitespace-nowrap text-xs min-w-[110px]">Kasir</TableHead>
+                                    <TableHead className="text-xs min-w-[200px]">Keterangan</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -275,31 +299,31 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
                                 ) : (
                                     riwayatOpname.data.map((item) => (
                                         <TableRow key={item.id_opname}>
-                                            <TableCell className="text-xs whitespace-nowrap">
+                                            <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
                                                 {formatTanggal(item.tanggal)}
                                             </TableCell>
-                                            <TableCell className="text-xs font-medium text-foreground whitespace-nowrap">
+                                            <TableCell className="text-xs font-semibold text-foreground">
                                                 {item.produk?.nama_produk || "-"}
                                             </TableCell>
-                                            <TableCell className="text-xs tabular-nums text-right text-muted-foreground whitespace-nowrap">
+                                            <TableCell className="text-xs tabular-nums text-right text-muted-foreground">
                                                 {item.stok_sistem}
                                             </TableCell>
-                                            <TableCell className="text-xs tabular-nums text-right font-semibold whitespace-nowrap">
+                                            <TableCell className="text-xs tabular-nums text-right font-bold text-foreground">
                                                 {item.stok_fisik}
                                             </TableCell>
-                                            <TableCell className="text-xs tabular-nums text-right whitespace-nowrap">
+                                            <TableCell className="text-xs tabular-nums text-right">
                                                 {item.selisih === 0 ? (
-                                                    <Badge variant="neutral" className="text-[11px] py-0 px-1.5">0</Badge>
+                                                    <Badge variant="neutral" className="text-[11px] py-0 px-2 font-medium">0</Badge>
                                                 ) : item.selisih > 0 ? (
-                                                    <Badge variant="warning" className="text-[11px] py-0 px-1.5">+{item.selisih}</Badge>
+                                                    <Badge variant="warning" className="text-[11px] py-0 px-2 font-semibold">+{item.selisih}</Badge>
                                                 ) : (
-                                                    <Badge variant="danger" className="text-[11px] py-0 px-1.5">{item.selisih}</Badge>
+                                                    <Badge variant="danger" className="text-[11px] py-0 px-2 font-semibold">{item.selisih}</Badge>
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                                                 {item.user?.nama || "-"}
                                             </TableCell>
-                                            <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">
+                                            <TableCell className="text-xs text-foreground/85 break-words">
                                                 {item.keterangan || "-"}
                                             </TableCell>
                                         </TableRow>
