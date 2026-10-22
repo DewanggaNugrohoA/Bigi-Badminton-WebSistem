@@ -479,20 +479,18 @@ export default function AdminDashboard({
                         </div>
                     </div>
 
-                    {/* Sisi Kanan: 4 Kartu Metrik Minimalis (Grid 2x2 Rapih & Proporsional Tanpa Gap Tengah) */}
+                    {/* Sisi Kanan: 4 Kartu Metrik Modern & Proporsional */}
                     <div className="lg:col-span-5 xl:col-span-5 grid grid-cols-2 grid-rows-2 gap-3.5 sm:gap-4">
                         {/* Metrik 1: Total Pendapatan Bulan Ini */}
-                        <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <div className="size-6 sm:size-7 rounded-lg bg-[var(--brand)]/10 text-[var(--brand)] flex items-center justify-center shrink-0">
-                                    <TrendingUp className="size-3.5 sm:size-4" />
-                                </div>
-                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">
-                                    Total Pendapatan
-                                </span>
+                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-all">
+                            <div className="size-9 sm:size-10 rounded-xl bg-[var(--brand)]/10 border border-[var(--brand)]/20 text-[var(--brand)] flex items-center justify-center shrink-0">
+                                <TrendingUp className="size-4.5 sm:size-5" />
                             </div>
-                            <div className="mt-2.5">
-                                <div className="text-sm sm:text-base xl:text-lg font-bold tracking-tight text-foreground font-mono tabular-nums">
+                            <div className="mt-3">
+                                <p className="text-xs font-medium text-muted-foreground leading-tight">
+                                    Total Pendapatan
+                                </p>
+                                <div className="text-lg sm:text-xl xl:text-2xl font-extrabold tracking-tight text-foreground font-heading mt-1">
                                     {formatRupiah(kpi?.pendapatan_bulan_ini || 0)}
                                 </div>
                             </div>
@@ -501,58 +499,48 @@ export default function AdminDashboard({
                         {/* Metrik 2: Open Mabar Menunggu Persetujuan */}
                         <Link
                             href="/admin/open-mabar?status=menunggu"
-                            className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-amber-500/40 transition-colors group"
+                            className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-amber-500/40 hover:shadow-xs transition-all group"
                         >
-                            <div className="flex items-center gap-2 min-w-0 text-muted-foreground group-hover:text-foreground">
-                                <div className="size-6 sm:size-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <Users className="size-3.5 sm:size-4" />
-                                </div>
-                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground group-hover:text-foreground leading-snug">
-                                    Mabar Menunggu
-                                </span>
+                            <div className="size-9 sm:size-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <Users className="size-4.5 sm:size-5" />
                             </div>
-                            <div className="mt-2.5 flex items-baseline gap-1.5">
-                                <span className="text-sm sm:text-base xl:text-lg font-bold tracking-tight text-foreground font-mono tabular-nums">
-                                    {kpi?.open_mabar_menunggu ?? 0}
-                                </span>
-                                <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">
-                                    Pengajuan
-                                </span>
+                            <div className="mt-3">
+                                <p className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors leading-tight">
+                                    Mabar Menunggu
+                                </p>
+                                <div className="text-lg sm:text-xl xl:text-2xl font-extrabold tracking-tight text-foreground font-heading mt-1 flex items-baseline gap-1.5">
+                                    <span>{kpi?.open_mabar_menunggu ?? 0}</span>
+                                    <span className="text-xs font-medium text-muted-foreground">Pengajuan</span>
+                                </div>
                             </div>
                         </Link>
 
                         {/* Metrik 3: Reservasi Bulan Ini */}
-                        <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <div className="size-6 sm:size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                                    <CalendarCheck className="size-3.5 sm:size-4" />
-                                </div>
-                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">
-                                    Reservasi Bulan Ini
-                                </span>
+                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-all">
+                            <div className="size-9 sm:size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                <CalendarCheck className="size-4.5 sm:size-5" />
                             </div>
-                            <div className="mt-2.5 flex items-baseline gap-1.5">
-                                <span className="text-sm sm:text-base xl:text-lg font-bold tracking-tight text-foreground font-mono tabular-nums">
-                                    {kpi?.reservasi_bulan_ini ?? 0}
-                                </span>
-                                <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">
-                                    Terjadwal
-                                </span>
+                            <div className="mt-3">
+                                <p className="text-xs font-medium text-muted-foreground leading-tight">
+                                    Reservasi Bulan Ini
+                                </p>
+                                <div className="text-lg sm:text-xl xl:text-2xl font-extrabold tracking-tight text-foreground font-heading mt-1 flex items-baseline gap-1.5">
+                                    <span>{kpi?.reservasi_bulan_ini ?? 0}</span>
+                                    <span className="text-xs font-medium text-muted-foreground">Terjadwal</span>
+                                </div>
                             </div>
                         </div>
 
                         {/* Metrik 4: Rata-rata per Reservasi */}
-                        <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <div className="size-6 sm:size-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                                    <Receipt className="size-3.5 sm:size-4" />
-                                </div>
-                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">
-                                    Rata-rata Transaksi
-                                </span>
+                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-all">
+                            <div className="size-9 sm:size-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                <Receipt className="size-4.5 sm:size-5" />
                             </div>
-                            <div className="mt-2.5">
-                                <div className="text-sm sm:text-base xl:text-lg font-bold tracking-tight text-foreground font-mono tabular-nums">
+                            <div className="mt-3">
+                                <p className="text-xs font-medium text-muted-foreground leading-tight">
+                                    Rata-rata Transaksi
+                                </p>
+                                <div className="text-lg sm:text-xl xl:text-2xl font-extrabold tracking-tight text-foreground font-heading mt-1">
                                     {formatRupiah(kpi?.rata_rata_transaksi || 0)}
                                 </div>
                             </div>
