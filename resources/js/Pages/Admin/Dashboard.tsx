@@ -14,7 +14,7 @@ import {
 import {
     CalendarDays,
     ChevronDown,
-    Receipt,
+    ReceiptText,
     CalendarCheck,
     Users,
     TrendingUp,
@@ -534,7 +534,7 @@ export default function AdminDashboard({
                         {/* Metrik 4: Rata-rata per Reservasi */}
                         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-all">
                             <div className="size-9 sm:size-10 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 text-black dark:text-white flex items-center justify-center shrink-0">
-                                <Receipt className="size-4.5 sm:size-5" />
+                                <ReceiptText className="size-4.5 sm:size-5" />
                             </div>
                             <div className="mt-3">
                                 <p className="text-xs font-medium text-muted-foreground leading-tight">
