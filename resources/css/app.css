@@ -208,3 +208,26 @@
   --sidebar-border: #223552;
   --sidebar-ring: #2563eb;
 }
+
+@media print {
+  header,
+  aside,
+  nav,
+  [data-slot="sidebar"],
+  [data-sonner-toaster],
+  .no-print {
+    display: none !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}

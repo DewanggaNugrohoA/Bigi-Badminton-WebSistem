@@ -225,11 +225,11 @@ export default function AdminLayout({
     );
 
     return (
-        <div className="min-h-screen bg-transparent text-foreground flex flex-col antialiased">
+        <div className="min-h-screen bg-transparent text-foreground flex flex-col antialiased print:min-h-0 print:bg-white print:text-slate-900">
             <aside
                 aria-label="Sidebar Admin"
                 className={cn(
-                    "fixed inset-y-0 left-0 z-40 bg-sidebar border-r border-sidebar-border hidden md:flex flex-col transition-all duration-300 ease-in-out",
+                    "fixed inset-y-0 left-0 z-40 bg-sidebar border-r border-sidebar-border hidden md:flex flex-col transition-all duration-300 ease-in-out print:hidden",
                     sidebarOpen ? "w-60 translate-x-0" : "-translate-x-full w-60"
                 )}
             >
@@ -316,11 +316,11 @@ export default function AdminLayout({
 
             <div
                 className={cn(
-                    "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out",
+                    "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out print:pl-0",
                     sidebarOpen ? "md:pl-60" : "md:pl-0"
                 )}
             >
-                <header className="sticky top-0 z-30 h-16 bg-card/85 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-4">
+                <header className="sticky top-0 z-30 h-16 bg-card/85 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-4 print:hidden">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <Button
                             type="button"
@@ -419,7 +419,7 @@ export default function AdminLayout({
                     {fullWidth ? (
                         children
                     ) : (
-                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8 print:p-0 print:m-0 print:max-w-none">
                             {children}
                         </div>
                     )}

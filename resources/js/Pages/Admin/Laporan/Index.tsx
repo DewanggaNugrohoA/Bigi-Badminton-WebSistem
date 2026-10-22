@@ -411,7 +411,7 @@ export default function LaporanIndex({
                 </div>
             </div>
 
-            <div className="flex flex-col gap-6 max-w-6xl">
+            <div className="flex flex-col gap-6 max-w-6xl print:max-w-none print:w-full print:gap-4">
                 <div className="print:hidden flex flex-col gap-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-4">
                         <div>
