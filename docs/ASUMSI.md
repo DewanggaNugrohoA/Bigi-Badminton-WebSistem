@@ -159,3 +159,16 @@
   - Halaman antarmuka kasir untuk void/retur (`resources/js/Pages/Kasir/Void/Index.tsx`) telah dihapus.
   - Rute HTTP `/kasir/void` (`GET` dan `POST`) pada `routes/web.php` serta method pendukung di `KasirController` telah dihapus.
   - Model `ReturVoid` dan tabel database `retur_void` tetap dipertahankan untuk integritas data audit dan laporan keuangan internal.
+
+## 19. Fitur Notifikasi Suara WhatsApp & Pengajuan Open Mabar di Panel Admin
+- Berdasarkan permintaan pengguna:
+  - Setiap kali ada member yang mengajukan jadwal Open Mabar baru (status `menunggu`), Panel Admin otomatis membunyikan nada notifikasi khas WhatsApp (2-chime harmonik cerah) dan memunculkan toast interaktif dengan tombol langsung untuk meninjau pengajuan.
+  - **Mekanisme Siaran Ganda (Hybrid Real-Time & Polling Fallback):**
+    1. **Laravel Broadcast Event (`App\Events\MabarDiajukan`)**: Disiarkan secara real-time via saluran privat `admin.notifikasi` (khusus role `admin`) menggunakan Laravel Reverb.
+    2. **Polling Fallback (`GET /admin/open-mabar/notifikasi`)**: Setiap 7 detik ketika tab browser aktif, layout admin memeriksa status pengajuan terbaru. Jika server Reverb belum aktif di lokal, sistem tetap otomatis mendeteksi dan membunyikan suara saat pengajuan baru masuk.
+    3. **Deduplikasi**: ID mabar yang telah dibunyikan dicatat dalam memori client (`lastKnownIdRef`) sehingga tidak akan berbunyi ganda.
+  - **Efek Suara WhatsApp & Browser Autoplay Policy:**
+    - Modul `resources/js/lib/sound.ts` memadukan berkas audio `/sounds/wa-notification.wav` dan sintesis *Web Audio API* harmonik frekuensi tinggi (C6 -> G6) tanpa latensi jaringan.
+    - Hak akses audio (Autoplay Policy) di-unlock otomatis saat klik/interaksi pertama admin di layar.
+    - Pada header panel admin disediakan menu dropdown Bel Notifikasi lengkap dengan badge jumlah pengajuan *menunggu*, toggle suara (Aktif/Mati tersimpan di `localStorage`), dan tombol "Tes Bunyi Notifikasi (WA)".
+    - Menu sidebar "Open Mabar" dilengkapi badge counter jumlah pengajuan yang berstatus *menunggu*.

@@ -1,5 +1,6 @@
-import { ReactNode, useState, useEffect, useRef } from "react";
-import { Link, usePage } from "@inertiajs/react";
+import { ReactNode, useState, useEffect, useRef, useCallback } from "react";
+import { Link, usePage, router } from "@inertiajs/react";
+import { useEcho } from "@laravel/echo-react";
 import {
     LayoutDashboard,
     CalendarDays,
@@ -13,6 +14,10 @@ import {
     Moon,
     PanelLeftClose,
     PanelLeft,
+    Bell,
+    BellRing,
+    Volume2,
+    VolumeX,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -28,6 +33,12 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PageProps } from "@inertiajs/core";
+import {
+    playWaNotificationSound,
+    isNotificationSoundEnabled,
+    setNotificationSoundEnabled,
+    unlockAudio,
+} from "@/lib/sound";
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -51,6 +62,18 @@ interface SharedProps extends PageProps {
     };
     errors: Record<string, string>;
     [key: string]: unknown;
+}
+
+interface MabarNotificationPayload {
+    id_mabar: number;
+    judul: string;
+    nama_pemohon: string;
+    no_hp?: string;
+    nama_lapangan?: string;
+    tanggal?: string;
+    jam_mulai?: string;
+    jam_selesai?: string;
+    created_at?: string;
 }
 
 interface MenuItem {
@@ -122,6 +145,99 @@ export default function AdminLayout({
     });
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isDark, setIsDark] = useState(true);
+    const [pendingMabarCount, setPendingMabarCount] = useState<number>(0);
+    const [soundEnabled, setSoundEnabled] = useState<boolean>(() => isNotificationSoundEnabled());
+    const lastKnownIdRef = useRef<number | null>(null);
+
+    const handleNewMabarNotification = useCallback((data: MabarNotificationPayload) => {
+        playWaNotificationSound();
+        toast.info("Pengajuan Open Mabar Baru!", {
+            description: `${data.nama_pemohon} mengajukan "${data.judul}" (${data.tanggal || ""} ${data.jam_mulai || ""})`,
+            duration: 9000,
+            action: {
+                label: "Tinjau",
+                onClick: () => router.visit("/admin/open-mabar?status=menunggu"),
+            },
+        });
+    }, []);
+
+    useEcho<MabarNotificationPayload>(
+        "admin.notifikasi",
+        "MabarDiajukan",
+        (payload) => {
+            if (payload && payload.id_mabar) {
+                if (lastKnownIdRef.current === null || payload.id_mabar > lastKnownIdRef.current) {
+                    lastKnownIdRef.current = payload.id_mabar;
+                    setPendingMabarCount((prev) => prev + 1);
+                    handleNewMabarNotification(payload);
+                }
+            }
+        },
+        [handleNewMabarNotification],
+        "private"
+    );
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const checkPendingMabar = async (isInitial = false) => {
+            try {
+                const res = await fetch("/admin/open-mabar/notifikasi", {
+                    headers: {
+                        Accept: "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                });
+                if (!res.ok) return;
+                const data: { pending_count: number; latest: MabarNotificationPayload | null } = await res.json();
+                if (!isMounted) return;
+
+                setPendingMabarCount(data.pending_count);
+
+                if (data.latest && data.latest.id_mabar) {
+                    if (isInitial) {
+                        lastKnownIdRef.current = data.latest.id_mabar;
+                    } else if (lastKnownIdRef.current !== null && data.latest.id_mabar > lastKnownIdRef.current) {
+                        lastKnownIdRef.current = data.latest.id_mabar;
+                        handleNewMabarNotification(data.latest);
+                    } else if (lastKnownIdRef.current === null) {
+                        lastKnownIdRef.current = data.latest.id_mabar;
+                    }
+                }
+            } catch {
+                // Ignore network hiccup during background polling
+            }
+        };
+
+        checkPendingMabar(true);
+
+        const interval = setInterval(() => {
+            if (typeof document !== "undefined" && document.visibilityState === "visible") {
+                checkPendingMabar(false);
+            }
+        }, 7000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, [handleNewMabarNotification]);
+
+    const handleTestSound = () => {
+        unlockAudio();
+        playWaNotificationSound();
+        toast.info("Uji Coba Suara Notifikasi", {
+            description: "Suara nada notifikasi WA berhasil dibunyikan.",
+            duration: 3000,
+        });
+    };
+
+    const toggleSound = () => {
+        const next = !soundEnabled;
+        setSoundEnabled(next);
+        setNotificationSoundEnabled(next);
+        toast(next ? "Suara Notifikasi Diaktifkan" : "Suara Notifikasi Dimatikan");
+    };
 
     const lastFlash = useRef<{ success?: string | null; error?: string | null }>({});
 
@@ -215,6 +331,18 @@ export default function AdminLayout({
                                 >
                                     <Icon className="size-4.5 shrink-0" />
                                     <span className="truncate">{item.title}</span>
+                                    {item.href === "/admin/open-mabar" && pendingMabarCount > 0 && (
+                                        <span
+                                            className={cn(
+                                                "ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full leading-none",
+                                                isActive
+                                                    ? "bg-white text-[var(--brand)]"
+                                                    : "bg-amber-500 text-white animate-pulse"
+                                            )}
+                                        >
+                                            {pendingMabarCount}
+                                        </span>
+                                    )}
                                 </Link>
                             );
                         })}
@@ -351,6 +479,92 @@ export default function AdminLayout({
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
+                        {/* Tombol & Menu Notifikasi Open Mabar */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger
+                                render={
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        className="relative size-9"
+                                        aria-label="Notifikasi Pengajuan Open Mabar"
+                                    >
+                                        {pendingMabarCount > 0 ? (
+                                            <BellRing className="size-4 text-amber-500 animate-pulse" />
+                                        ) : (
+                                            <Bell className="size-4 text-muted-foreground" />
+                                        )}
+                                        {pendingMabarCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 size-4 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-xs">
+                                                {pendingMabarCount > 9 ? "9+" : pendingMabarCount}
+                                            </span>
+                                        )}
+                                    </Button>
+                                }
+                            />
+                            <DropdownMenuContent align="end" className="w-72 p-2">
+                                <div className="flex items-center justify-between px-2 py-1.5 border-b border-border/60 pb-2">
+                                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground">
+                                        <Bell className="size-3.5 text-[var(--brand)]" />
+                                        <span>Notifikasi Mabar</span>
+                                    </div>
+                                    {pendingMabarCount > 0 && (
+                                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                                            {pendingMabarCount} Menunggu
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="py-2.5 px-2">
+                                    {pendingMabarCount > 0 ? (
+                                        <div className="space-y-2">
+                                            <p className="text-xs text-foreground">
+                                                Ada <span className="font-bold text-amber-600 dark:text-amber-400">{pendingMabarCount}</span> jadwal open mabar baru yang menunggu persetujuan admin.
+                                            </p>
+                                            <Link
+                                                href="/admin/open-mabar?status=menunggu"
+                                                className="inline-flex items-center justify-center w-full px-2.5 py-1.5 text-xs font-semibold rounded-md bg-[var(--brand)] text-white hover:opacity-90 transition-opacity"
+                                            >
+                                                Tinjau Pengajuan
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground text-center py-1">
+                                            Tidak ada pengajuan mabar yang menunggu.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <DropdownMenuSeparator />
+
+                                <div className="pt-1.5 px-1 space-y-1">
+                                    <button
+                                        type="button"
+                                        onClick={toggleSound}
+                                        className="flex items-center justify-between w-full px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            {soundEnabled ? <Volume2 className="size-3.5 text-emerald-500" /> : <VolumeX className="size-3.5 text-destructive" />}
+                                            <span>Suara Notifikasi</span>
+                                        </span>
+                                        <span className="text-[11px] font-semibold text-muted-foreground">
+                                            {soundEnabled ? "Aktif" : "Mati"}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleTestSound}
+                                        className="flex items-center gap-2 w-full px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                                    >
+                                        <Volume2 className="size-3.5 text-[var(--brand)]" />
+                                        <span>Tes Bunyi Notifikasi (WA)</span>
+                                    </button>
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                         <Button
                             type="button"
                             variant="outline"

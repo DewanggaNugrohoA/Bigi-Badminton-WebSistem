@@ -149,7 +149,7 @@ class OpenMabarController extends Controller
             $fotoPath = $request->file('foto')->store('mabar', 'public');
         }
 
-        OpenMabar::create([
+        $mabar = OpenMabar::create([
             'id_user' => $user->id_user,
             'judul' => $validated['judul'],
             'tanggal' => $validated['tanggal'],
@@ -163,6 +163,12 @@ class OpenMabarController extends Controller
             'id_lapangan' => $validated['id_lapangan'] ?? null,
             'status' => OpenMabar::STATUS_MENUNGGU,
         ]);
+
+        try {
+            event(new \App\Events\MabarDiajukan($mabar));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal menyiarkan event MabarDiajukan: ' . $e->getMessage());
+        }
 
         return redirect()->route('open-mabar.saya')->with('success', 'Jadwal berhasil dikirim dan menunggu persetujuan admin.');
     }

@@ -9,6 +9,11 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id_user === (int) $id;
 });
 
+// Saluran privat notifikasi operasional khusus admin.
+Broadcast::channel('admin.notifikasi', function ($user) {
+    return $user && $user->role === 'admin';
+});
+
 /**
  * Saluran privat real-time chat Open Mabar (Laravel Reverb).
  * Aturan hak akses:

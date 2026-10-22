@@ -218,4 +218,32 @@ class OpenMabarController extends Controller
             return redirect()->back()->with('success', "Open Mabar '{$mabar->judul}' telah ditolak. Pengaju dapat melihat catatan dan mengajukan revisi.");
         });
     }
+
+    /**
+     * Endpoint API status notifikasi pengajuan open mabar untuk polling panel admin.
+     */
+    public function notifikasi(Request $request): JsonResponse
+    {
+        $pendingCount = OpenMabar::where('status', OpenMabar::STATUS_MENUNGGU)->count();
+
+        $latest = OpenMabar::where('status', OpenMabar::STATUS_MENUNGGU)
+            ->with(['user:id_user,nama,no_whatsapp', 'lapangan:id_lapangan,nama_lapangan'])
+            ->orderBy('id_mabar', 'desc')
+            ->first();
+
+        return response()->json([
+            'pending_count' => $pendingCount,
+            'latest' => $latest ? [
+                'id_mabar' => $latest->id_mabar,
+                'judul' => $latest->judul,
+                'nama_pemohon' => $latest->user?->nama ?? 'Member',
+                'no_hp' => $latest->no_hp ?? $latest->user?->no_whatsapp ?? '-',
+                'nama_lapangan' => $latest->lapangan?->nama_lapangan ?? 'Lapangan Belum Ditentukan',
+                'tanggal' => (string) $latest->tanggal,
+                'jam_mulai' => substr((string) $latest->jam_mulai, 0, 5),
+                'jam_selesai' => substr((string) $latest->jam_selesai, 0, 5),
+                'created_at' => $latest->created_at?->toIso8601String() ?? now()->toIso8601String(),
+            ] : null,
+        ]);
+    }
 }

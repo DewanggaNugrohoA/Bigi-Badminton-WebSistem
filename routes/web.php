@@ -103,6 +103,7 @@ Route::middleware('auth:staff')->group(function () {
 
         // Persetujuan Open Mabar
         Route::get('/admin/open-mabar', [\App\Http\Controllers\Admin\OpenMabarController::class, 'index'])->name('admin.open-mabar');
+        Route::get('/admin/open-mabar/notifikasi', [\App\Http\Controllers\Admin\OpenMabarController::class, 'notifikasi'])->name('admin.open-mabar.notifikasi');
         Route::get('/admin/open-mabar/{id}/conflict', [\App\Http\Controllers\Admin\OpenMabarController::class, 'checkConflict'])->name('admin.open-mabar.conflict');
         Route::post('/admin/open-mabar/{id}/approve', [\App\Http\Controllers\Admin\OpenMabarController::class, 'approve'])->name('admin.open-mabar.approve');
         Route::post('/admin/open-mabar/{id}/reject', [\App\Http\Controllers\Admin\OpenMabarController::class, 'reject'])->name('admin.open-mabar.reject');
