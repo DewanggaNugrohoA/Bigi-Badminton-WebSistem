@@ -247,9 +247,32 @@ export default function AdminDashboard({
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
                     {/* Kartu Grafik Area Tren Mulus (12 Bulan Sepanjang Tahun) */}
                     <div className="lg:col-span-7 xl:col-span-7 p-5 sm:p-6 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between">
-                        {/* Header Kartu: Filter Kategori (Kiri) + Volume Bulan Terpilih & Rincian (Kanan) */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-border/40 gap-3">
-                            <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/50 text-xs self-start">
+                        {/* Header Kartu: Ringkasan Bulan Terpilih (Kiri) + Filter Kategori (Kanan) */}
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-4 border-b border-border/40 gap-4">
+                            {/* Sisi Kiri: Nama Bulan, Total Nominal, dan Rincian Sewa vs POS */}
+                            <div className="space-y-1">
+                                <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                                    {activeMonth ? activeMonth.nama_lengkap : "Volume"}
+                                </div>
+                                <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground font-heading">
+                                    {formatRupiah(displayedVolume)}
+                                </div>
+                                {activeMonth && (
+                                    <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground flex-wrap">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border/50 text-[11px] whitespace-nowrap shadow-2xs">
+                                            <span className="text-muted-foreground">Sewa:</span>
+                                            <strong className="text-foreground font-mono font-medium">{formatRupiah(activeMonth.rental)}</strong>
+                                        </span>
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border/50 text-[11px] whitespace-nowrap shadow-2xs">
+                                            <span className="text-muted-foreground">POS:</span>
+                                            <strong className="text-foreground font-mono font-medium">{formatRupiah(activeMonth.pos)}</strong>
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Sisi Kanan: Filter Kategori Segmented Control */}
+                            <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/50 text-xs shrink-0 self-start sm:self-auto">
                                 <button
                                     type="button"
                                     onClick={() => setChartMode("total")}
@@ -260,7 +283,7 @@ export default function AdminDashboard({
                                             : "text-muted-foreground hover:text-foreground"
                                     )}
                                 >
-                                    Total Pendapatan
+                                    Total
                                 </button>
                                 <button
                                     type="button"
@@ -286,26 +309,6 @@ export default function AdminDashboard({
                                 >
                                     POS Kasir
                                 </button>
-                            </div>
-
-                            <div className="text-left sm:text-right min-h-[58px] flex flex-col justify-center">
-                                <div className="flex items-center sm:justify-end h-5">
-                                    <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-200 font-semibold">
-                                        {activeMonth ? activeMonth.nama_lengkap : "Volume"}
-                                    </span>
-                                </div>
-                                <div className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-foreground font-heading mt-0.5">
-                                    {formatRupiah(displayedVolume)}
-                                </div>
-                                <div className="text-[11px] text-muted-foreground font-medium mt-0.5 flex items-center sm:justify-end gap-2 h-4">
-                                    {activeMonth && (
-                                        <>
-                                            <span>Sewa: <strong className="text-foreground">{formatRupiah(activeMonth.rental)}</strong></span>
-                                            <span>•</span>
-                                            <span>POS: <strong className="text-foreground">{formatRupiah(activeMonth.pos)}</strong></span>
-                                        </>
-                                    )}
-                                </div>
                             </div>
                         </div>
 
