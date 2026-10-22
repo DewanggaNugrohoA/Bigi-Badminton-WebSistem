@@ -212,7 +212,7 @@ export default function AdminDashboard({
                             </div>
 
                             <div className="text-right">
-                                <span className="text-[11px] uppercase tracking-wider text-muted-foreground block font-medium">
+                                <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-200 block font-semibold">
                                     {activeMonth ? activeMonth.nama_lengkap : "Volume"}
                                 </span>
                                 <div className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-foreground font-heading">
@@ -431,9 +431,9 @@ export default function AdminDashboard({
                                                 <TableCell className="font-semibold text-foreground">
                                                     <span>{jadwal.nama_lapangan}</span>
                                                 </TableCell>
-                                                <TableCell className="text-muted-foreground text-xs font-mono">
+                                                <TableCell className="text-slate-600 dark:text-slate-300 text-xs font-mono">
                                                     <span className="inline-flex items-center gap-1">
-                                                        <Clock className="size-3 text-muted-foreground/70" />
+                                                        <Clock className="size-3 text-slate-400 dark:text-slate-400" />
                                                         {jadwal.jam_mulai} - {jadwal.jam_selesai}
                                                     </span>
                                                 </TableCell>

@@ -581,23 +581,23 @@ export default function ReservasiIndex({
                             <div className="w-full overflow-x-auto scrollbar-thin">
                                 <Table className="min-w-[900px] w-full">
                                     <TableHeader>
-                                        <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border/70">
-                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                        <TableRow className="bg-slate-100/70 dark:bg-slate-900/60 hover:bg-slate-100/70 dark:hover:bg-slate-900/60 border-b border-border/70">
+                                            <TableHead className="text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Pemesan
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Lapangan
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Waktu Main
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-right text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-right text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Total & Sisa
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-center text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-center text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Status Bayar
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-right text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-right text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Aksi
                                             </TableHead>
                                         </TableRow>

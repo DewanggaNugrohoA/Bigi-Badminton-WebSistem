@@ -375,23 +375,23 @@ export default function OpenMabarIndex({
                         <div className="relative overflow-x-auto rounded-lg border border-border">
                             <Table className="w-full min-w-[700px] lg:min-w-full text-sm">
                                 <TableHeader>
-                                    <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border">
-                                        <TableHead className="py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+                                    <TableRow className="bg-slate-100/70 dark:bg-slate-900/60 hover:bg-slate-100/70 dark:hover:bg-slate-900/60 border-b border-border">
+                                        <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-100 whitespace-nowrap">
                                             Judul
                                         </TableHead>
-                                        <TableHead className="py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+                                        <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-100 whitespace-nowrap">
                                             Pengaju
                                         </TableHead>
-                                        <TableHead className="py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+                                        <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-100 whitespace-nowrap">
                                             Jadwal
                                         </TableHead>
-                                        <TableHead className="py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap text-center">
+                                        <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-100 whitespace-nowrap text-center">
                                             Kuota
                                         </TableHead>
-                                        <TableHead className="py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap text-center">
+                                        <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-100 whitespace-nowrap text-center">
                                             Status
                                         </TableHead>
-                                        <TableHead className="py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap text-right">
+                                        <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-100 whitespace-nowrap text-right">
                                             Aksi
                                         </TableHead>
                                     </TableRow>
