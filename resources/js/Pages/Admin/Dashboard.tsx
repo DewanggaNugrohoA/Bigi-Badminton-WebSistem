@@ -479,11 +479,11 @@ export default function AdminDashboard({
                         </div>
                     </div>
 
-                    {/* Sisi Kanan: 4 Kartu Metrik Modern & Proporsional */}
+                    {/* Sisi Kanan: 4 Kartu Metrik Modern & Proporsional (Ikon Hitam di Mode Terang, Putih di Mode Gelap) */}
                     <div className="lg:col-span-5 xl:col-span-5 grid grid-cols-2 grid-rows-2 gap-3.5 sm:gap-4">
                         {/* Metrik 1: Total Pendapatan Bulan Ini */}
                         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-all">
-                            <div className="size-9 sm:size-10 rounded-xl bg-[var(--brand)]/10 border border-[var(--brand)]/20 text-[var(--brand)] flex items-center justify-center shrink-0">
+                            <div className="size-9 sm:size-10 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 text-black dark:text-white flex items-center justify-center shrink-0">
                                 <TrendingUp className="size-4.5 sm:size-5" />
                             </div>
                             <div className="mt-3">
@@ -499,9 +499,9 @@ export default function AdminDashboard({
                         {/* Metrik 2: Open Mabar Menunggu Persetujuan */}
                         <Link
                             href="/admin/open-mabar?status=menunggu"
-                            className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-amber-500/40 hover:shadow-xs transition-all group"
+                            className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-foreground/30 hover:shadow-xs transition-all group"
                         >
-                            <div className="size-9 sm:size-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <div className="size-9 sm:size-10 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 text-black dark:text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                 <Users className="size-4.5 sm:size-5" />
                             </div>
                             <div className="mt-3">
@@ -517,7 +517,7 @@ export default function AdminDashboard({
 
                         {/* Metrik 3: Reservasi Bulan Ini */}
                         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-all">
-                            <div className="size-9 sm:size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <div className="size-9 sm:size-10 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 text-black dark:text-white flex items-center justify-center shrink-0">
                                 <CalendarCheck className="size-4.5 sm:size-5" />
                             </div>
                             <div className="mt-3">
@@ -533,7 +533,7 @@ export default function AdminDashboard({
 
                         {/* Metrik 4: Rata-rata per Reservasi */}
                         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-all">
-                            <div className="size-9 sm:size-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                            <div className="size-9 sm:size-10 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 text-black dark:text-white flex items-center justify-center shrink-0">
                                 <Receipt className="size-4.5 sm:size-5" />
                             </div>
                             <div className="mt-3">
@@ -554,7 +554,7 @@ export default function AdminDashboard({
                         <CardHeader className="flex flex-row items-center justify-between pb-3">
                             <div className="space-y-0.5">
                                 <CardTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
-                                    <Activity className="size-4.5 text-[var(--brand)]" />
+                                    <Activity className="size-4.5 text-black dark:text-white" />
                                     Jadwal Lapangan Hari Ini
                                 </CardTitle>
                                 <p className="text-xs text-muted-foreground">
