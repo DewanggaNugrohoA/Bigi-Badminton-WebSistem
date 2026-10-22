@@ -288,8 +288,8 @@ export default function AdminDashboard({
                                 </button>
                             </div>
 
-                            <div className="text-left sm:text-right">
-                                <div className="flex items-center sm:justify-end gap-1.5">
+                            <div className="text-left sm:text-right min-h-[58px] flex flex-col justify-center">
+                                <div className="flex items-center sm:justify-end gap-1.5 h-5">
                                     <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-200 font-semibold">
                                         {activeMonth ? activeMonth.nama_lengkap : "Volume"}
                                     </span>
@@ -302,13 +302,15 @@ export default function AdminDashboard({
                                 <div className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-foreground font-heading mt-0.5">
                                     {formatRupiah(displayedVolume)}
                                 </div>
-                                {activeMonth && (
-                                    <div className="text-[11px] text-muted-foreground font-medium mt-0.5 flex items-center sm:justify-end gap-2">
-                                        <span>Sewa: <strong className="text-foreground">{formatRupiah(activeMonth.rental)}</strong></span>
-                                        <span>•</span>
-                                        <span>POS: <strong className="text-foreground">{formatRupiah(activeMonth.pos)}</strong></span>
-                                    </div>
-                                )}
+                                <div className="text-[11px] text-muted-foreground font-medium mt-0.5 flex items-center sm:justify-end gap-2 h-4">
+                                    {activeMonth && (
+                                        <>
+                                            <span>Sewa: <strong className="text-foreground">{formatRupiah(activeMonth.rental)}</strong></span>
+                                            <span>•</span>
+                                            <span>POS: <strong className="text-foreground">{formatRupiah(activeMonth.pos)}</strong></span>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -319,6 +321,7 @@ export default function AdminDashboard({
                                     viewBox="0 0 560 190"
                                     className="w-full h-full overflow-visible"
                                     preserveAspectRatio="none"
+                                    onMouseLeave={() => setHoveredMonthIndex(null)}
                                 >
                                     <defs>
                                         <linearGradient id="revenue-area-grad" x1="0" y1="0" x2="0" y2="1">
@@ -376,6 +379,20 @@ export default function AdminDashboard({
                                     {/* Sumbu X Label Bulan & Indikator Titik */}
                                     {chartPoints.map((pt, idx) => {
                                         const isSelected = idx === activeIndex;
+                                        const step = chartPoints.length > 1 ? 488 / (chartPoints.length - 1) : 40;
+                                        let rectX = 0;
+                                        let rectW = 0;
+
+                                        if (idx === 0) {
+                                            rectX = 0;
+                                            rectW = pt.x + step / 2;
+                                        } else if (idx === chartPoints.length - 1) {
+                                            rectX = pt.x - step / 2;
+                                            rectW = 560 - rectX;
+                                        } else {
+                                            rectX = pt.x - step / 2;
+                                            rectW = step;
+                                        }
 
                                         return (
                                             <g key={pt.item.bulan}>
@@ -393,26 +410,20 @@ export default function AdminDashboard({
                                                     />
                                                 )}
 
-                                                {/* Titik Data pada Kurva */}
+                                                {/* Titik Data pada Kurva (Tanpa animasi ping/bola nembak) */}
                                                 {isSelected ? (
                                                     <g>
                                                         <circle
                                                             cx={pt.x}
                                                             cy={pt.y}
-                                                            r="8"
-                                                            className="fill-[var(--brand)]/20 animate-ping"
-                                                        />
-                                                        <circle
-                                                            cx={pt.x}
-                                                            cy={pt.y}
                                                             r="6"
-                                                            className="fill-[var(--brand)]/40"
+                                                            className="fill-[var(--brand)]/25"
                                                         />
                                                         <circle
                                                             cx={pt.x}
                                                             cy={pt.y}
                                                             r="4"
-                                                            className="fill-background stroke-[var(--brand)] stroke-2"
+                                                            className="fill-background stroke-[var(--brand)] stroke-[2.5]"
                                                         />
                                                     </g>
                                                 ) : pt.val > 0 ? (
@@ -446,16 +457,15 @@ export default function AdminDashboard({
                                                     {pt.label}
                                                 </text>
 
-                                                {/* Hitbox Area Hover per Bulan */}
+                                                {/* Hitbox Area Hover per Bulan (Rapat berdampingan tanpa celah jeda) */}
                                                 <rect
-                                                    x={pt.x - 20}
-                                                    y="15"
-                                                    width="40"
-                                                    height="165"
+                                                    x={rectX}
+                                                    y="0"
+                                                    width={rectW}
+                                                    height="190"
                                                     fill="transparent"
                                                     className="cursor-pointer"
                                                     onMouseEnter={() => setHoveredMonthIndex(idx)}
-                                                    onMouseLeave={() => setHoveredMonthIndex(null)}
                                                 />
                                             </g>
                                         );
@@ -468,23 +478,18 @@ export default function AdminDashboard({
                     {/* Sisi Kanan: 4 Kartu Metrik Minimalis (Grid 2x2 Rapih & Proporsional Tanpa Gap Tengah) */}
                     <div className="lg:col-span-5 xl:col-span-5 grid grid-cols-2 grid-rows-2 gap-3.5 sm:gap-4">
                         {/* Metrik 1: Total Pendapatan Bulan Ini */}
-                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
+                        <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
                             <div className="flex items-center gap-2 min-w-0">
-                                <div className="size-7 rounded-lg bg-[var(--brand)]/10 text-[var(--brand)] flex items-center justify-center shrink-0">
-                                    <TrendingUp className="size-4" />
+                                <div className="size-6 sm:size-7 rounded-lg bg-[var(--brand)]/10 text-[var(--brand)] flex items-center justify-center shrink-0">
+                                    <TrendingUp className="size-3.5 sm:size-4" />
                                 </div>
-                                <span className="text-xs font-semibold text-foreground leading-tight truncate">
+                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">
                                     Total Pendapatan
                                 </span>
                             </div>
-                            <div className="space-y-1 my-auto py-1.5">
-                                <div className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-foreground font-heading truncate">
+                            <div className="mt-2.5">
+                                <div className="text-sm sm:text-base xl:text-lg font-bold tracking-tight text-foreground font-mono tabular-nums">
                                     {formatRupiah(kpi?.pendapatan_bulan_ini || 0)}
-                                </div>
-                                <div>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                                        +{kpi?.persen_perubahan_bulan ?? 0}% bln ini
-                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -492,78 +497,59 @@ export default function AdminDashboard({
                         {/* Metrik 2: Open Mabar Menunggu Persetujuan */}
                         <Link
                             href="/admin/open-mabar?status=menunggu"
-                            className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-amber-500/40 transition-colors group"
+                            className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-amber-500/40 transition-colors group"
                         >
                             <div className="flex items-center gap-2 min-w-0 text-muted-foreground group-hover:text-foreground">
-                                <div className="size-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <Users className="size-4" />
+                                <div className="size-6 sm:size-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                    <Users className="size-3.5 sm:size-4" />
                                 </div>
-                                <span className="text-xs font-semibold text-foreground leading-tight truncate">
+                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground group-hover:text-foreground leading-snug">
                                     Mabar Menunggu
                                 </span>
                             </div>
-                            <div className="space-y-1 my-auto py-1.5">
-                                <div className="flex items-baseline gap-1.5 flex-wrap">
-                                    <span className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-foreground font-heading">
-                                        {kpi?.open_mabar_menunggu ?? 0}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground font-medium">
-                                        Pengajuan
-                                    </span>
-                                </div>
-                                <div>
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/20 transition-colors">
-                                        Verifikasi &rarr;
-                                    </span>
-                                </div>
+                            <div className="mt-2.5 flex items-baseline gap-1.5">
+                                <span className="text-sm sm:text-base xl:text-lg font-bold tracking-tight text-foreground font-mono tabular-nums">
+                                    {kpi?.open_mabar_menunggu ?? 0}
+                                </span>
+                                <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">
+                                    Pengajuan
+                                </span>
                             </div>
                         </Link>
 
                         {/* Metrik 3: Reservasi Bulan Ini */}
-                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
+                        <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
                             <div className="flex items-center gap-2 min-w-0">
-                                <div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                                    <CalendarCheck className="size-4" />
+                                <div className="size-6 sm:size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                    <CalendarCheck className="size-3.5 sm:size-4" />
                                 </div>
-                                <span className="text-xs font-semibold text-foreground leading-tight truncate">
+                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">
                                     Reservasi Bulan Ini
                                 </span>
                             </div>
-                            <div className="space-y-1 my-auto py-1.5">
-                                <div className="flex items-baseline gap-1.5 flex-wrap">
-                                    <span className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-foreground font-heading">
-                                        {kpi?.reservasi_bulan_ini ?? 0}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground font-medium">
-                                        Terjadwal
-                                    </span>
-                                </div>
-                                <div>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                                        Aktif
-                                    </span>
-                                </div>
+                            <div className="mt-2.5 flex items-baseline gap-1.5">
+                                <span className="text-sm sm:text-base xl:text-lg font-bold tracking-tight text-foreground font-mono tabular-nums">
+                                    {kpi?.reservasi_bulan_ini ?? 0}
+                                </span>
+                                <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">
+                                    Terjadwal
+                                </span>
                             </div>
                         </div>
 
                         {/* Metrik 4: Rata-rata per Reservasi */}
-                        <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
+                        <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-xs flex flex-col justify-between h-full hover:border-border transition-colors">
                             <div className="flex items-center gap-2 min-w-0">
-                                <div className="size-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                                    <Receipt className="size-4" />
+                                <div className="size-6 sm:size-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <Receipt className="size-3.5 sm:size-4" />
                                 </div>
-                                <span className="text-xs font-semibold text-foreground leading-tight truncate">
+                                <span className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">
                                     Rata-rata Transaksi
                                 </span>
                             </div>
-                            <div className="space-y-1 my-auto py-1.5">
-                                <div className="text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-foreground font-heading truncate">
+                            <div className="mt-2.5">
+                                <div className="text-sm sm:text-base xl:text-lg font-bold tracking-tight text-foreground font-mono tabular-nums">
                                     {formatRupiah(kpi?.rata_rata_transaksi || 0)}
-                                </div>
-                                <div>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                                        Per Reservasi
-                                    </span>
                                 </div>
                             </div>
                         </div>
