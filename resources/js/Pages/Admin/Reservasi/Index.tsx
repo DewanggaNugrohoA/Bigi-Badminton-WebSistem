@@ -471,36 +471,89 @@ export default function ReservasiIndex({
                 </div>
 
                 
+                {/* Matriks Slot Lapangan Real-time: 2 Kolom Sebelahan (Lapangan 1 & Lapangan 2) Seperti di Menu User */}
                 <Card className="p-0 overflow-hidden border-border/80 shadow-xs">
-                    <CardHeader className="p-4 sm:p-5 border-b border-border/70 flex flex-row items-center justify-between">
-                        <CardTitle className="text-base sm:text-lg">
+                    <CardHeader className="p-4 sm:p-5 border-b border-border/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <CardTitle className="text-base sm:text-lg font-bold">
                             Matriks Slot Lapangan ({tanggalLabel})
                         </CardTitle>
+
+                        {/* Legend Indikator Status Slot */}
+                        <div className="flex items-center gap-3 text-xs flex-wrap">
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-2.5 rounded-full bg-emerald-500" />
+                                <span className="text-muted-foreground text-[11px]">Kosong</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-2.5 rounded-full bg-amber-500" />
+                                <span className="text-muted-foreground text-[11px]">DP</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-2.5 rounded-full bg-[var(--brand)]" />
+                                <span className="text-muted-foreground text-[11px]">Lunas</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-2.5 rounded-full bg-rose-500" />
+                                <span className="text-muted-foreground text-[11px]">Perawatan</span>
+                            </div>
+                        </div>
                     </CardHeader>
 
-                    <CardContent className="p-0">
-                        <div className="w-full overflow-x-auto scrollbar-thin">
-                            <div className="min-w-[960px] p-4">
-                                {gridSlots.map((lap) => (
-                                    <div key={lap.id_lapangan} className="mb-6 last:mb-0">
-                                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/50">
-                                            <h3 className="font-bold text-sm text-foreground">
-                                                {lap.nama_lapangan}
-                                            </h3>
-                                            {lap.status_lapangan === "perawatan" && (
+                    <CardContent className="p-4 sm:p-6">
+                        {/* Grid 2 Kolom Sebelahan: Lapangan 1 & Lapangan 2 (Tanpa Scrollbar Horizontal) */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+                            {gridSlots.map((lap) => {
+                                const availableSlots = lap.slots.filter((s) => s.status === "tersedia");
+                                const bookedSlots = lap.slots.filter((s) => s.status === "terpesan");
+                                const isUnderMaintenance = lap.status_lapangan === "perawatan";
+
+                                return (
+                                    <div
+                                        key={lap.id_lapangan}
+                                        className="bg-card/75 border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4"
+                                    >
+                                        {/* Header Lapangan */}
+                                        <div className="flex items-center justify-between pb-3 border-b border-border/50 flex-wrap gap-2">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="size-8 sm:size-9 rounded-xl bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)] font-bold text-sm">
+                                                    {lap.id_lapangan}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-sm sm:text-base text-foreground tracking-tight">
+                                                        {lap.nama_lapangan}
+                                                    </h3>
+                                                    {isUnderMaintenance && (
+                                                        <p className="text-[11px] text-rose-500 font-medium">
+                                                            Sedang dalam perawatan
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Status Badge */}
+                                            {isUnderMaintenance ? (
                                                 <Badge variant="danger" className="text-[10px]">
-                                                    Sedang Dalam Perawatan
+                                                    Perawatan
                                                 </Badge>
+                                            ) : (
+                                                <div className="flex items-center gap-1.5 text-xs">
+                                                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold text-[11px]">
+                                                        {availableSlots.length} Kosong
+                                                    </span>
+                                                    <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50 text-[11px] font-medium">
+                                                        {bookedSlots.length} Terisi
+                                                    </span>
+                                                </div>
                                             )}
                                         </div>
 
-                                        
-                                        <div className="grid grid-cols-15 gap-1.5">
+                                        {/* Grid Slot Jam: Wrap Rapi (Tanpa Scrollbar Horizontal) */}
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-3 xl:grid-cols-5 gap-2">
                                             {lap.slots.map((slot) => {
-                                                const isTersedia = slot.status === "tersedia";
+                                                const isTersedia = slot.status === "tersedia" && !isUnderMaintenance;
                                                 const isTerpesan = slot.status === "terpesan";
                                                 const isDP = isTerpesan && slot.info?.status_pembayaran === "DP";
-                                                const isPerawatan = slot.status === "perawatan";
+                                                const isPerawatan = slot.status === "perawatan" || isUnderMaintenance;
 
                                                 const statusDesc = isTersedia
                                                     ? "Kosong, klik untuk pesan"
@@ -515,15 +568,16 @@ export default function ReservasiIndex({
                                                         disabled={!isTersedia}
                                                         onClick={() => isTersedia && handleSlotClick(lap.id_lapangan, slot.jam)}
                                                         aria-label={`${lap.nama_lapangan}, pukul ${slot.jam}, status ${statusDesc}`}
-                                                        className={`flex flex-col justify-between p-2 rounded-lg text-left transition-all min-h-[76px] border outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
+                                                        className={cn(
+                                                            "flex flex-col justify-between p-2 rounded-xl text-left transition-all min-h-[68px] border outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 select-none",
                                                             isTersedia
-                                                                ? "bg-emerald-500/5 hover:bg-emerald-500/15 border-emerald-500/25 hover:border-emerald-500 cursor-pointer hover:shadow-xs"
+                                                                ? "bg-emerald-500/5 hover:bg-emerald-500/15 border-emerald-500/25 hover:border-emerald-500 cursor-pointer hover:shadow-xs group"
                                                                 : isTerpesan
                                                                 ? isDP
                                                                     ? "bg-amber-500/10 border-amber-500/30 text-amber-500 cursor-not-allowed"
                                                                     : "bg-[var(--brand)]/10 border-[var(--brand)]/30 text-[var(--brand)] cursor-not-allowed"
                                                                 : "bg-rose-500/10 border-rose-500/25 text-rose-500 cursor-not-allowed"
-                                                        }`}
+                                                        )}
                                                         title={
                                                             isTerpesan
                                                                 ? `Terpesan: ${slot.info?.nama_pemesan} (${slot.info?.jam_mulai}-${slot.info?.jam_selesai}) [${slot.info?.status_pembayaran}]`
@@ -532,9 +586,14 @@ export default function ReservasiIndex({
                                                                 : `Klik untuk pesan ${slot.jam}`
                                                         }
                                                     >
-                                                        <span className="text-[11px] font-mono font-semibold text-foreground/80">
-                                                            {slot.jam}
-                                                        </span>
+                                                        <div className="flex items-center justify-between w-full">
+                                                            <span className="text-[11px] font-mono font-bold text-foreground">
+                                                                {slot.jam}
+                                                            </span>
+                                                            {isTersedia && (
+                                                                <span className="size-1.5 rounded-full bg-emerald-500 group-hover:scale-125 transition-transform" />
+                                                            )}
+                                                        </div>
 
                                                         <div className="text-[10px] leading-tight mt-1 min-w-0 w-full">
                                                             {isTersedia && (
@@ -543,12 +602,15 @@ export default function ReservasiIndex({
                                                             {isTerpesan && (
                                                                 <div className="font-semibold min-w-0">
                                                                     <div
-                                                                        className="truncate"
+                                                                        className="truncate text-[10px] text-foreground"
                                                                         title={slot.info?.nama_pemesan}
                                                                     >
                                                                         {slot.info?.nama_pemesan}
                                                                     </div>
-                                                                    <span className="text-[9px] uppercase font-bold tracking-wider">
+                                                                    <span className={cn(
+                                                                        "inline-block text-[8.5px] uppercase font-bold tracking-wider px-1 rounded mt-0.5",
+                                                                        isDP ? "bg-amber-500/20 text-amber-500" : "bg-[var(--brand)]/20 text-[var(--brand)]"
+                                                                    )}>
                                                                         {slot.info?.status_pembayaran}
                                                                     </span>
                                                                 </div>
@@ -562,8 +624,8 @@ export default function ReservasiIndex({
                                             })}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                );
+                            })}
                         </div>
                     </CardContent>
                 </Card>
