@@ -76,8 +76,11 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
 
     const selectedProduk = produkList.find((p) => String(p.id_produk) === selectedProdukId);
     const stokSistem = selectedProduk ? selectedProduk.stok : 0;
-    const stokFisikParsed = stokFisikInput !== "" ? Number(stokFisikInput.replace(/\D/g, "")) : stokSistem;
-    const selisih = stokFisikParsed - stokSistem;
+    
+    // Kasir wajib mengetik stok fisik terlebih dahulu, tidak boleh langsung terisi otomatis
+    const hasTypedFisik = stokFisikInput.trim() !== "";
+    const stokFisikParsed = hasTypedFisik ? Number(stokFisikInput.replace(/\D/g, "")) : null;
+    const selisih = hasTypedFisik && stokFisikParsed !== null ? stokFisikParsed - stokSistem : null;
 
     const form = useForm({
         items: [] as Array<{
@@ -99,12 +102,12 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
 
     const handleOpenConfirm = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedProduk) return;
+        if (!selectedProduk || !hasTypedFisik || stokFisikParsed === null) return;
         setConfirmModalOpen(true);
     };
 
     const handleConfirmSubmit = () => {
-        if (!selectedProduk) return;
+        if (!selectedProduk || !hasTypedFisik || stokFisikParsed === null) return;
 
         form.transform(() => ({
             items: [
@@ -152,6 +155,7 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
                                     onChange={(e) => {
                                         setSelectedProdukId(e.target.value);
                                         setStokFisikInput("");
+                                        setKeteranganInput("");
                                     }}
                                     className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
@@ -164,6 +168,22 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
                             </div>
 
                             <div className="sm:col-span-1 lg:col-span-3">
+                                <Label htmlFor="stok_fisik" className="text-xs font-medium">
+                                    Stok Fisik Dihitung <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id="stok_fisik"
+                                    type="text"
+                                    inputMode="numeric"
+                                    placeholder="Ketik jumlah fisik..."
+                                    value={stokFisikInput}
+                                    onChange={(e) => setStokFisikInput(e.target.value.replace(/\D/g, ""))}
+                                    className="h-10 mt-1 tabular-nums text-xs"
+                                    autoComplete="off"
+                                />
+                            </div>
+
+                            <div className="sm:col-span-1 lg:col-span-3">
                                 <Label className="text-xs font-medium">Catatan Sistem vs Selisih</Label>
                                 <div className="grid grid-cols-2 gap-2 p-2 rounded-lg bg-muted/30 border border-border/70 h-10 items-center text-xs mt-1">
                                     <div>
@@ -173,9 +193,11 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
                                     <div>
                                         <span className="text-[10px] text-muted-foreground block leading-tight">Selisih:</span>
                                         <span className="font-semibold tabular-nums">
-                                            {selisih === 0 ? (
-                                                <span className="text-muted-foreground">0 (Sesuai)</span>
-                                            ) : selisih > 0 ? (
+                                            {!hasTypedFisik ? (
+                                                <span className="text-muted-foreground text-[11px] font-normal">-</span>
+                                            ) : selisih === 0 ? (
+                                                <span className="text-muted-foreground font-semibold">0 (Sesuai)</span>
+                                            ) : selisih! > 0 ? (
                                                 <span className="text-amber-500 font-bold">+{selisih}</span>
                                             ) : (
                                                 <span className="text-destructive font-bold">{selisih}</span>
@@ -185,38 +207,25 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
                                 </div>
                             </div>
 
-                            <div className="sm:col-span-1 lg:col-span-2">
-                                <Label htmlFor="stok_fisik" className="text-xs font-medium">Stok Fisik Dihitung</Label>
-                                <Input
-                                    id="stok_fisik"
-                                    type="text"
-                                    inputMode="numeric"
-                                    placeholder={`Saat ini ${stokSistem}`}
-                                    value={stokFisikInput}
-                                    onChange={(e) => setStokFisikInput(e.target.value.replace(/\D/g, ""))}
-                                    className="h-10 mt-1 tabular-nums text-xs"
-                                />
-                            </div>
-
-                            {selisih === 0 && (
-                                <div className="sm:col-span-2 lg:col-span-3">
+                            {(selisih === null || selisih === 0) && (
+                                <div className="sm:col-span-2 lg:col-span-2">
                                     <Button
                                         type="submit"
-                                        disabled={form.processing || !selectedProduk}
-                                        className="w-full h-10 bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white text-xs font-medium"
+                                        disabled={!hasTypedFisik || form.processing || !selectedProduk}
+                                        className="w-full h-10 bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white text-xs font-medium disabled:opacity-40"
                                     >
                                         <ClipboardCheck className="size-4 mr-1.5" />
-                                        Sesuaikan Stok Opname
+                                        Simpan
                                     </Button>
                                 </div>
                             )}
                         </div>
 
-                        {selisih !== 0 && (
+                        {hasTypedFisik && selisih !== null && selisih !== 0 && (
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end pt-1">
                                 <div className="lg:col-span-9">
                                     <Label htmlFor="keterangan" className="text-xs font-medium text-destructive">
-                                        Alasan Selisih (Wajib diisi jika terdapat selisih fisik vs sistem)
+                                        Alasan Selisih (Wajib diisi karena terdapat selisih fisik vs sistem)
                                     </Label>
                                     <Input
                                         id="keterangan"
@@ -231,11 +240,12 @@ export default function OpnameIndex({ riwayatOpname, produkList, tanggalFilter }
                                     <Button
                                         type="submit"
                                         disabled={
+                                            !hasTypedFisik ||
                                             form.processing ||
                                             !selectedProduk ||
                                             !keteranganInput.trim()
                                         }
-                                        className="w-full h-10 bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white text-xs font-medium"
+                                        className="w-full h-10 bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white text-xs font-medium disabled:opacity-40"
                                     >
                                         <ClipboardCheck className="size-4 mr-1.5" />
                                         Sesuaikan Stok Opname
