@@ -474,21 +474,18 @@ export default function AdminLayout({
                             <Menu className="size-4" />
                         </Button>
 
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={toggleSidebar}
-                            className="hidden md:inline-flex shrink-0 size-9"
-                            aria-label={sidebarOpen ? "Sembunyikan menu navigasi" : "Buka menu navigasi"}
-                            aria-expanded={sidebarOpen}
-                        >
-                            {sidebarOpen ? <PanelLeftClose className="size-4" /> : <PanelLeft className="size-4" />}
-                        </Button>
-
-                        <div className="flex items-center gap-2 truncate">
-                            <span className="text-sm font-semibold text-foreground truncate">{title}</span>
-                        </div>
+                        {!sidebarOpen && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={toggleSidebar}
+                                className="hidden md:inline-flex shrink-0 size-9"
+                                aria-label="Buka menu navigasi admin"
+                            >
+                                <PanelLeft className="size-4" />
+                            </Button>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
