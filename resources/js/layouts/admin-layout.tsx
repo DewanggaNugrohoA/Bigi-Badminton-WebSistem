@@ -408,20 +408,6 @@ export default function AdminLayout({
                 <div className="flex-1 overflow-y-auto px-3 py-2">
                     {renderNavItems(false)}
                 </div>
-
-                <div className="p-3 border-t border-sidebar-border shrink-0">
-                    <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-muted/40">
-                        <div className="size-7 rounded-full bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center font-bold text-xs shrink-0">
-                            {user?.nama ? user.nama.charAt(0).toUpperCase() : "A"}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-semibold text-foreground truncate">{user?.nama || "Admin Bigi"}</span>
-                            <span className="text-[10px] text-muted-foreground font-medium">
-                                Administrator
-                            </span>
-                        </div>
-                    </div>
-                </div>
             </aside>
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
