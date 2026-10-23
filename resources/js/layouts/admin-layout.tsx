@@ -7,7 +7,6 @@ import {
     Users,
     BadgePercent,
     FileSpreadsheet,
-    Settings,
     Menu,
     LogOut,
     Sun,
@@ -606,13 +605,6 @@ export default function AdminLayout({
                                         Peran: {user?.role || "admin"}
                                     </div>
                                 </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                    <Link href="/admin/pengaturan" className="flex items-center gap-2 cursor-pointer w-full text-xs">
-                                        <Settings className="size-3.5 text-muted-foreground" />
-                                        <span>Pengaturan Akun</span>
-                                    </Link>
-                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem variant="destructive">
                                     <Link

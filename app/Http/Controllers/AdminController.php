@@ -173,21 +173,4 @@ class AdminController extends Controller
             'bulanSekarang' => $now->locale('id')->isoFormat('MMMM Y'),
         ]);
     }
-
-    public function placeholder(Request $request)
-    {
-        $path = $request->path();
-        
-        $map = [
-            'admin/pengaturan' => ['title' => 'Pengaturan Akun Admin', 'group' => 'Pengelolaan'],
-        ];
-
-        $info = $map[$path] ?? ['title' => 'Modul Admin', 'group' => 'Pengelolaan'];
-
-        return Inertia::render('Admin/Placeholder', [
-            'title' => $info['title'],
-            'breadcrumbParent' => $info['group'],
-            'description' => "Modul {$info['title']} sedang disiapkan untuk fase berikutnya sesuai spesifikasi sistem Bigi Badminton.",
-        ]);
-    }
 }
