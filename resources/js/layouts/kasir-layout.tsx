@@ -110,12 +110,15 @@ export default function KasirLayout({
     const pathname = url.split("?")[0].split("#")[0];
 
     const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
-        if (typeof window === "undefined") return false;
+        if (typeof window === "undefined") return true;
         try {
             const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-            return saved !== null ? saved === "true" : false;
+            if (saved !== null) {
+                return saved === "true";
+            }
+            return window.innerWidth >= 768;
         } catch {
-            return false;
+            return true;
         }
     });
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -333,21 +336,18 @@ export default function KasirLayout({
                             <Menu className="size-4" />
                         </Button>
 
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={toggleSidebar}
-                            className="hidden md:inline-flex shrink-0 size-9"
-                            aria-label={sidebarOpen ? "Sembunyikan menu navigasi" : "Buka menu navigasi"}
-                            aria-expanded={sidebarOpen}
-                        >
-                            {sidebarOpen ? <PanelLeftClose className="size-4" /> : <PanelLeft className="size-4" />}
-                        </Button>
-
-                        <div className="flex items-center gap-2 truncate">
-                            <span className="text-sm font-semibold text-foreground truncate">{title}</span>
-                        </div>
+                        {!sidebarOpen && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={toggleSidebar}
+                                className="hidden md:inline-flex shrink-0 size-9"
+                                aria-label="Buka menu navigasi kasir"
+                            >
+                                <PanelLeft className="size-4" />
+                            </Button>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
