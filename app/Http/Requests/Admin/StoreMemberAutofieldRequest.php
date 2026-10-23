@@ -27,6 +27,7 @@ class StoreMemberAutofieldRequest extends FormRequest
             'jam_mulai' => ['required', 'date_format:H:i'],
             'jam_selesai' => ['required', 'date_format:H:i', 'after:jam_mulai'],
             'harga_per_sesi' => ['nullable', 'integer', 'min:1', 'max:100000000'],
+            'jumlah_sesi' => ['nullable'],
             'jenis_pembayaran' => ['required', 'in:DP,Lunas'],
             'jumlah_bayar' => ['required', 'integer', 'min:1', 'max:100000000'],
             'metode_pembayaran' => ['required', 'in:tunai,transfer,qris'],
@@ -43,13 +44,16 @@ class StoreMemberAutofieldRequest extends FormRequest
             try {
                 $service = app(\App\Services\ReservasiService::class);
                 $hargaPerSesi = $this->filled('harga_per_sesi') ? (int) $this->input('harga_per_sesi') : null;
+                $jumlahSesiInput = $this->input('jumlah_sesi');
+                $jumlahSesi = (is_numeric($jumlahSesiInput) && (int) $jumlahSesiInput > 0) ? (int) $jumlahSesiInput : null;
                 $preview = $service->previewMemberAutofield(
                     (int) $this->input('id_user'),
                     (int) $this->input('id_lapangan'),
                     (string) $this->input('hari'),
                     (string) $this->input('jam_mulai'),
                     (string) $this->input('jam_selesai'),
-                    $hargaPerSesi
+                    $hargaPerSesi,
+                    $jumlahSesi
                 );
 
                 $totalBiaya = (int) ($preview['total_biaya'] ?? 0);

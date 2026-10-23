@@ -106,3 +106,69 @@
 
 ## 11. Manajemen Akun Staf (Admin & Kasir)
 - Seluruh akun staf tidak lagi disediakan melalui akun sampel/dummy bawaan seeder; akun dibuat secara aman melalui perintah `php artisan bigi:buat-admin`.
+
+## 12. Pemisahan Open Mabar dari Slot Reservasi Lapangan Otomatis
+- Pengajuan dan persetujuan (ACC) Open Mabar tidak lagi otomatis mengunci atau memotong slot reservasi lapangan di sistem.
+- Status slot `isTerisi` pada grid jadwal publik (Lihat Jadwal) dan ketersediaan slot reservasi murni mengacu pada reservasi lapangan resmi (`detail_reservasi`) yang dicatat oleh Admin serta status perawatan lapangan.
+- Slot waktu lapangan pada menu Reservasi Lapangan (Admin) tetap berstatus `tersedia` (dengan indikator informatif rencana mabar yang dapat diklik), sehingga Admin memegang kendali penuh untuk mengelola dan menginput booking lapangan secara manual.
+
+## 13. Edit / Reschedule Reservasi dan Pengembalian Kuota Sesi Member
+- **Reschedule Jadwal Reservasi:**
+  - Admin dapat mengubah tanggal main, jam mulai, jam selesai, atau lapangan untuk reservasi yang masih aktif (berstatus `terkonfirmasi`).
+  - Sistem melakukan validasi bentrok slot lapangan dengan mengecualikan jadwal yang sedang di-reschedule agar tidak menolak perpindahan jadwal di hari yang sama.
+  - Untuk pemesan member, reschedule tidak memotong sesi baru karena durasi/sesi yang digunakan berpindah ke jadwal baru. Setiap aktivitas reschedule dicatat pada `audit_log` dengan aksi `RESCHEDULE_RESERVASI`.
+- **Pengembalian Kuota Sesi saat Batal / Hapus Reservasi:**
+  - Jika reservasi member dibatalkan (`status_reservasi = 'batal'`) atau dihapus permanen oleh Admin, kuota sesi bermain member yang tadinya terpakai otomatis dikembalikan (refund) ke sisa sesi paket member aktif.
+  - Contoh: Member memiliki 4 sesi, memesan 1 sesi bermain (sisa sesi menjadi 3). Ketika pemesanan tersebut dibatalkan atau dihapus, sisa sesi member otomatis kembali utuh menjadi 4.
+
+## 14. Alokasi Jadwal Autofield Member & Fleksibilitas Sesi Bermain
+- Pada fitur reservasi mingguan rutin member (Autofield), sistem otomatis membatasi jadwal pertemuan yang dibuat maksimal sebanyak sisa kuota sesi paket yang dimiliki member (`$sisaSesiPaket`).
+- Contoh: Masa aktif 1 bulan member mencakup 5 kali hari Minggu (misal rentang 31 hari), namun paket member hanya memiliki 4 sesi. Sistem secara cerdas hanya menjadwalkan 4 pertemuan pertama yang valid (sesuai kuota 4 sesi paket) dan tidak lagi memasukkan pertemuan ke-5 sebagai bentrok kuota.
+- **Prioritas Paket FIFO (First In First Out):** Jika member memiliki beberapa paket aktif (misal paket lama sudah habis 0 sesi dan baru saja membeli paket baru 8 sesi), sistem memprioritaskan paket yang masih memiliki sisa sesi > 0 (`getActivePaketMember`).
+- **Pilihan Jumlah Sesi yang Dipesan:** Admin kini dapat memilih jumlah sesi yang ingin dipesan:
+  - 1 Sesi (Sekali Main): Hanya memesan 1 pertemuan terdekat yang dipilih (sangat berguna jika member hanya ingin main satu sesi tanpa mengunci jadwal rutin berminggu-minggu).
+  - 2 Sesi, 3 Sesi, 4 Sesi (Rutin 1 Bulan), atau Semua Sisa Kuota Paket.
+- Pada tab Pemesanan Reguler, disediakan opsi cepat "Dari Member" untuk mengisi nama dan nomor WhatsApp otomatis dari member terdaftar.
+
+## 15. Penghapusan Kolom Subtotal Kasir di Database & Perhitungan Dinamis di Struk
+- Kolom `subtotal` pada tabel `detail_transaksi_pos` telah dihapus dari database fisik melalui migrasi `2026_10_16_223000_drop_subtotal_from_detail_transaksi_pos_table.php`.
+- Nilai subtotal barang pada transaksi POS tidak lagi disimpan di database.
+- Tampilan subtotal pada cetak struk kasir (`Struk.tsx`) dan model `DetailTransaksiPos` dihitung secara dinamis langsung dari perkalian jumlah barang yang dibeli dan harga satuan (`jumlah * harga`).
+- Keseluruhan subtotal transaksi pada struk juga dihitung dari penjumlahan dinamis seluruh item belanja (`reduce((acc, it) => acc + (it.jumlah * it.harga), 0)`).
+
+## 16. Pembaruan Tema Warna: Gradasi Abu dan Biru Dongker
+- Warna situs secara keseluruhan mengadopsi palet dan tekstur gradasi gambar referensi terbaru pengguna:
+  - **Latar Belakang Situs**: Menggunakan berkas wallpaper definisi tinggi pengguna (`/images/bg-gradient-mesh.png`) dengan posisi _cover fixed_, memadukan abu-abu titanium/perak lembut (`#8A8E95` / `#78808E`) di pojok kiri atas mengalir secara diagonal melintasi biru baja (`#3F5475` / `#173465`) menuju biru dongker royal pekat (`#001D50`) di pojok kanan bawah.
+  - **Warna Aksen & Brand (`--brand`, `--primary`)**: Biru safir / kobalt royal (`#2563EB` / `#3B82F6`) untuk tombol utama, tab aktif, dan ring focus yang kontras tinggi dan hidup.
+  - **Kartu & Permukaan**: Menggunakan slate navy gelap _frosted_ (`#0A1936` / `#0C1C3A`) dengan border halus (`#19325C`), memberikan kedalaman visual mewah (luxury glassmorphism) dan kontras keterbacaan data maksimal.
+  - **Penyelarasan Komponen**: Header panel admin, tabel jadwal, serta elemen SVG beranda telah diselaraskan dengan palet abu-abu perak dan biru dongker pekat ini.
+
+## 17. Fitur Lupa Kata Sandi via WhatsApp OTP
+- Berdasarkan permintaan eksplisit pengguna (didukung mockup/tangkapan layar halaman login):
+  - Disediakan tautan "Lupa kata sandi?" di bawah input kata sandi (rata kanan) pada halaman login pengguna (`/login`).
+  - Alur lupa kata sandi memanfaatkan verifikasi OTP WhatsApp:
+    1. Pengguna memasukkan nomor WhatsApp terdaftar pada formulir `/lupa-password`.
+    2. Sistem memvalidasi keberadaan nomor, memformat awalan 08/62, menghasilkan kode OTP 6 digit acak yang di-hash dengan HMAC-SHA256 ke dalam tabel `password_reset_otp`, serta mengirimkan kode ke WhatsApp pengguna.
+    3. Pengguna diarahkan ke halaman `/lupa-password/verifikasi` untuk memasukkan kode OTP 6 digit dan kata sandi baru (beserta konfirmasi). Terdapat cooldown timer 60 detik untuk kirim ulang kode dan pembatasan percobaan salah maksimal 5 kali.
+    4. Setelah sukses diverifikasi, kata sandi akun pengguna diperbarui, sesi OTP dihapus, dan pengguna diarahkan ke `/login` dengan notifikasi sukses.
+  - Tabel pendukung: `password_reset_otp` (`id_reset`, `no_whatsapp`, `kode_otp`, `expires_at`, `timestamps`).
+
+## 18. Penghapusan Menu & Rute Void/Retur Kasir
+- Berdasarkan permintaan eksplisit pengguna:
+  - Menu navigasi "Koreksi -> Void/Retur" pada sidebar Panel Kasir (`resources/js/layouts/kasir-layout.tsx`) telah dihapus.
+  - Halaman antarmuka kasir untuk void/retur (`resources/js/Pages/Kasir/Void/Index.tsx`) telah dihapus.
+  - Rute HTTP `/kasir/void` (`GET` dan `POST`) pada `routes/web.php` serta method pendukung di `KasirController` telah dihapus.
+  - Model `ReturVoid` dan tabel database `retur_void` tetap dipertahankan untuk integritas data audit dan laporan keuangan internal.
+
+## 19. Fitur Notifikasi Suara WhatsApp & Pengajuan Open Mabar di Panel Admin
+- Berdasarkan permintaan pengguna:
+  - Setiap kali ada member yang mengajukan jadwal Open Mabar baru (status `menunggu`), Panel Admin otomatis membunyikan nada notifikasi khas WhatsApp (2-chime harmonik cerah) dan memunculkan toast interaktif dengan tombol langsung untuk meninjau pengajuan.
+  - **Mekanisme Siaran Ganda (Hybrid Real-Time & Polling Fallback):**
+    1. **Laravel Broadcast Event (`App\Events\MabarDiajukan`)**: Disiarkan secara real-time via saluran privat `admin.notifikasi` (khusus role `admin`) menggunakan Laravel Reverb.
+    2. **Polling Fallback (`GET /admin/open-mabar/notifikasi`)**: Setiap 7 detik ketika tab browser aktif, layout admin memeriksa status pengajuan terbaru. Jika server Reverb belum aktif di lokal, sistem tetap otomatis mendeteksi dan membunyikan suara saat pengajuan baru masuk.
+    3. **Deduplikasi**: ID mabar yang telah dibunyikan dicatat dalam memori client (`lastKnownIdRef`) sehingga tidak akan berbunyi ganda.
+  - **Efek Suara WhatsApp & Browser Autoplay Policy:**
+    - Modul `resources/js/lib/sound.ts` memadukan berkas audio `/sounds/wa-notification.wav` dan sintesis *Web Audio API* harmonik frekuensi tinggi (C6 -> G6) tanpa latensi jaringan.
+    - Hak akses audio (Autoplay Policy) di-unlock otomatis saat klik/interaksi pertama admin di layar.
+    - Pada header panel admin disediakan menu dropdown Bel Notifikasi lengkap dengan badge jumlah pengajuan *menunggu*, toggle suara (Aktif/Mati tersimpan di `localStorage`), dan tombol "Tes Bunyi Notifikasi (WA)".
+    - Menu sidebar "Open Mabar" dilengkapi badge counter jumlah pengajuan yang berstatus *menunggu*.

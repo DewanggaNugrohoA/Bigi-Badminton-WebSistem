@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOpenMabarRequest;
 use App\Http\Requests\UpdateOpenMabarRequest;
+use App\Models\DetailReservasi;
 use App\Models\Lapangan;
 use App\Models\OpenMabar;
 use App\Models\PesertaMabar;
+use App\Models\Reservasi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +22,74 @@ class OpenMabarController extends Controller
     
     public function index(Request $request)
     {
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today('Asia/Jakarta')->toDateString();
+        $tanggalReq = $request->input('tanggal', $today);
+        try {
+            $tanggal = Carbon::parse($tanggalReq)->toDateString();
+        } catch (\Throwable) {
+            $tanggal = $today;
+        }
+
+        $lapangan = Lapangan::orderBy('id_lapangan', 'asc')->get();
+
+        $detailHariIni = DetailReservasi::whereDate('tanggal_main', $tanggal)
+            ->whereHas('reservasi', function ($q) {
+                $q->where('status_reservasi', '!=', Reservasi::STATUS_BATAL);
+            })
+            ->get();
+
+        $slotHours = [];
+        for ($h = 8; $h <= 22; $h++) {
+            $slotHours[] = sprintf('%02d:00', $h);
+        }
+
+        $gridSlots = [];
+        foreach ($lapangan as $lap) {
+            $lapSlots = [];
+            foreach ($slotHours as $timeSlot) {
+                $startSlot = Carbon::parse("{$tanggal} {$timeSlot}:00");
+                $endSlot = $startSlot->copy()->addHour();
+                $strStart = $startSlot->format('H:i:s');
+                $strEnd = $endSlot->format('H:i:s');
+
+                $booking = $detailHariIni->first(function ($item) use ($lap, $strStart, $strEnd) {
+                    return $item->id_lapangan === $lap->id_lapangan
+                        && $item->jam_mulai < $strEnd
+                        && $item->jam_selesai > $strStart;
+                });
+
+                $isPerawatan = $lap->status_lapangan === Lapangan::STATUS_PERAWATAN;
+                $isTerisi = $isPerawatan || $booking !== null;
+
+                $jamSelesaiH = ((int) substr($timeSlot, 0, 2)) + 1;
+                $jamSelesai = sprintf('%02d:00', min(23, $jamSelesaiH));
+
+                $lapSlots[] = [
+                    'jam' => $timeSlot,
+                    'jam_selesai' => $jamSelesai,
+                    'status' => $isTerisi ? 'terisi' : 'kosong',
+                ];
+            }
+
+            $gridSlots[] = [
+                'id_lapangan' => $lap->id_lapangan,
+                'nama_lapangan' => $lap->nama_lapangan,
+                'status_lapangan' => $lap->status_lapangan,
+                'slots' => $lapSlots,
+            ];
+        }
+
+        return Inertia::render('OpenMabar/Index', [
+            'gridSlots' => $gridSlots,
+            'filters' => [
+                'tanggal' => $tanggal,
+            ],
+        ]);
+    }
+
+    public function mabarBareng(Request $request)
+    {
+        $today = Carbon::today('Asia/Jakarta')->toDateString();
 
         $query = OpenMabar::query()
             ->with(['user:id_user,nama', 'lapangan:id_lapangan,nama_lapangan'])
@@ -30,19 +99,10 @@ class OpenMabarController extends Controller
             ->where('status', OpenMabar::STATUS_DISETUJUI)
             ->whereDate('tanggal', '>=', $today);
 
-        
-        if ($request->filled('usia')) {
-            $usia = (int) $request->input('usia');
-            $query->where('batas_usia_min', '<=', $usia)
-                  ->where('batas_usia_max', '>=', $usia);
-        }
-
-        
         if ($request->filled('tanggal')) {
             $query->whereDate('tanggal', $request->input('tanggal'));
         }
 
-        
         if ($request->filled('gender')) {
             $query->where('gender', $request->input('gender'));
         }
@@ -52,18 +112,16 @@ class OpenMabarController extends Controller
             ->paginate(9)
             ->withQueryString();
 
-        return Inertia::render('OpenMabar/Index', [
+        return Inertia::render('OpenMabar/MabarBareng', [
             'jadwal' => $jadwal,
             'filters' => [
-                'usia' => $request->input('usia', ''),
                 'tanggal' => $request->input('tanggal', ''),
                 'gender' => $request->input('gender', ''),
             ],
         ]);
     }
 
-    
-    public function create()
+    public function create(Request $request)
     {
         $lapangan = Lapangan::where('status_lapangan', 'tersedia')
             ->select('id_lapangan', 'nama_lapangan')
@@ -71,6 +129,12 @@ class OpenMabarController extends Controller
 
         return Inertia::render('OpenMabar/Create', [
             'lapangan' => $lapangan,
+            'initial' => [
+                'tanggal' => $request->query('tanggal', ''),
+                'id_lapangan' => $request->query('id_lapangan', ''),
+                'jam_mulai' => $request->query('jam_mulai', ''),
+                'jam_selesai' => $request->query('jam_selesai', ''),
+            ],
         ]);
     }
 
@@ -85,21 +149,26 @@ class OpenMabarController extends Controller
             $fotoPath = $request->file('foto')->store('mabar', 'public');
         }
 
-        OpenMabar::create([
+        $mabar = OpenMabar::create([
             'id_user' => $user->id_user,
             'judul' => $validated['judul'],
             'tanggal' => $validated['tanggal'],
             'jam_mulai' => $validated['jam_mulai'],
             'jam_selesai' => $validated['jam_selesai'],
             'gender' => $validated['gender'],
-            'batas_usia_min' => $validated['batas_usia_min'],
-            'batas_usia_max' => $validated['batas_usia_max'],
+            'no_hp' => $validated['no_hp'],
             'kuota' => $validated['kuota'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'foto' => $fotoPath,
             'id_lapangan' => $validated['id_lapangan'] ?? null,
             'status' => OpenMabar::STATUS_MENUNGGU,
         ]);
+
+        try {
+            event(new \App\Events\MabarDiajukan($mabar));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal menyiarkan event MabarDiajukan: ' . $e->getMessage());
+        }
 
         return redirect()->route('open-mabar.saya')->with('success', 'Jadwal berhasil dikirim dan menunggu persetujuan admin.');
     }
@@ -163,6 +232,8 @@ class OpenMabarController extends Controller
         if (!Gate::allows('update', $mabar)) {
             abort(403, 'Jadwal ini tidak dapat diubah.');
         }
+
+        $mabar->makeVisible('no_hp');
 
         $lapangan = Lapangan::where('status_lapangan', 'tersedia')
             ->select('id_lapangan', 'nama_lapangan')

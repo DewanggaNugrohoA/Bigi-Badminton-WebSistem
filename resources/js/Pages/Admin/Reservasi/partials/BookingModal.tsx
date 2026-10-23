@@ -356,7 +356,24 @@ export default function BookingModal({
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="space-y-1.5">
+                                    <Label>Jumlah Sesi</Label>
+                                    <Select
+                                        value={memberForm.data.jumlah_sesi || "1"}
+                                        onChange={(e) => {
+                                            memberForm.setData("jumlah_sesi", e.target.value);
+                                            setAutofieldPreview(null);
+                                        }}
+                                    >
+                                        <option value="1">1 Sesi (Sekali Main)</option>
+                                        <option value="2">2 Sesi (2 Minggu)</option>
+                                        <option value="3">3 Sesi (3 Minggu)</option>
+                                        <option value="4">4 Sesi (Rutin 1 Bulan)</option>
+                                        <option value="all">Semua Sisa Paket</option>
+                                    </Select>
+                                </div>
+
                                 <div className="space-y-1.5">
                                     <Label>Pilih Hari Rutin</Label>
                                     <Select

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Head, Link, useForm } from "@inertiajs/react";
+import React, { useState, useEffect, useRef } from "react";
+import { Head, Link, useForm, router } from "@inertiajs/react";
 import AdminLayout from "@/layouts/admin-layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,12 +17,15 @@ import {
     ChevronLeft,
     ChevronRight,
     Plus,
+    CalendarSync,
+    Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import BookingModal from "./partials/BookingModal";
 import PelunasanModal from "./partials/PelunasanModal";
 import BatalModal from "./partials/BatalModal";
+import RescheduleModal from "./partials/RescheduleModal";
 import QuickCustomerModal from "./partials/QuickCustomerModal";
 
 interface LapanganItem {
@@ -34,7 +37,7 @@ interface LapanganItem {
 
 interface GridSlotItem {
     jam: string;
-    status: "tersedia" | "terpesan" | "open_mabar" | "perawatan";
+    status: "tersedia" | "terpesan" | "perawatan";
     info: any;
 }
 
@@ -48,6 +51,9 @@ interface GridLapangan {
 
 interface ReservasiRow {
     id_reservasi: number;
+    id_detail_reservasi?: number;
+    id_lapangan?: number;
+    tanggal_main?: string;
     pemesan: {
         id_user: number;
         nama: string;
@@ -65,6 +71,7 @@ interface ReservasiRow {
     bisa_dilunasi: boolean;
     bisa_dibatalkan: boolean;
     bisa_diselesaikan: boolean;
+    bisa_diedit?: boolean;
 }
 
 interface MemberUser {
@@ -102,8 +109,25 @@ export default function ReservasiIndex({
     const [bookingModalOpen, setBookingModalOpen] = useState(false);
     const [pelunasanModalOpen, setPelunasanModalOpen] = useState(false);
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
+    const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
     const [quickCustomerModalOpen, setQuickCustomerModalOpen] = useState(false);
     const [selectedReservation, setSelectedReservation] = useState<ReservasiRow | null>(null);
+    const [selectedReservationForReschedule, setSelectedReservationForReschedule] = useState<ReservasiRow | null>(null);
+
+    const dateInputRef = useRef<HTMLInputElement>(null);
+
+    const handleDateSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selected = e.target.value;
+        if (!selected) return;
+        router.get(
+            "/admin/reservasi",
+            { tanggal: selected },
+            {
+                preserveState: false,
+                preserveScroll: true,
+            }
+        );
+    };
 
     
     const regularForm = useForm({
@@ -121,7 +145,8 @@ export default function ReservasiIndex({
     const memberForm = useForm({
         id_user: members[0]?.id_user ? String(members[0].id_user) : "",
         id_lapangan: lapangan[0]?.id_lapangan ? String(lapangan[0].id_lapangan) : "1",
-        hari: "0", // 0: Minggu
+        hari: String(new Date(tanggal).getDay()), // default hari tanggal aktif
+        jumlah_sesi: "1", // default: 1 sesi (sekali main)
         jam_mulai: "19:00",
         jam_selesai: "21:00",
         harga_per_sesi: "",
@@ -196,6 +221,7 @@ export default function ReservasiIndex({
         const [h] = jam.split(":").map(Number);
         const nextH = Math.min(23, h + 2);
         const jamSelesai = `${String(nextH).padStart(2, "0")}:00`;
+        const dayOfWeekIndex = new Date(tanggal).getDay();
 
         regularForm.setData({
             ...regularForm.data,
@@ -205,6 +231,16 @@ export default function ReservasiIndex({
             jam_selesai: jamSelesai,
         });
 
+        memberForm.setData({
+            ...memberForm.data,
+            id_lapangan: String(idLap),
+            hari: String(dayOfWeekIndex),
+            jam_mulai: jam,
+            jam_selesai: jamSelesai,
+            jumlah_sesi: "1",
+        });
+
+        setAutofieldPreview(null);
         setBookingModalOpen(true);
     };
 
@@ -228,6 +264,7 @@ export default function ReservasiIndex({
                     jam_mulai: memberForm.data.jam_mulai,
                     jam_selesai: memberForm.data.jam_selesai,
                     harga_per_sesi: memberForm.data.harga_per_sesi ? Number(memberForm.data.harga_per_sesi) : null,
+                    jumlah_sesi: memberForm.data.jumlah_sesi === "all" ? null : Number(memberForm.data.jumlah_sesi),
                 }),
             });
             const data = await res.json();
@@ -291,6 +328,22 @@ export default function ReservasiIndex({
     const handleFinish = (id: number) => {
         if (!confirm("Tandai pemesanan ini telah selesai bermain?")) return;
         regularForm.post(`/admin/reservasi/${id}/finish`);
+    };
+
+    const handleDelete = (res: ReservasiRow) => {
+        const isMember = res.pemesan.jenis_pelanggan === "member";
+        const msg = isMember
+            ? `Konfirmasi Hapus:\nApakah Anda yakin ingin menghapus Reservasi #${res.id_reservasi} atas nama ${res.pemesan.nama}?\n\nKarena pemesan adalah MEMBER, kuota sesi bermain akan otomatis DIKEMBALIKAN.`
+            : `Konfirmasi Hapus:\nApakah Anda yakin ingin menghapus permanen Reservasi #${res.id_reservasi} atas nama ${res.pemesan.nama}?`;
+
+        if (!confirm(msg)) return;
+
+        router.delete(`/admin/reservasi/${res.id_reservasi}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success("Reservasi berhasil dihapus dan sesi/slot telah dikembalikan.");
+            },
+        });
     };
 
     const submitQuickCustomer = async (e: React.FormEvent) => {
@@ -367,9 +420,27 @@ export default function ReservasiIndex({
                                 <ChevronLeft className="size-4" />
                             </Link>
 
-                            <div className="w-[200px] sm:w-[220px] px-2 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-foreground select-none">
-                                <CalendarIcon className="size-4 text-[var(--brand)] shrink-0" />
-                                <span className="truncate text-center font-mono tabular-nums">{tanggalLabel}</span>
+                            <div className="relative group">
+                                <div className="w-[200px] sm:w-[220px] px-2 py-1 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-foreground rounded-md group-hover:bg-accent/60 transition-colors select-none pointer-events-none">
+                                    <CalendarIcon className="size-4 text-[var(--brand)] shrink-0 transition-transform group-hover:scale-110" />
+                                    <span className="truncate text-center font-mono tabular-nums">{tanggalLabel}</span>
+                                </div>
+                                <input
+                                    ref={dateInputRef}
+                                    type="date"
+                                    value={tanggal}
+                                    onChange={handleDateSelect}
+                                    onClick={(e) => {
+                                        try {
+                                            (e.target as any).showPicker?.();
+                                        } catch {
+                                            // Fallback
+                                        }
+                                    }}
+                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full [color-scheme:dark]"
+                                    title="Klik untuk memilih tanggal langsung"
+                                    aria-label="Pilih tanggal reservasi"
+                                />
                             </div>
 
                             <Link
@@ -400,44 +471,74 @@ export default function ReservasiIndex({
                 </div>
 
                 
+                {/* Matriks Slot Lapangan Real-time: 2 Kolom Sebelahan (Lapangan 1 & Lapangan 2) Seperti di Menu User */}
                 <Card className="p-0 overflow-hidden border-border/80 shadow-xs">
                     <CardHeader className="p-4 sm:p-5 border-b border-border/70 flex flex-row items-center justify-between">
-                        <CardTitle className="text-base sm:text-lg">
+                        <CardTitle className="text-base sm:text-lg font-bold">
                             Matriks Slot Lapangan ({tanggalLabel})
                         </CardTitle>
                     </CardHeader>
 
-                    <CardContent className="p-0">
-                        <div className="w-full overflow-x-auto scrollbar-thin">
-                            <div className="min-w-[960px] p-4">
-                                {gridSlots.map((lap) => (
-                                    <div key={lap.id_lapangan} className="mb-6 last:mb-0">
-                                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/50">
-                                            <h3 className="font-bold text-sm text-foreground">
-                                                {lap.nama_lapangan}
-                                            </h3>
-                                            {lap.status_lapangan === "perawatan" && (
+                    <CardContent className="p-4 sm:p-6">
+                        {/* Grid 2 Kolom Sebelahan: Lapangan 1 & Lapangan 2 (Tanpa Scrollbar Horizontal) */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+                            {gridSlots.map((lap) => {
+                                const availableSlots = lap.slots.filter((s) => s.status === "tersedia");
+                                const bookedSlots = lap.slots.filter((s) => s.status === "terpesan");
+                                const isUnderMaintenance = lap.status_lapangan === "perawatan";
+
+                                return (
+                                    <div
+                                        key={lap.id_lapangan}
+                                        className="bg-card/75 border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4"
+                                    >
+                                        {/* Header Lapangan */}
+                                        <div className="flex items-center justify-between pb-3 border-b border-border/50 flex-wrap gap-2">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="size-8 sm:size-9 rounded-xl bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)] font-bold text-sm">
+                                                    {lap.id_lapangan}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-sm sm:text-base text-foreground tracking-tight">
+                                                        {lap.nama_lapangan}
+                                                    </h3>
+                                                    {isUnderMaintenance && (
+                                                        <p className="text-[11px] text-rose-500 font-medium">
+                                                            Sedang dalam perawatan
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Status Badge */}
+                                            {isUnderMaintenance ? (
                                                 <Badge variant="danger" className="text-[10px]">
-                                                    Sedang Dalam Perawatan
+                                                    Perawatan
                                                 </Badge>
+                                            ) : (
+                                                <div className="flex items-center gap-1.5 text-xs">
+                                                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold text-[11px]">
+                                                        {availableSlots.length} Kosong
+                                                    </span>
+                                                    <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50 text-[11px] font-medium">
+                                                        {bookedSlots.length} Terisi
+                                                    </span>
+                                                </div>
                                             )}
                                         </div>
 
-                                        
-                                        <div className="grid grid-cols-15 gap-1.5">
+                                        {/* Grid Slot Jam: Wrap Rapi (Tanpa Scrollbar Horizontal) */}
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-3 xl:grid-cols-5 gap-2">
                                             {lap.slots.map((slot) => {
-                                                const isTersedia = slot.status === "tersedia";
+                                                const isTersedia = slot.status === "tersedia" && !isUnderMaintenance;
                                                 const isTerpesan = slot.status === "terpesan";
                                                 const isDP = isTerpesan && slot.info?.status_pembayaran === "DP";
-                                                const isMabar = slot.status === "open_mabar";
-                                                const isPerawatan = slot.status === "perawatan";
+                                                const isPerawatan = slot.status === "perawatan" || isUnderMaintenance;
 
                                                 const statusDesc = isTersedia
                                                     ? "Kosong, klik untuk pesan"
                                                     : isTerpesan
                                                     ? `Terpesan oleh ${slot.info?.nama_pemesan || "Pelanggan"} (${slot.info?.status_pembayaran || "Terpesan"})`
-                                                    : isMabar
-                                                    ? `Open Mabar: ${slot.info?.judul || "Mabar Disetujui"}`
                                                     : "Perawatan / Tutup";
 
                                                 return (
@@ -447,28 +548,25 @@ export default function ReservasiIndex({
                                                         disabled={!isTersedia}
                                                         onClick={() => isTersedia && handleSlotClick(lap.id_lapangan, slot.jam)}
                                                         aria-label={`${lap.nama_lapangan}, pukul ${slot.jam}, status ${statusDesc}`}
-                                                        className={`flex flex-col justify-between p-2 rounded-lg text-left transition-all min-h-[76px] border outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 ${
+                                                        className={cn(
+                                                            "flex flex-col justify-between p-2 rounded-xl text-left transition-all min-h-[68px] border outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-1 select-none",
                                                             isTersedia
-                                                                ? "bg-emerald-500/5 hover:bg-emerald-500/15 border-emerald-500/25 hover:border-emerald-500 cursor-pointer hover:shadow-xs"
+                                                                ? "bg-emerald-500/5 hover:bg-emerald-500/15 border-emerald-500/25 hover:border-emerald-500 cursor-pointer hover:shadow-xs group"
                                                                 : isTerpesan
                                                                 ? isDP
                                                                     ? "bg-amber-500/10 border-amber-500/30 text-amber-500 cursor-not-allowed"
                                                                     : "bg-[var(--brand)]/10 border-[var(--brand)]/30 text-[var(--brand)] cursor-not-allowed"
-                                                                : isMabar
-                                                                ? "bg-purple-500/10 border-purple-500/30 text-purple-400 cursor-not-allowed"
                                                                 : "bg-rose-500/10 border-rose-500/25 text-rose-500 cursor-not-allowed"
-                                                        }`}
+                                                        )}
                                                         title={
                                                             isTerpesan
                                                                 ? `Terpesan: ${slot.info?.nama_pemesan} (${slot.info?.jam_mulai}-${slot.info?.jam_selesai}) [${slot.info?.status_pembayaran}]`
-                                                                : isMabar
-                                                                ? `Open Mabar: ${slot.info?.judul} (${slot.info?.jam_mulai}-${slot.info?.jam_selesai})`
                                                                 : isPerawatan
                                                                 ? "Lapangan Perawatan"
                                                                 : `Klik untuk pesan ${slot.jam}`
                                                         }
                                                     >
-                                                        <span className="text-[11px] font-mono font-semibold text-foreground/80">
+                                                        <span className="text-[11px] font-mono font-bold text-foreground">
                                                             {slot.jam}
                                                         </span>
 
@@ -479,22 +577,17 @@ export default function ReservasiIndex({
                                                             {isTerpesan && (
                                                                 <div className="font-semibold min-w-0">
                                                                     <div
-                                                                        className="truncate"
+                                                                        className="truncate text-[10px] text-foreground"
                                                                         title={slot.info?.nama_pemesan}
                                                                     >
                                                                         {slot.info?.nama_pemesan}
                                                                     </div>
-                                                                    <span className="text-[9px] uppercase font-bold tracking-wider">
+                                                                    <span className={cn(
+                                                                        "inline-block text-[8.5px] uppercase font-bold tracking-wider px-1 rounded mt-0.5",
+                                                                        isDP ? "bg-amber-500/20 text-amber-500" : "bg-[var(--brand)]/20 text-[var(--brand)]"
+                                                                    )}>
                                                                         {slot.info?.status_pembayaran}
                                                                     </span>
-                                                                </div>
-                                                            )}
-                                                            {isMabar && (
-                                                                <div
-                                                                    className="truncate font-semibold text-purple-400"
-                                                                    title={slot.info?.judul || "Mabar Disetujui"}
-                                                                >
-                                                                    Mabar Disetujui
                                                                 </div>
                                                             )}
                                                             {isPerawatan && (
@@ -506,8 +599,8 @@ export default function ReservasiIndex({
                                             })}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                );
+                            })}
                         </div>
                     </CardContent>
                 </Card>
@@ -525,26 +618,23 @@ export default function ReservasiIndex({
                             <div className="w-full overflow-x-auto scrollbar-thin">
                                 <Table className="min-w-[900px] w-full">
                                     <TableHeader>
-                                        <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border/70">
-                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                        <TableRow className="bg-slate-100/70 dark:bg-slate-900/60 hover:bg-slate-100/70 dark:hover:bg-slate-900/60 border-b border-border/70">
+                                            <TableHead className="text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Pemesan
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Lapangan
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Waktu Main
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-right text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-right text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Total & Sisa
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-center text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-center text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Status Bayar
                                             </TableHead>
-                                            <TableHead className="w-[1%] text-center text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
-                                                Status Main
-                                            </TableHead>
-                                            <TableHead className="w-[1%] text-right text-xs uppercase tracking-wide text-muted-foreground font-semibold py-3 px-4 whitespace-nowrap">
+                                            <TableHead className="w-[1%] text-right text-xs uppercase tracking-wide text-slate-700 dark:text-slate-100 font-semibold py-3 px-4 whitespace-nowrap">
                                                 Aksi
                                             </TableHead>
                                         </TableRow>
@@ -612,41 +702,14 @@ export default function ReservasiIndex({
                                                         )}
                                                     </TableCell>
 
-                                                    <TableCell className="py-3 px-4 align-middle text-center whitespace-nowrap">
-                                                        {res.status_reservasi === "terkonfirmasi" && (
-                                                            <Badge
-                                                                variant="info"
-                                                                className="h-6 px-2.5 text-xs font-medium rounded-full justify-center min-w-[62px]"
-                                                            >
-                                                                Aktif
-                                                            </Badge>
-                                                        )}
-                                                        {res.status_reservasi === "selesai" && (
-                                                            <Badge
-                                                                variant="neutral"
-                                                                className="h-6 px-2.5 text-xs font-medium rounded-full justify-center min-w-[62px]"
-                                                            >
-                                                                Selesai
-                                                            </Badge>
-                                                        )}
-                                                        {res.status_reservasi === "batal" && (
-                                                            <Badge
-                                                                variant="danger"
-                                                                className="h-6 px-2.5 text-xs font-medium rounded-full justify-center min-w-[62px]"
-                                                            >
-                                                                Batal
-                                                            </Badge>
-                                                        )}
-                                                    </TableCell>
-
                                                     <TableCell className="py-3 px-4 align-middle text-right whitespace-nowrap">
-                                                        <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                                                        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                                                             {res.bisa_dilunasi && sisaTagihan > 0 && res.status_reservasi !== "batal" && res.status_reservasi !== "selesai" && (
                                                                 <Button
                                                                     type="button"
                                                                     size="sm"
                                                                     variant="default"
-                                                                    className="text-sm cursor-pointer"
+                                                                    className="text-xs cursor-pointer h-8"
                                                                     aria-label={`Pelunasan reservasi ${res.pemesan.nama} (${res.jam_mulai} - ${res.jam_selesai})`}
                                                                     onClick={() => {
                                                                         setSelectedReservation(res);
@@ -658,12 +721,29 @@ export default function ReservasiIndex({
                                                                 </Button>
                                                             )}
 
+                                                            {res.bisa_diedit && res.pemesan.jenis_pelanggan === "member" && (
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    className="text-xs text-[var(--brand)] border-[var(--brand)]/30 hover:bg-[var(--brand)]/10 cursor-pointer gap-1 h-8"
+                                                                    aria-label={`Reschedule reservasi member ${res.pemesan.nama} (${res.jam_mulai} - ${res.jam_selesai})`}
+                                                                    onClick={() => {
+                                                                        setSelectedReservationForReschedule(res);
+                                                                        setRescheduleModalOpen(true);
+                                                                    }}
+                                                                >
+                                                                    <CalendarSync className="size-3.5" />
+                                                                    <span>Reschedule</span>
+                                                                </Button>
+                                                            )}
+
                                                             {res.bisa_diselesaikan && (
                                                                 <Button
                                                                     type="button"
                                                                     size="sm"
                                                                     variant="outline"
-                                                                    className="text-sm text-foreground cursor-pointer"
+                                                                    className="text-xs text-foreground cursor-pointer h-8"
                                                                     aria-label={`Selesaikan reservasi ${res.pemesan.nama} (${res.jam_mulai} - ${res.jam_selesai})`}
                                                                     onClick={() => handleFinish(res.id_reservasi)}
                                                                 >
@@ -676,7 +756,7 @@ export default function ReservasiIndex({
                                                                     type="button"
                                                                     size="sm"
                                                                     variant="ghost"
-                                                                    className="text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                                                                    className="text-xs text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 cursor-pointer h-8 px-2"
                                                                     aria-label={`Batalkan reservasi ${res.pemesan.nama} (${res.jam_mulai} - ${res.jam_selesai})`}
                                                                     onClick={() => {
                                                                         setSelectedReservation(res);
@@ -686,6 +766,18 @@ export default function ReservasiIndex({
                                                                     Batal
                                                                 </Button>
                                                             )}
+
+                                                            <Button
+                                                                type="button"
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                className="text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer h-8 w-8 p-0"
+                                                                title="Hapus reservasi (kembalikan sesi/slot)"
+                                                                aria-label={`Hapus reservasi ${res.pemesan.nama}`}
+                                                                onClick={() => handleDelete(res)}
+                                                            >
+                                                                <Trash2 className="size-3.5" />
+                                                            </Button>
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
@@ -750,6 +842,16 @@ export default function ReservasiIndex({
                 onOpenChange={setQuickCustomerModalOpen}
                 form={quickCustomerForm}
                 onSubmit={submitQuickCustomer}
+            />
+
+            <RescheduleModal
+                open={rescheduleModalOpen}
+                onOpenChange={(v) => {
+                    setRescheduleModalOpen(v);
+                    if (!v) setSelectedReservationForReschedule(null);
+                }}
+                reservation={selectedReservationForReschedule}
+                lapanganList={lapangan}
             />
         </AdminLayout>
     );

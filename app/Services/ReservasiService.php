@@ -100,21 +100,6 @@ class ReservasiService
             return 'Slot waktu bentrok dengan reservasi lain yang sudah terdaftar.';
         }
 
-        
-        $mabarQuery = OpenMabar::where('id_lapangan', $idLapangan)
-            ->whereDate('tanggal', $tanggal)
-            ->where('status', OpenMabar::STATUS_DISETUJUI)
-            ->where('jam_mulai', '<', $selesai)
-            ->where('jam_selesai', '>', $mulai);
-
-        if ($useLock) {
-            $mabarQuery->lockForUpdate();
-        }
-
-        if ($mabarQuery->exists()) {
-            return 'Slot waktu bentrok dengan jadwal Open Mabar yang telah disetujui.';
-        }
-
         return null;
     }
 
@@ -279,14 +264,7 @@ class ReservasiService
             
             $idPaket = null;
             if ($user && $user->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER) {
-                $paket = PaketMember::where('id_user', $user->id_user)
-                    ->where('status', PaketMember::STATUS_AKTIF)
-                    ->where(function ($q) {
-                        $today = Carbon::today('Asia/Jakarta');
-                        $q->whereNull('tanggal_akhir')->orWhereDate('tanggal_akhir', '>=', $today);
-                    })
-                    ->lockForUpdate()
-                    ->first();
+                $paket = $this->getActivePaketMember($user->id_user, true);
 
                 if (! $paket) {
                     throw ValidationException::withMessages([
@@ -353,12 +331,49 @@ class ReservasiService
 
     
     /**
+     * Dapatkan paket member aktif yang masih berlaku dan memprioritaskan paket yang masih memiliki sisa sesi (FIFO).
+     */
+    public function getActivePaketMember(int $idUser, bool $forUpdate = false): ?PaketMember
+    {
+        $today = Carbon::today('Asia/Jakarta');
+
+        $query = PaketMember::where('id_user', $idUser)
+            ->where('status', PaketMember::STATUS_AKTIF)
+            ->where(function ($q) use ($today) {
+                $q->whereNull('tanggal_akhir')->orWhereDate('tanggal_akhir', '>=', $today);
+            })
+            ->orderBy('id_paket', 'asc');
+
+        if ($forUpdate) {
+            $query->lockForUpdate();
+        }
+
+        $pakets = $query->get();
+
+        if ($pakets->isEmpty()) {
+            return null;
+        }
+
+        // Cari paket pertama yang masih memiliki sisa sesi > 0 (FIFO)
+        $paketDenganSisa = $pakets->first(fn ($p) => $p->sisa_sesi > 0);
+
+        return $paketDenganSisa ?? $pakets->last();
+    }
+
+    /**
      * Hitung kalkulasi preview jadwal autofield member mingguan (misal setiap hari Senin).
      * Melakukan iterasi dari tanggal hari ini hingga tanggal akhir masa aktif member,
      * serta mendeteksi apakah setiap tanggal bentrok atau melebihi kuota sisa sesi paket.
      */
-    public function previewMemberAutofield(int $idUser, int $idLapangan, string $hari, string $jamMulai, string $jamSelesai, ?int $hargaPerSesi = null): array
-    {
+    public function previewMemberAutofield(
+        int $idUser,
+        int $idLapangan,
+        string $hari,
+        string $jamMulai,
+        string $jamSelesai,
+        ?int $hargaPerSesi = null,
+        ?int $jumlahSesi = null
+    ): array {
         $user = User::findOrFail($idUser);
 
         if ($user->jenis_pelanggan !== User::JENIS_PELANGGAN_MEMBER || $user->status_member !== User::STATUS_MEMBER_AKTIF) {
@@ -380,12 +395,7 @@ class ReservasiService
             : (int) round(($durasiMenit / 60) * $lapangan->harga_per_jam);
 
         
-        $activePaket = PaketMember::where('id_user', $user->id_user)
-            ->where('status', PaketMember::STATUS_AKTIF)
-            ->where(function ($q) use ($today) {
-                $q->whereNull('tanggal_akhir')->orWhereDate('tanggal_akhir', '>=', $today);
-            })
-            ->first();
+        $activePaket = $this->getActivePaketMember($user->id_user);
 
         $sisaSesiPaket = $activePaket ? $activePaket->sisa_sesi : 0;
 
@@ -397,10 +407,21 @@ class ReservasiService
             $cursor = $today->copy();
         }
 
+        // Target batas sesi yang diambil (opsional sesuai permintaan admin, default sesuai sisa sesi)
+        $targetLimit = $sisaSesiPaket;
+        if ($jumlahSesi !== null && $jumlahSesi > 0) {
+            $targetLimit = min($jumlahSesi, $sisaSesiPaket);
+        }
+
         $sessionCounter = 0;
         
         while ($cursor->lte($akhirMember)) {
             if ($cursor->dayOfWeek === $targetDayIndex) {
+                // Jika sudah mencapai batas target limit sesi yang diinginkan, jangan ambil lagi sesi di luar kuota
+                if ($activePaket && $targetLimit > 0 && count($dates) >= $targetLimit) {
+                    break;
+                }
+
                 $sessionCounter++;
                 $tglStr = $cursor->toDateString();
                 $conflictMsg = $this->checkSlotConflict($idLapangan, $tglStr, $jamMulai, $jamSelesai);
@@ -411,9 +432,9 @@ class ReservasiService
                 if (! $activePaket) {
                     $statusSesi = 'BENTROK';
                     $alasanSesi = 'Member belum memiliki paket sesi aktif.';
-                } elseif ($sessionCounter > $sisaSesiPaket) {
+                } elseif ($sisaSesiPaket <= 0) {
                     $statusSesi = 'BENTROK';
-                    $alasanSesi = "Melebihi sisa sesi paket (hanya tersisa {$sisaSesiPaket} sesi).";
+                    $alasanSesi = 'Sisa sesi pada paket member sudah habis (0 sesi).';
                 } elseif ($conflictMsg) {
                     $statusSesi = 'BENTROK';
                     $alasanSesi = $conflictMsg;
@@ -427,7 +448,7 @@ class ReservasiService
                     'status' => $statusSesi,
                     'alasan' => $alasanSesi,
                     'subtotal' => $subtotalPerSesi,
-                    'melebihi_kuota' => $sessionCounter > $sisaSesiPaket,
+                    'melebihi_kuota' => false,
                 ];
             }
             $cursor->addDay();
@@ -470,13 +491,18 @@ class ReservasiService
     {
         return DB::transaction(function () use ($data, $adminUserId) {
             $hargaPerSesi = isset($data['harga_per_sesi']) ? (int) $data['harga_per_sesi'] : null;
+            $jumlahSesi = (isset($data['jumlah_sesi']) && is_numeric($data['jumlah_sesi']) && (int) $data['jumlah_sesi'] > 0)
+                ? (int) $data['jumlah_sesi']
+                : null;
+
             $preview = $this->previewMemberAutofield(
                 (int) $data['id_user'],
                 (int) $data['id_lapangan'],
                 (string) $data['hari'],
                 (string) $data['jam_mulai'],
                 (string) $data['jam_selesai'],
-                $hargaPerSesi
+                $hargaPerSesi,
+                $jumlahSesi
             );
 
             if (empty($preview['jadwal'])) {
@@ -522,14 +548,7 @@ class ReservasiService
             }
 
             
-            $paket = PaketMember::where('id_user', $user->id_user)
-                ->where('status', PaketMember::STATUS_AKTIF)
-                ->where(function ($q) {
-                    $today = Carbon::today('Asia/Jakarta');
-                    $q->whereNull('tanggal_akhir')->orWhereDate('tanggal_akhir', '>=', $today);
-                })
-                ->lockForUpdate()
-                ->first();
+            $paket = $this->getActivePaketMember($user->id_user, true);
 
             if (! $paket) {
                 throw ValidationException::withMessages([
@@ -709,6 +728,121 @@ class ReservasiService
             );
 
             return $reservasi;
+        });
+    }
+
+    /**
+     * Reschedule jadwal reservasi (ubah tanggal, jam, atau lapangan).
+     */
+    public function rescheduleReservasi(int $idReservasi, array $data, int $adminUserId): Reservasi
+    {
+        return DB::transaction(function () use ($idReservasi, $data, $adminUserId) {
+            $reservasi = Reservasi::with(['detailReservasi.lapangan', 'user'])->findOrFail($idReservasi);
+
+            $isMember = ($reservasi->user && $reservasi->user->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER) || !empty($reservasi->id_paket);
+            if (! $isMember) {
+                throw ValidationException::withMessages([
+                    'reschedule' => 'Fitur ubah jadwal (reschedule) hanya tersedia untuk pelanggan berstatus Member.',
+                ]);
+            }
+
+            if ($reservasi->status_reservasi === Reservasi::STATUS_BATAL) {
+                throw ValidationException::withMessages([
+                    'tanggal_main' => 'Reservasi yang sudah dibatalkan tidak dapat di-reschedule.',
+                ]);
+            }
+            if ($reservasi->status_reservasi === Reservasi::STATUS_SELESAI) {
+                throw ValidationException::withMessages([
+                    'tanggal_main' => 'Reservasi yang sudah selesai main tidak dapat di-reschedule.',
+                ]);
+            }
+
+            $detail = null;
+            if (!empty($data['id_detail_reservasi'])) {
+                $detail = $reservasi->detailReservasi->firstWhere('id_detail_reservasi', $data['id_detail_reservasi']);
+            }
+            if (!$detail) {
+                $detail = $reservasi->detailReservasi->first();
+            }
+
+            if (!$detail) {
+                throw ValidationException::withMessages([
+                    'tanggal_main' => 'Detail jadwal reservasi tidak ditemukan.',
+                ]);
+            }
+
+            $lapangan = Lapangan::findOrFail($data['id_lapangan']);
+
+            $conflict = $this->checkSlotConflict(
+                (int) $data['id_lapangan'],
+                (string) $data['tanggal_main'],
+                (string) $data['jam_mulai'],
+                (string) $data['jam_selesai'],
+                $detail->id_detail_reservasi,
+                true
+            );
+
+            if ($conflict) {
+                throw ValidationException::withMessages([
+                    'jam_mulai' => $conflict,
+                ]);
+            }
+
+            $mulai = Carbon::parse($data['jam_mulai']);
+            $selesai = Carbon::parse($data['jam_selesai']);
+            $durasiMenit = $mulai->diffInMinutes($selesai);
+
+            $oldJadwal = "{$detail->tanggal_main} " . substr($detail->jam_mulai, 0, 5) . "-" . substr($detail->jam_selesai, 0, 5) . " ({$detail->lapangan?->nama_lapangan})";
+            $newJadwal = "{$data['tanggal_main']} {$mulai->format('H:i')}-{$selesai->format('H:i')} ({$lapangan->nama_lapangan})";
+
+            $detail->update([
+                'id_lapangan' => $lapangan->id_lapangan,
+                'tanggal_main' => $data['tanggal_main'],
+                'jam_mulai' => $mulai->format('H:i:s'),
+                'jam_selesai' => $selesai->format('H:i:s'),
+                'durasi' => $durasiMenit,
+            ]);
+
+            $pemesan = $reservasi->user?->nama ?? $reservasi->nama_pemesan ?? 'Pelanggan';
+            $alasan = !empty($data['alasan']) ? " Alasan: {$data['alasan']}" : "";
+
+            $this->logAktivitas(
+                $adminUserId,
+                'RESCHEDULE_RESERVASI',
+                "Reservasi #{$reservasi->id_reservasi}",
+                "Reschedule jadwal reservasi {$pemesan} dari {$oldJadwal} ke {$newJadwal}.{$alasan}"
+            );
+
+            return $reservasi;
+        });
+    }
+
+    /**
+     * Hapus reservasi beserta detail dan pembayarannya.
+     * Jika pemesan adalah member dengan paket sesi, sesi otomatis kembali.
+     */
+    public function hapusReservasi(int $idReservasi, int $adminUserId, ?string $alasan = null): void
+    {
+        DB::transaction(function () use ($idReservasi, $adminUserId, $alasan) {
+            $reservasi = Reservasi::with(['user', 'pembayaran', 'detailReservasi.lapangan'])->findOrFail($idReservasi);
+
+            $pemesan = $reservasi->user?->nama ?? $reservasi->nama_pemesan ?? 'Pelanggan';
+            $infoJadwal = $reservasi->detailReservasi->map(function ($d) {
+                return "{$d->tanggal_main} {$d->jam_mulai}-{$d->jam_selesai}";
+            })->implode(', ');
+
+            $ket = "Menghapus reservasi #{$reservasi->id_reservasi} ({$pemesan}, {$infoJadwal})." . ($alasan ? " Alasan: {$alasan}" : "");
+
+            $this->logAktivitas(
+                $adminUserId,
+                'HAPUS_RESERVASI',
+                "Reservasi #{$reservasi->id_reservasi}",
+                $ket
+            );
+
+            $reservasi->pembayaran()->delete();
+            $reservasi->detailReservasi()->delete();
+            $reservasi->delete();
         });
     }
 }

@@ -35,7 +35,7 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-dvh w-full bg-background text-foreground flex flex-col lg:flex-row overflow-x-hidden">
+        <div className="min-h-dvh w-full bg-transparent text-foreground flex flex-col lg:flex-row overflow-x-hidden">
             <AuthImagePanel
                 imageSrc="/images/login-panel.jpg"
                 imageAlt="Suasana lapangan Bigi Badminton Arena"
@@ -43,7 +43,7 @@ export default function Login() {
                 description="Sistem Reservasi & Komunitas Open Mabar. Nikmati kemudahan mencari lawan tanding dan kelola jadwal main bareng secara terstruktur."
             />
 
-            <div className="flex-1 w-full flex flex-col justify-center items-center bg-background px-5 sm:px-8 py-3 sm:py-6 lg:py-12 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden min-h-dvh lg:min-h-0 box-border pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="flex-1 w-full flex flex-col justify-center items-center bg-transparent px-5 sm:px-8 py-3 sm:py-6 lg:py-12 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden min-h-dvh lg:min-h-0 box-border pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 
                 <WakeGlyph cellSize={14} className="absolute inset-0 opacity-20 pointer-events-none" />
 
@@ -147,6 +147,14 @@ export default function Login() {
                                     {errors.password}
                                 </p>
                             )}
+                            <div className="flex justify-end pt-0.5">
+                                <Link
+                                    href="/lupa-password"
+                                    className="text-xs text-[var(--brand)] hover:underline font-medium transition-colors"
+                                >
+                                    Lupa kata sandi?
+                                </Link>
+                            </div>
                         </div>
 
                         <Button

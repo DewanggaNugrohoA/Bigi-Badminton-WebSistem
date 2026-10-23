@@ -30,9 +30,9 @@ const minScale = 0.97;
 
 const backgroundColor = [
   "#f3e3ac", // Gold 1st
-  "#ddd",    // Silver 2nd
+  "#e2e8f0", // Silver 2nd
   "#f1cfa6", // Bronze 3rd
-  "#e9d5ff", // Brand Lavender
+  "#cbd5e1", // Brand Slate
 ];
 
 const titleMap: Record<AwardBadgeType, string> = {
@@ -270,7 +270,7 @@ export const AwardBadge = ({
             height="46"
             rx="8"
             fill="transparent"
-            stroke={isBigiMember ? "#c9a84d" : "#bbb"}
+            stroke={isBigiMember ? (place === 2 ? "#94a3b8" : "#c9a84d") : "#bbb"}
             strokeWidth="1"
           />
 
@@ -280,7 +280,7 @@ export const AwardBadge = ({
             fontSize="9"
             fontWeight="bold"
             letterSpacing="0.08em"
-            fill={isBigiMember ? "#785810" : "#666"}
+            fill={isBigiMember ? (place === 2 ? "#475569" : "#785810") : "#666"}
             x="53"
             y="20"
           >
@@ -292,23 +292,23 @@ export const AwardBadge = ({
             fontFamily="system-ui, -apple-system, sans-serif"
             fontSize="15"
             fontWeight="bold"
-            fill={isBigiMember ? "#453205" : "#666"}
+            fill={isBigiMember ? (place === 2 ? "#1e293b" : "#453205") : "#666"}
             x="52"
             y="40"
           >
-            {mainTitleText}{place && ` #${place}`}
+            {mainTitleText}{(!isBigiMember && place) ? ` #${place}` : ""}
           </text>
 
           
           <g transform="translate(8, 9)">
             {isBigiMember ? (
               
-              <g fill={isBigiMember ? "#785810" : "#666"}>
+              <g fill={place === 2 ? "#475569" : "#785810"}>
                 
-                <path d="M18 5 L22 13 L27 7 L25 21 L11 21 L9 7 L14 13 Z" fill="none" stroke="#785810" strokeWidth="1.8" strokeLinejoin="round" />
-                <circle cx="18" cy="27" r="3" fill="#785810" />
-                <path d="M12 32 C12 28, 24 28, 24 32" fill="none" stroke="#785810" strokeWidth="2" strokeLinecap="round" />
-                <path d="M18 10 L18 16" stroke="#785810" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M18 5 L22 13 L27 7 L25 21 L11 21 L9 7 L14 13 Z" fill="none" stroke={place === 2 ? "#475569" : "#785810"} strokeWidth="1.8" strokeLinejoin="round" />
+                <circle cx="18" cy="27" r="3" fill={place === 2 ? "#475569" : "#785810"} />
+                <path d="M12 32 C12 28, 24 28, 24 32" fill="none" stroke={place === 2 ? "#475569" : "#785810"} strokeWidth="2" strokeLinecap="round" />
+                <path d="M18 10 L18 16" stroke={place === 2 ? "#475569" : "#785810"} strokeWidth="1.5" strokeLinecap="round" />
               </g>
             ) : (
               
@@ -421,15 +421,25 @@ export const AwardBadge = ({
 export const BigiMemberBadge = ({
   className,
   link,
+  isMember = true,
+  tier,
+  title,
+  subtitle,
 }: {
   className?: string;
   link?: string;
+  isMember?: boolean;
+  tier?: "gold" | "silver";
+  title?: string;
+  subtitle?: string;
 }) => {
+  const isGold = tier ? tier === "gold" : isMember;
   return (
     <AwardBadge
       type="bigi-member"
-      customSubtitle="BIGI BADMINTON"
-      customTitle="Member Aktif"
+      place={isGold ? 1 : 2}
+      customSubtitle={subtitle || "BIGI BADMINTON"}
+      customTitle={title || (isGold ? "Member Aktif" : "Pelanggan Reguler")}
       link={link}
       className={className}
     />

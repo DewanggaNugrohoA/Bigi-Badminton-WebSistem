@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KasirController;
@@ -23,6 +24,13 @@ Route::middleware('guest:web')->group(function () {
     Route::get('/register/verifikasi', [RegisterController::class, 'verifikasiCreate'])->name('register.verifikasi');
     Route::post('/register/verifikasi', [RegisterController::class, 'verifikasiStore'])->middleware('throttle:15,1');
     Route::post('/register/kirim-ulang-otp', [RegisterController::class, 'kirimUlangOtp'])->middleware('throttle:5,1')->name('register.kirim-ulang-otp');
+
+    // Lupa kata sandi via OTP WhatsApp
+    Route::get('/lupa-password', [ResetPasswordController::class, 'showRequestForm'])->name('password.request');
+    Route::post('/lupa-password', [ResetPasswordController::class, 'sendResetOtp'])->middleware('throttle:15,1')->name('password.send');
+    Route::get('/lupa-password/verifikasi', [ResetPasswordController::class, 'showResetForm'])->name('password.verifikasi');
+    Route::post('/lupa-password/kirim-ulang-otp', [ResetPasswordController::class, 'resendOtp'])->middleware('throttle:5,1')->name('password.resend');
+    Route::post('/lupa-password/reset', [ResetPasswordController::class, 'resetPassword'])->middleware('throttle:15,1')->name('password.update');
 });
 
 // Tamu staf (karyawan belum login): Login khusus internal staf (Admin & Kasir)
@@ -44,6 +52,7 @@ Route::middleware(['auth:web', 'role:user,web'])->group(function () {
     Route::get('/open-mabar', [\App\Http\Controllers\OpenMabarController::class, 'index'])->name('open-mabar.index');
     Route::get('/open-mabar/create', [\App\Http\Controllers\OpenMabarController::class, 'create'])->name('open-mabar.create');
     Route::post('/open-mabar', [\App\Http\Controllers\OpenMabarController::class, 'store'])->name('open-mabar.store');
+    Route::get('/open-mabar/mabar-bareng', [\App\Http\Controllers\OpenMabarController::class, 'mabarBareng'])->name('open-mabar.bareng');
     Route::get('/open-mabar/saya', [\App\Http\Controllers\OpenMabarController::class, 'saya'])->name('open-mabar.saya');
     Route::get('/open-mabar/{mabar}', [\App\Http\Controllers\OpenMabarController::class, 'show'])->name('open-mabar.show');
     Route::get('/open-mabar/{mabar}/edit', [\App\Http\Controllers\OpenMabarController::class, 'edit'])->name('open-mabar.edit');
@@ -61,6 +70,8 @@ Route::middleware(['auth:web', 'role:user,web'])->group(function () {
     Route::get('/pengaturan/akun', [\App\Http\Controllers\AkunController::class, 'edit'])->name('pengaturan.akun');
     Route::put('/pengaturan/akun/profil', [\App\Http\Controllers\AkunController::class, 'updateProfil'])->name('pengaturan.akun.profil');
     Route::put('/pengaturan/akun/password', [\App\Http\Controllers\AkunController::class, 'updatePassword'])->name('pengaturan.akun.password');
+    Route::post('/pengaturan/akun/lupa-password/kirim-otp', [\App\Http\Controllers\AkunController::class, 'kirimOtpLupaPassword'])->name('pengaturan.akun.lupa-password.kirim-otp');
+    Route::post('/pengaturan/akun/lupa-password/verifikasi', [\App\Http\Controllers\AkunController::class, 'verifikasiOtpLupaPassword'])->name('pengaturan.akun.lupa-password.verifikasi');
 });
 
 // =========================================================================
@@ -85,11 +96,14 @@ Route::middleware('auth:staff')->group(function () {
         Route::post('/admin/reservasi/{id}/pelunasan', [\App\Http\Controllers\Admin\ReservasiController::class, 'pelunasan'])->name('admin.reservasi.pelunasan');
         Route::post('/admin/reservasi/{id}/cancel', [\App\Http\Controllers\Admin\ReservasiController::class, 'cancel'])->name('admin.reservasi.cancel');
         Route::post('/admin/reservasi/{id}/finish', [\App\Http\Controllers\Admin\ReservasiController::class, 'finish'])->name('admin.reservasi.finish');
+        Route::post('/admin/reservasi/{id}/reschedule', [\App\Http\Controllers\Admin\ReservasiController::class, 'reschedule'])->name('admin.reservasi.reschedule');
+        Route::delete('/admin/reservasi/{id}', [\App\Http\Controllers\Admin\ReservasiController::class, 'destroy'])->name('admin.reservasi.destroy');
         Route::get('/admin/reservasi/search-customers', [\App\Http\Controllers\Admin\ReservasiController::class, 'searchCustomers'])->name('admin.reservasi.search-customers');
         Route::post('/admin/reservasi/quick-customer', [\App\Http\Controllers\Admin\ReservasiController::class, 'quickCustomer'])->name('admin.reservasi.quick-customer');
 
         // Persetujuan Open Mabar
         Route::get('/admin/open-mabar', [\App\Http\Controllers\Admin\OpenMabarController::class, 'index'])->name('admin.open-mabar');
+        Route::get('/admin/open-mabar/notifikasi', [\App\Http\Controllers\Admin\OpenMabarController::class, 'notifikasi'])->name('admin.open-mabar.notifikasi');
         Route::get('/admin/open-mabar/{id}/conflict', [\App\Http\Controllers\Admin\OpenMabarController::class, 'checkConflict'])->name('admin.open-mabar.conflict');
         Route::post('/admin/open-mabar/{id}/approve', [\App\Http\Controllers\Admin\OpenMabarController::class, 'approve'])->name('admin.open-mabar.approve');
         Route::post('/admin/open-mabar/{id}/reject', [\App\Http\Controllers\Admin\OpenMabarController::class, 'reject'])->name('admin.open-mabar.reject');
@@ -132,8 +146,5 @@ Route::middleware('auth:staff')->group(function () {
 
         Route::get('/kasir/opname', [KasirController::class, 'opnameIndex'])->name('kasir.opname.index');
         Route::post('/kasir/opname', [KasirController::class, 'opnameStore'])->name('kasir.opname.store');
-
-        Route::get('/kasir/void', [KasirController::class, 'voidIndex'])->name('kasir.void.index');
-        Route::post('/kasir/void', [KasirController::class, 'voidStore'])->name('kasir.void.store');
     });
 });

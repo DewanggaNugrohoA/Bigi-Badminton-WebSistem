@@ -1,5 +1,6 @@
-import { ReactNode, useState, useEffect, useRef } from "react";
-import { Link, usePage } from "@inertiajs/react";
+import { ReactNode, useState, useEffect, useRef, useCallback } from "react";
+import { Link, usePage, router } from "@inertiajs/react";
+import { useEcho } from "@laravel/echo-react";
 import {
     LayoutDashboard,
     CalendarDays,
@@ -11,8 +12,12 @@ import {
     LogOut,
     Sun,
     Moon,
-    ChevronLeft,
-    ChevronRight,
+    PanelLeftClose,
+    PanelLeft,
+    Bell,
+    BellRing,
+    Volume2,
+    VolumeX,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -27,13 +32,18 @@ import { Button } from "@/components/ui/material-design-3-button";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
 import { PageProps } from "@inertiajs/core";
+import {
+    playWaNotificationSound,
+    isNotificationSoundEnabled,
+    setNotificationSoundEnabled,
+} from "@/lib/sound";
 
 interface AdminLayoutProps {
     children: ReactNode;
     title?: string;
     breadcrumb?: Array<{ label: string; href?: string }>;
+    fullWidth?: boolean;
 }
 
 interface SharedProps extends PageProps {
@@ -51,6 +61,18 @@ interface SharedProps extends PageProps {
     };
     errors: Record<string, string>;
     [key: string]: unknown;
+}
+
+interface MabarNotificationPayload {
+    id_mabar: number;
+    judul: string;
+    nama_pemohon: string;
+    no_hp?: string;
+    nama_lapangan?: string;
+    tanggal?: string;
+    jam_mulai?: string;
+    jam_selesai?: string;
+    created_at?: string;
 }
 
 interface MenuItem {
@@ -92,27 +114,158 @@ const MENU_GROUPS: MenuGroup[] = [
     },
 ];
 
+const SIDEBAR_STORAGE_KEY = "admin_sidebar_open";
+
 /**
  * Layout kerangka utama untuk seluruh halaman Panel Admin.
- * Menyediakan sidebar responsif, breadcrumb, toggle tema gelap, serta penanganan notifikasi toast.
+ * Dirancang selaras dengan Panel Kasir dengan sidebar hide/toggle yang mulus.
  */
 export default function AdminLayout({
     children,
     title = "Panel Admin",
-    breadcrumb = [],
+    fullWidth = false,
 }: AdminLayoutProps) {
     const { auth, flash } = usePage<SharedProps>().props;
     const { url } = usePage();
     const user = auth?.user;
     const pathname = url.split("?")[0].split("#")[0];
 
-    const [collapsed, setCollapsed] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+        if (typeof window === "undefined") return true;
+        try {
+            const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+            if (saved !== null) {
+                return saved === "true";
+            }
+            return window.innerWidth >= 768;
+        } catch {
+            return true;
+        }
+    });
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isDark, setIsDark] = useState(true);
+    const [pendingMabarCount, setPendingMabarCount] = useState<number>(0);
+    const [soundEnabled, setSoundEnabled] = useState<boolean>(() => isNotificationSoundEnabled());
+    const isInitializedRef = useRef<boolean>(false);
+    const lastKnownIdRef = useRef<number | null>(null);
+    const lastCountRef = useRef<number | null>(null);
+
+    const handleNewMabarNotification = useCallback((data: MabarNotificationPayload) => {
+        playWaNotificationSound();
+        toast.info("Pengajuan Open Mabar Baru!", {
+            description: `${data.nama_pemohon} mengajukan "${data.judul}" (${data.tanggal || ""} ${data.jam_mulai || ""})`,
+            duration: 9000,
+            action: {
+                label: "Tinjau",
+                onClick: () => router.visit("/admin/open-mabar?status=menunggu"),
+            },
+        });
+    }, []);
+
+    useEcho<MabarNotificationPayload>(
+        "admin.notifikasi",
+        "MabarDiajukan",
+        (payload) => {
+            if (payload && payload.id_mabar) {
+                const currentLastId = lastKnownIdRef.current ?? 0;
+                if (payload.id_mabar > currentLastId) {
+                    lastKnownIdRef.current = payload.id_mabar;
+                    setPendingMabarCount((prev) => prev + 1);
+                    handleNewMabarNotification(payload);
+                }
+            }
+        },
+        [handleNewMabarNotification],
+        "private"
+    );
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const checkPendingMabar = async () => {
+            try {
+                const res = await fetch("/admin/open-mabar/notifikasi", {
+                    headers: {
+                        Accept: "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                });
+                if (!res.ok) return;
+                const data: { pending_count: number; latest: MabarNotificationPayload | null } = await res.json();
+                if (!isMounted) return;
+
+                // Jika pertama kali halaman dimuat, inisialisasi baseline tanpa membunyikan suara
+                if (!isInitializedRef.current) {
+                    isInitializedRef.current = true;
+                    lastKnownIdRef.current = data.latest ? data.latest.id_mabar : 0;
+                    lastCountRef.current = data.pending_count;
+                    setPendingMabarCount(data.pending_count);
+                    return;
+                }
+
+                const latestId = data.latest ? data.latest.id_mabar : 0;
+                const prevId = lastKnownIdRef.current ?? 0;
+                const prevCount = lastCountRef.current ?? 0;
+
+                const isNewArrival =
+                    (latestId > 0 && latestId > prevId) ||
+                    (data.pending_count > prevCount && latestId > 0);
+
+                lastKnownIdRef.current = Math.max(latestId, prevId);
+                lastCountRef.current = data.pending_count;
+                setPendingMabarCount(data.pending_count);
+
+                if (isNewArrival && data.latest) {
+                    handleNewMabarNotification(data.latest);
+                }
+            } catch {
+                // Abaikan jika ada gangguan koneksi sementara
+            }
+        };
+
+        checkPendingMabar();
+
+        // Polling berkala setiap 5 detik
+        const interval = setInterval(() => {
+            checkPendingMabar();
+        }, 5000);
+
+        // Langsung cek seketika saat admin membuka/beralih kembali ke tab ini
+        const handleVisibilityChange = () => {
+            if (typeof document !== "undefined" && document.visibilityState === "visible") {
+                checkPendingMabar();
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, [handleNewMabarNotification]);
+
+    const toggleSound = () => {
+        const next = !soundEnabled;
+        setSoundEnabled(next);
+        setNotificationSoundEnabled(next);
+        toast(next ? "Suara Notifikasi Diaktifkan" : "Suara Notifikasi Dimatikan");
+    };
 
     const lastFlash = useRef<{ success?: string | null; error?: string | null }>({});
 
-    
+    const toggleSidebar = () => {
+        setSidebarOpen((prev) => {
+            const next = !prev;
+            try {
+                localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
+            } catch {
+                
+            }
+            return next;
+        });
+    };
+
     useEffect(() => {
         if (flash?.success && flash.success !== lastFlash.current.success) {
             toast.success(flash.success);
@@ -124,7 +277,6 @@ export default function AdminLayout({
         }
     }, [flash]);
 
-    
     useEffect(() => {
         const root = document.documentElement;
         setIsDark(root.classList.contains("dark"));
@@ -161,145 +313,120 @@ export default function AdminLayout({
         return pathname === href || pathname.startsWith(href + "/");
     };
 
-    const renderNavItems = (isDrawer = false) => (
+    const renderNavItems = (isMobile = false) => (
         <nav className="py-2 space-y-4" aria-label="Menu Utama">
-            {MENU_GROUPS.map((group, groupIndex) => {
-                const isCollapsedView = collapsed && !isDrawer;
-
-                return (
-                    <div
-                        key={group.title || `group-${groupIndex}`}
-                        className={cn(groupIndex > 0 && "mt-4")}
-                    >
-                        {group.title ? (
-                            isCollapsedView ? (
-                                <div className="my-2 border-t border-sidebar-border" aria-hidden="true" />
-                            ) : (
-                                <div className="px-3 mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground select-none">
-                                    {group.title}
-                                </div>
-                            )
-                        ) : null}
-
-                        <div className="space-y-1">
-                            {group.items.map((item) => {
-                                const active = isItemActive(item.href);
-                                const Icon = item.icon;
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        onClick={() => {
-                                            if (isDrawer) setMobileOpen(false);
-                                        }}
-                                        aria-current={active ? "page" : undefined}
-                                        className={cn(
-                                            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors relative min-h-[40px] select-none",
-                                            active
-                                                ? "bg-[var(--brand)] text-white shadow-xs"
-                                                : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
-                                            isCollapsedView && "justify-center px-2"
-                                        )}
-                                        title={isCollapsedView ? item.title : undefined}
-                                    >
-                                        <Icon
-                                            className={cn(
-                                                "size-4.5 shrink-0 transition-transform group-hover:scale-105",
-                                                active ? "text-white" : "text-muted-foreground group-hover:text-foreground"
-                                            )}
-                                        />
-                                        {!isCollapsedView && (
-                                            <span className="truncate">{item.title}</span>
-                                        )}
-                                    </Link>
-                                );
-                            })}
+            {MENU_GROUPS.map((group, groupIndex) => (
+                <div key={group.title || `group-${groupIndex}`} className={cn(groupIndex > 0 && "mt-4 sm:mt-5")}>
+                    {group.title && (
+                        <div className="px-3 mb-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground select-none">
+                            {group.title}
                         </div>
+                    )}
+                    <div className="space-y-1">
+                        {group.items.map((item) => {
+                            const isActive = isItemActive(item.href);
+                            const Icon = item.icon;
+
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={() => {
+                                        if (isMobile) setMobileOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+                                        isActive
+                                            ? "bg-[var(--brand)] text-white shadow-xs font-semibold"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                                    )}
+                                    aria-current={isActive ? "page" : undefined}
+                                >
+                                    <Icon className="size-4.5 shrink-0" />
+                                    <span className="truncate">{item.title}</span>
+                                    {item.href === "/admin/open-mabar" && pendingMabarCount > 0 && (
+                                        <span
+                                            className={cn(
+                                                "ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full leading-none",
+                                                isActive
+                                                    ? "bg-white text-[var(--brand)]"
+                                                    : "bg-amber-500 text-white animate-pulse"
+                                            )}
+                                        >
+                                            {pendingMabarCount}
+                                        </span>
+                                    )}
+                                </Link>
+                            );
+                        })}
                     </div>
-                );
-            })}
+                </div>
+            ))}
         </nav>
     );
 
-
     return (
-        <div className="min-h-screen flex bg-background text-foreground antialiased selection:bg-[var(--brand)] selection:text-white">
-            
+        <div className="min-h-screen bg-transparent text-foreground flex flex-col antialiased print:min-h-0 print:bg-white print:text-slate-900">
             <aside
+                aria-label="Sidebar Admin"
                 className={cn(
-                    "hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out",
-                    collapsed ? "w-20" : "w-64"
+                    "fixed inset-y-0 left-0 z-40 bg-sidebar border-r border-sidebar-border hidden md:flex flex-col transition-all duration-300 ease-in-out print:hidden",
+                    sidebarOpen ? "w-60 translate-x-0" : "-translate-x-full w-60"
                 )}
             >
-                
                 <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border shrink-0">
                     <Link
                         href="/admin"
-                        className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg overflow-hidden"
+                        className="flex items-center gap-3 min-w-0"
                         aria-label="Panel Admin Bigi Badminton"
                     >
                         <img
                             src="/images/logo-sm.png"
                             alt="Logo Bigi Badminton"
-                            width={40}
-                            height={40}
-                            className="size-9 object-contain rounded-full shadow-xs ring-1 ring-black/10 dark:ring-white/15 shrink-0 group-hover:scale-105 transition-transform"
+                            width={36}
+                            height={36}
+                            className="size-8 object-contain rounded-full shadow-xs ring-1 ring-black/10 dark:ring-white/15 shrink-0"
                         />
-                        {!collapsed && (
-                            <div className="flex flex-col">
-                                <span className="font-unbounded font-extrabold text-sm tracking-tight text-sidebar-foreground group-hover:text-primary transition-colors leading-tight">
-                                    BIGI <span className="text-[var(--brand)]">ADMIN</span>
-                                </span>
-                                <span className="text-[10px] text-muted-foreground font-medium">Panel Pengelola</span>
-                            </div>
-                        )}
+                        <div className="flex flex-col text-left truncate">
+                            <span className="font-unbounded font-extrabold text-xs tracking-tight text-sidebar-foreground leading-tight">
+                                BIGI <span className="text-[var(--brand)]">ADMIN</span>
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-medium">Panel Pengelola</span>
+                        </div>
                     </Link>
-
-                    
                     <Button
                         type="button"
                         variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setCollapsed(!collapsed)}
-                        className="text-muted-foreground hover:text-foreground"
-                        aria-label={collapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
+                        size="icon"
+                        onClick={toggleSidebar}
+                        className="size-8 text-muted-foreground hover:text-foreground"
+                        aria-label="Sembunyikan sidebar navigasi"
                     >
-                        {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+                        <PanelLeftClose className="size-4" />
                     </Button>
                 </div>
 
-                
-                <div className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin">
+                <div className="flex-1 overflow-y-auto px-3 py-2">
                     {renderNavItems(false)}
                 </div>
 
-                
-                <div className="p-3 border-t border-sidebar-border bg-sidebar/50 shrink-0">
-                    {!collapsed ? (
-                        <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-card/60 border border-border/50">
-                            <div className="size-8 rounded-full bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center font-bold text-xs shrink-0">
-                                {user?.nama ? user.nama.charAt(0).toUpperCase() : "A"}
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                                <span className="text-xs font-semibold text-foreground truncate">{user?.nama || "Admin Bigi"}</span>
-                                <span className="text-[11px] text-muted-foreground font-medium">
-                                    Administrator
-                                </span>
-                            </div>
+                <div className="p-3 border-t border-sidebar-border shrink-0">
+                    <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-muted/40">
+                        <div className="size-7 rounded-full bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center font-bold text-xs shrink-0">
+                            {user?.nama ? user.nama.charAt(0).toUpperCase() : "A"}
                         </div>
-                    ) : (
-                        <div className="flex justify-center">
-                            <div className="size-8 rounded-full bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center font-bold text-xs shrink-0" title={user?.nama || "Admin"}>
-                                {user?.nama ? user.nama.charAt(0).toUpperCase() : "A"}
-                            </div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-xs font-semibold text-foreground truncate">{user?.nama || "Admin Bigi"}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium">
+                                Administrator
+                            </span>
                         </div>
-                    )}
+                    </div>
                 </div>
             </aside>
 
-            
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                <SheetContent side="left" className="w-72 p-0 bg-sidebar border-r border-sidebar-border flex flex-col">
+                <SheetContent side="left" className="w-64 p-0 bg-sidebar border-r border-sidebar-border flex flex-col">
                     <SheetHeader className="h-16 flex flex-row items-center justify-between px-4 border-b border-sidebar-border">
                         <Link
                             href="/admin"
@@ -310,125 +437,182 @@ export default function AdminLayout({
                             <img
                                 src="/images/logo-sm.png"
                                 alt="Logo Bigi Badminton"
-                                width={40}
-                                height={40}
-                                className="size-9 object-contain rounded-full shadow-xs ring-1 ring-black/10 dark:ring-white/15 shrink-0"
+                                width={36}
+                                height={36}
+                                className="size-8 object-contain rounded-full shadow-xs ring-1 ring-black/10 dark:ring-white/15 shrink-0"
                             />
                             <div className="flex flex-col text-left">
-                                <SheetTitle className="font-unbounded font-extrabold text-sm tracking-tight text-sidebar-foreground leading-tight p-0">
+                                <SheetTitle className="font-unbounded font-extrabold text-xs tracking-tight text-sidebar-foreground leading-tight p-0">
                                     BIGI <span className="text-[var(--brand)]">ADMIN</span>
                                 </SheetTitle>
                                 <span className="text-[10px] text-muted-foreground font-medium">Panel Pengelola</span>
                             </div>
                         </Link>
                     </SheetHeader>
-                    <div className="flex-1 overflow-y-auto px-4 py-2">
+                    <div className="flex-1 overflow-y-auto px-3 py-2">
                         {renderNavItems(true)}
                     </div>
                 </SheetContent>
             </Sheet>
 
-            
             <div
                 className={cn(
-                    "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out",
-                    collapsed ? "lg:pl-20" : "lg:pl-64"
+                    "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out print:!pl-0 print:!p-0 print:!m-0 print:!w-full print:!max-w-full",
+                    sidebarOpen ? "md:pl-60" : "md:pl-0"
                 )}
             >
-                
-                <header className="sticky top-0 z-30 h-16 bg-background/85 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6">
-                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                        
+                <header className="sticky top-0 z-30 h-16 bg-card/85 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-4 print:hidden">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <Button
                             type="button"
                             variant="outline"
                             size="icon"
                             onClick={() => setMobileOpen(true)}
-                            className="lg:hidden shrink-0"
-                            aria-label="Buka menu navigasi"
+                            className="md:hidden shrink-0 size-9"
+                            aria-label="Buka menu navigasi admin"
                         >
-                            <Menu className="size-5" />
+                            <Menu className="size-4" />
                         </Button>
 
-                        
-                        <nav aria-label="Breadcrumb" className="min-w-0">
-                            <ol className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground truncate">
-                                <li>
-                                    <Link href="/admin" className="hover:text-foreground transition-colors">
-                                        Admin
-                                    </Link>
-                                </li>
-                                {breadcrumb.length > 0 ? (
-                                    breadcrumb.map((crumb, idx) => (
-                                        <li key={idx} className="flex items-center gap-1.5">
-                                            <span className="text-muted-foreground/60">/</span>
-                                            {crumb.href ? (
-                                                <Link href={crumb.href} className="hover:text-foreground transition-colors truncate">
-                                                    {crumb.label}
-                                                </Link>
-                                            ) : (
-                                                <span className="text-foreground font-medium truncate">{crumb.label}</span>
-                                            )}
-                                        </li>
-                                    ))
-                                ) : (
-                                    <li className="flex items-center gap-1.5">
-                                        <span className="text-muted-foreground/60">/</span>
-                                        <span className="text-foreground font-medium truncate">{title}</span>
-                                    </li>
-                                )}
-                            </ol>
-                        </nav>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={toggleSidebar}
+                            className="hidden md:inline-flex shrink-0 size-9"
+                            aria-label={sidebarOpen ? "Sembunyikan menu navigasi" : "Buka menu navigasi"}
+                            aria-expanded={sidebarOpen}
+                        >
+                            {sidebarOpen ? <PanelLeftClose className="size-4" /> : <PanelLeft className="size-4" />}
+                        </Button>
+
+                        <div className="flex items-center gap-2 truncate">
+                            <span className="text-sm font-semibold text-foreground truncate">{title}</span>
+                        </div>
                     </div>
 
-                    
-                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                        
+                    <div className="flex items-center gap-2 shrink-0">
+                        {/* Tombol & Menu Notifikasi Open Mabar */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger
+                                render={
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        className="relative size-9 !overflow-visible"
+                                        aria-label="Notifikasi Pengajuan Open Mabar"
+                                    >
+                                        {pendingMabarCount > 0 ? (
+                                            <BellRing className="size-4 text-amber-500 animate-pulse" />
+                                        ) : (
+                                            <Bell className="size-4 text-muted-foreground" />
+                                        )}
+                                        {pendingMabarCount > 0 && (
+                                            <span className="pointer-events-none absolute -top-1.5 -right-1.5 min-w-4.5 h-4.5 px-1 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs ring-2 ring-background z-20 leading-none">
+                                                {pendingMabarCount > 9 ? "9+" : pendingMabarCount}
+                                            </span>
+                                        )}
+                                    </Button>
+                                }
+                            />
+                            <DropdownMenuContent align="end" className="w-72 p-2">
+                                <div className="flex items-center justify-between px-2 py-1.5 border-b border-border/60 pb-2">
+                                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground">
+                                        <Bell className="size-3.5 text-[var(--brand)]" />
+                                        <span>Notifikasi Mabar</span>
+                                    </div>
+                                    {pendingMabarCount > 0 && (
+                                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                                            {pendingMabarCount} Menunggu
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="py-2.5 px-2">
+                                    {pendingMabarCount > 0 ? (
+                                        <div className="space-y-2">
+                                            <p className="text-xs text-foreground">
+                                                Ada <span className="font-bold text-amber-600 dark:text-amber-400">{pendingMabarCount}</span> jadwal open mabar baru yang menunggu persetujuan admin.
+                                            </p>
+                                            <Link
+                                                href="/admin/open-mabar?status=menunggu"
+                                                className="inline-flex items-center justify-center w-full px-2.5 py-1.5 text-xs font-semibold rounded-md bg-[var(--brand)] text-white hover:opacity-90 transition-opacity"
+                                            >
+                                                Tinjau Pengajuan
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground text-center py-1">
+                                            Tidak ada pengajuan mabar yang menunggu.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <DropdownMenuSeparator />
+
+                                <div className="pt-1.5 px-1">
+                                    <button
+                                        type="button"
+                                        onClick={toggleSound}
+                                        className="flex items-center justify-between w-full px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            {soundEnabled ? <Volume2 className="size-3.5 text-emerald-500" /> : <VolumeX className="size-3.5 text-destructive" />}
+                                            <span>Suara Notifikasi</span>
+                                        </span>
+                                        <span className="text-[11px] font-semibold text-muted-foreground">
+                                            {soundEnabled ? "Aktif" : "Mati"}
+                                        </span>
+                                    </button>
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                         <Button
                             type="button"
                             variant="outline"
                             size="icon"
                             onClick={toggleTheme}
-                            className="size-9 sm:size-10"
+                            className="size-9"
                             aria-label={isDark ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
                         >
                             {isDark ? (
-                                <Sun className="size-4.5 text-amber-400" />
+                                <Sun className="size-4 text-amber-400" />
                             ) : (
-                                <Moon className="size-4.5 text-slate-700" />
+                                <Moon className="size-4 text-slate-700" />
                             )}
                         </Button>
 
-                        
                         <DropdownMenu>
                             <DropdownMenuTrigger
                                 render={
                                     <Button
                                         variant="outline"
-                                        className="h-9 sm:h-10 px-2.5 sm:px-3 gap-2 rounded-lg border-border hover:bg-muted"
+                                        className="h-9 px-2 sm:px-2.5 gap-1.5 rounded-lg border-border hover:bg-muted"
                                         aria-label="Menu profil admin"
                                     >
                                         <div className="size-6 rounded-full bg-[var(--brand)] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                                            {user?.nama ? user.nama.charAt(0).toUpperCase() : "A"}
+                                             {user?.nama ? user.nama.charAt(0).toUpperCase() : "A"}
                                         </div>
-                                        <span className="text-xs sm:text-sm font-medium hidden md:inline-block max-w-[120px] truncate">
+                                        <span className="text-xs font-medium hidden sm:inline-block max-w-[100px] truncate">
                                             {user?.nama || "Admin"}
                                         </span>
                                     </Button>
                                 }
                             />
-                            <DropdownMenuContent align="end" className="w-56 p-1">
+                            <DropdownMenuContent align="end" className="w-52 p-1">
                                 <DropdownMenuLabel className="p-2">
-                                    <div className="font-semibold text-sm text-foreground truncate">{user?.nama || "Administrator"}</div>
-                                    <div className="text-xs text-muted-foreground truncate">{user?.email || "Staf Internal"}</div>
-                                    <div className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                                    <div className="font-semibold text-xs text-foreground truncate">{user?.nama || "Administrator"}</div>
+                                    <div className="text-[11px] text-muted-foreground truncate">{user?.email || "Staf Internal"}</div>
+                                    <div className="text-[10px] text-muted-foreground font-medium mt-0.5">
                                         Peran: {user?.role || "admin"}
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem>
-                                    <Link href="/admin/pengaturan" className="flex items-center gap-2 cursor-pointer w-full">
-                                        <Settings className="size-4 text-muted-foreground" />
+                                    <Link href="/admin/pengaturan" className="flex items-center gap-2 cursor-pointer w-full text-xs">
+                                        <Settings className="size-3.5 text-muted-foreground" />
                                         <span>Pengaturan Akun</span>
                                     </Link>
                                 </DropdownMenuItem>
@@ -438,9 +622,9 @@ export default function AdminLayout({
                                         href="/staff/logout"
                                         method="post"
                                         as="button"
-                                        className="flex items-center gap-2 cursor-pointer w-full text-destructive text-left"
+                                        className="flex items-center gap-2 cursor-pointer w-full text-destructive text-left text-xs"
                                     >
-                                        <LogOut className="size-4" />
+                                        <LogOut className="size-3.5" />
                                         <span>Keluar</span>
                                     </Link>
                                 </DropdownMenuItem>
@@ -449,13 +633,17 @@ export default function AdminLayout({
                     </div>
                 </header>
 
-                
-                <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-                    {children}
+                <main className="flex-1 w-full min-w-0 print:!w-full print:!max-w-full print:!p-0 print:!m-0">
+                    {fullWidth ? (
+                        children
+                    ) : (
+                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8 print:!p-0 print:!m-0 print:!max-w-none print:!w-full">
+                            {children}
+                        </div>
+                    )}
                 </main>
             </div>
 
-            
             <Toaster position="top-right" richColors />
         </div>
     );

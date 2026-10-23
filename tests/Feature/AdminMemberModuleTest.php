@@ -149,11 +149,52 @@ class AdminMemberModuleTest extends TestCase
         $this->assertEquals(0, $paket->sesi_terpakai);
     }
 
-    public function test_autofield_all_or_nothing_with_package_limit(): void
+    public function test_autofield_caps_schedule_to_available_package_quota(): void
     {
         $paket = PaketMember::create([
             'id_user' => $this->memberUser->id_user,
             'jumlah_sesi' => 2,
+            'tanggal_mulai' => Carbon::today('Asia/Jakarta')->toDateString(),
+            'status' => PaketMember::STATUS_AKTIF,
+        ]);
+
+        $this->memberUser->update([
+            'tanggal_mulai_member' => Carbon::today('Asia/Jakarta')->toDateString(),
+            'tanggal_akhir_member' => Carbon::today('Asia/Jakarta')->addDays(28)->toDateString(),
+        ]);
+
+        $preview = $this->service->previewMemberAutofield(
+            $this->memberUser->id_user,
+            $this->lapangan->id_lapangan,
+            '1',
+            '19:00',
+            '20:00'
+        );
+
+        $this->assertFalse($preview['has_conflict']);
+        $this->assertTrue($preview['bisa_disimpan']);
+        $this->assertCount(2, $preview['jadwal'], 'Jadwal harus dibatasi maksimal 2 sesi sesuai sisa kuota paket.');
+
+        $reservasi = $this->service->storeMemberAutofield([
+            'id_user' => $this->memberUser->id_user,
+            'id_lapangan' => $this->lapangan->id_lapangan,
+            'hari' => '1',
+            'jam_mulai' => '19:00',
+            'jam_selesai' => '20:00',
+            'jenis_pembayaran' => Pembayaran::JENIS_LUNAS,
+            'jumlah_bayar' => $preview['total_biaya'],
+        ], $this->admin->id_user);
+
+        $paket->refresh();
+        $this->assertEquals(0, $paket->sisa_sesi, 'Sisa sesi paket harus terpotong 2 sesi.');
+        $this->assertEquals(Reservasi::STATUS_TERKONFIRMASI, $reservasi->status_reservasi);
+    }
+
+    public function test_autofield_blocked_when_package_has_no_remaining_sessions(): void
+    {
+        $paket = PaketMember::create([
+            'id_user' => $this->memberUser->id_user,
+            'jumlah_sesi' => 0,
             'tanggal_mulai' => Carbon::today('Asia/Jakarta')->toDateString(),
             'status' => PaketMember::STATUS_AKTIF,
         ]);
@@ -574,5 +615,63 @@ class AdminMemberModuleTest extends TestCase
 
             return $page;
         });
+    }
+
+    public function test_autofield_uses_active_package_with_remaining_sessions_and_supports_single_session_booking(): void
+    {
+        // Paket lama yang sudah habis (0 sesi tersisa)
+        $paketLama = PaketMember::create([
+            'id_user' => $this->memberUser->id_user,
+            'jumlah_sesi' => 0,
+            'tanggal_mulai' => Carbon::today('Asia/Jakarta')->toDateString(),
+            'status' => PaketMember::STATUS_AKTIF,
+        ]);
+
+        // Paket baru yang memiliki 8 sesi
+        $paketBaru = PaketMember::create([
+            'id_user' => $this->memberUser->id_user,
+            'jumlah_sesi' => 8,
+            'tanggal_mulai' => Carbon::today('Asia/Jakarta')->toDateString(),
+            'status' => PaketMember::STATUS_AKTIF,
+        ]);
+
+        $this->memberUser->update([
+            'tanggal_mulai_member' => Carbon::today('Asia/Jakarta')->toDateString(),
+            'tanggal_akhir_member' => Carbon::today('Asia/Jakarta')->addDays(30)->toDateString(),
+        ]);
+
+        // Preview dengan jumlah_sesi = 1
+        $preview = $this->service->previewMemberAutofield(
+            $this->memberUser->id_user,
+            $this->lapangan->id_lapangan,
+            '5', // Jumat
+            '08:00',
+            '10:00',
+            null,
+            1 // hanya 1 sesi
+        );
+
+        $this->assertFalse($preview['has_conflict']);
+        $this->assertTrue($preview['bisa_disimpan']);
+        $this->assertEquals(8, $preview['sisa_sesi_paket'], 'Harus mengambil paket baru yang memiliki sisa sesi 8.');
+        $this->assertCount(1, $preview['jadwal'], 'Jadwal harus dibatasi hanya 1 pertemuan.');
+
+        // Simpan pemesanan 1 sesi
+        $reservasi = $this->service->storeMemberAutofield([
+            'id_user' => $this->memberUser->id_user,
+            'id_lapangan' => $this->lapangan->id_lapangan,
+            'hari' => '5',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'jumlah_sesi' => 1,
+            'jenis_pembayaran' => Pembayaran::JENIS_LUNAS,
+            'jumlah_bayar' => $preview['total_biaya'],
+            'metode_pembayaran' => 'transfer',
+        ], $this->admin->id_user);
+
+        $paketBaru->refresh();
+        $this->assertEquals(1, $paketBaru->sesi_reservasi);
+        $this->assertEquals(7, $paketBaru->sisa_sesi, 'Sisa sesi pada paket baru harus terpotong 1.');
+        $this->assertEquals($paketBaru->id_paket, $reservasi->id_paket);
     }
 }

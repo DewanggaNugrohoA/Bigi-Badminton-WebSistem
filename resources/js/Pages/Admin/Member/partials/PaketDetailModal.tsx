@@ -26,8 +26,6 @@ export default function PaketDetailModal({
     customer,
     onOpenTambahPaket,
 }: PaketDetailModalProps) {
-    if (!customer) return null;
-
     const [selectedPaketAdjust, setSelectedPaketAdjust] = useState<any | null>(null);
     const [batalTargetPaket, setBatalTargetPaket] = useState<any | null>(null);
 
@@ -45,6 +43,8 @@ export default function PaketDetailModal({
             },
         });
     };
+
+    if (!customer) return null;
 
     return (
         <>

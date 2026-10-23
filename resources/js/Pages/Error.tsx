@@ -24,8 +24,8 @@ export default function ErrorPage({ status, auth }: ErrorProps) {
         backUrl = "/kasir";
         backLabel = "Kembali ke Panel Kasir";
     } else if (role === "user") {
-        backUrl = "/dashboard";
-        backLabel = "Kembali ke Dashboard";
+        backUrl = "/open-mabar/saya";
+        backLabel = "Kembali ke Jadwal Saya";
     }
 
     const title = {
@@ -71,13 +71,20 @@ export default function ErrorPage({ status, auth }: ErrorProps) {
                     </p>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
                     <Link href={backUrl}>
-                        <Button className="gap-2 bg-[var(--brand)] hover:opacity-90 px-6 h-11 text-sm font-semibold">
+                        <Button className="gap-2 bg-[var(--brand)] hover:opacity-90 px-6 h-11 text-sm font-semibold w-full sm:w-auto">
                             <ArrowLeft className="size-4" />
                             <span>{backLabel}</span>
                         </Button>
                     </Link>
+                    {role === "user" && (
+                        <Link href="/">
+                            <Button variant="outline" className="h-11 px-6 text-sm font-semibold w-full sm:w-auto">
+                                Beranda
+                            </Button>
+                        </Link>
+                    )}
                 </div>
             </div>
         </div>

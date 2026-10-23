@@ -36,13 +36,21 @@ export default function SetMemberModal({
     onOpenChange,
     customer,
 }: SetMemberModalProps) {
-    if (!customer) return null;
+    const normalizeDate = (d: string | null | undefined) => {
+        if (!d) return "";
+        return d.substring(0, 10);
+    };
+
+    const initialJenis = customer?.jenis_pelanggan || "reguler";
+    const initialStatus = customer?.status_member || "tidak_aktif";
+    const initialMulai = normalizeDate(customer?.tanggal_mulai_member);
+    const initialAkhir = normalizeDate(customer?.tanggal_akhir_member);
 
     const { data, setData, put, processing, errors } = useForm({
-        jenis_pelanggan: customer.jenis_pelanggan || "reguler",
-        status_member: customer.status_member || "tidak_aktif",
-        tanggal_mulai_member: customer.tanggal_mulai_member || "",
-        tanggal_akhir_member: customer.tanggal_akhir_member || "",
+        jenis_pelanggan: initialJenis,
+        status_member: initialStatus,
+        tanggal_mulai_member: initialMulai,
+        tanggal_akhir_member: initialAkhir,
     });
 
     useEffect(() => {
@@ -50,20 +58,29 @@ export default function SetMemberModal({
             setData({
                 jenis_pelanggan: customer.jenis_pelanggan || "reguler",
                 status_member: customer.status_member || "tidak_aktif",
-                tanggal_mulai_member: customer.tanggal_mulai_member || "",
-                tanggal_akhir_member: customer.tanggal_akhir_member || "",
+                tanggal_mulai_member: normalizeDate(customer.tanggal_mulai_member),
+                tanggal_akhir_member: normalizeDate(customer.tanggal_akhir_member),
             });
         }
-    }, [customer]);
+    }, [customer?.id_user, open]);
+
+    const isChanged =
+        data.jenis_pelanggan !== initialJenis ||
+        data.status_member !== initialStatus ||
+        normalizeDate(data.tanggal_mulai_member) !== initialMulai ||
+        normalizeDate(data.tanggal_akhir_member) !== initialAkhir;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!isChanged || !customer) return;
         put(`/admin/member/${customer.id_user}/status`, {
             onSuccess: () => {
                 onOpenChange(false);
             },
         });
     };
+
+    if (!customer) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -144,6 +161,12 @@ export default function SetMemberModal({
                         * Jika status diatur menjadi <strong>Member Aktif</strong>, pelanggan dapat diberikan paket sesi bermain dan harga khusus member.
                     </p>
 
+                    {!isChanged && (
+                        <p className="text-[11px] text-amber-500 font-medium">
+                            * Tidak ada perubahan data. Ubah salah satu data status di atas untuk mengaktifkan tombol simpan.
+                        </p>
+                    )}
+
                     <DialogFooter className="gap-2 pt-2 flex-col sm:flex-row">
                         <Button
                             type="button"
@@ -155,8 +178,8 @@ export default function SetMemberModal({
                         </Button>
                         <Button
                             type="submit"
-                            disabled={processing}
-                            className="rounded-md text-xs sm:text-sm h-8 sm:h-9 bg-[var(--brand)] text-white hover:opacity-90"
+                            disabled={processing || !isChanged}
+                            className="rounded-md text-xs sm:text-sm h-8 sm:h-9 bg-[var(--brand)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {processing ? "Menyimpan..." : "Simpan Perubahan"}
                         </Button>

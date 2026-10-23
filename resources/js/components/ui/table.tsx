@@ -5,11 +5,11 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="relative w-full overflow-x-auto print:overflow-visible"
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn("w-full caption-bottom text-sm print:text-xs print:w-full", className)}
         {...props}
       />
     </div>
@@ -20,7 +20,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b border-border bg-muted/40", className)}
+      className={cn("[&_tr]:border-b border-border bg-slate-100/75 dark:bg-slate-900/60", className)}
       {...props}
     />
   )
@@ -67,7 +67,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-4 text-left align-middle font-medium text-xs uppercase tracking-wider text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        "h-10 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-100 print:h-auto print:px-2 print:py-1.5 print:whitespace-normal [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
@@ -80,7 +80,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-4 align-middle text-foreground [&:has([role=checkbox])]:pr-0",
+        "p-4 align-middle text-foreground print:p-1.5 print:whitespace-normal [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}

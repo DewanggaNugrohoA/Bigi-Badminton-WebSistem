@@ -418,13 +418,81 @@ class AdminOpenMabarApprovalTest extends TestCase
         ]);
 
         $res = $this->actingAs($this->user, 'web')
-            ->get('/open-mabar');
+            ->get('/open-mabar/mabar-bareng');
 
         $res->assertStatus(200);
         $res->assertInertia(fn ($page) => $page
-            ->component('OpenMabar/Index')
+            ->component('OpenMabar/MabarBareng')
             ->where('jadwal.data.0.id_mabar', $approved->id_mabar)
             ->has('jadwal.data', 1)
         );
+    }
+
+    public function test_admin_open_mabar_notifikasi_endpoint_returns_pending_count_and_latest(): void
+    {
+        $tomorrow = Carbon::tomorrow('Asia/Jakarta')->toDateString();
+
+        $this->createMabar([
+            'judul' => 'Mabar Menunggu 1',
+            'tanggal' => $tomorrow,
+            'jam_mulai' => '08:00:00',
+            'jam_selesai' => '10:00:00',
+            'status' => OpenMabar::STATUS_MENUNGGU,
+        ]);
+
+        $mabar2 = $this->createMabar([
+            'judul' => 'Mabar Menunggu 2 Terbaru',
+            'tanggal' => $tomorrow,
+            'jam_mulai' => '10:00:00',
+            'jam_selesai' => '12:00:00',
+            'status' => OpenMabar::STATUS_MENUNGGU,
+        ]);
+
+        $this->createMabar([
+            'judul' => 'Mabar Sudah Disetujui',
+            'tanggal' => $tomorrow,
+            'jam_mulai' => '14:00:00',
+            'jam_selesai' => '16:00:00',
+            'status' => OpenMabar::STATUS_DISETUJUI,
+        ]);
+
+        $res = $this->actingAs($this->admin, 'staff')
+            ->getJson('/admin/open-mabar/notifikasi');
+
+        $res->assertStatus(200);
+        $res->assertJson([
+            'pending_count' => 2,
+            'latest' => [
+                'id_mabar' => $mabar2->id_mabar,
+                'judul' => 'Mabar Menunggu 2 Terbaru',
+            ],
+        ]);
+    }
+
+    public function test_pengajuan_mabar_dispatches_mabar_diajukan_event(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([
+            \App\Events\MabarDiajukan::class,
+        ]);
+
+        $tomorrow = Carbon::tomorrow('Asia/Jakarta')->toDateString();
+
+        $response = $this->actingAs($this->user, 'web')
+            ->post('/open-mabar', [
+                'judul' => 'Mabar Uji Notifikasi',
+                'tanggal' => $tomorrow,
+                'jam_mulai' => '09:00',
+                'jam_selesai' => '11:00',
+                'gender' => 'campuran',
+                'no_hp' => '081234567891',
+                'kuota' => 8,
+                'id_lapangan' => $this->lapangan1->id_lapangan,
+            ]);
+
+        $response->assertRedirect(route('open-mabar.saya'));
+
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\MabarDiajukan::class, function ($event) {
+            return $event->mabar->judul === 'Mabar Uji Notifikasi';
+        });
     }
 }
