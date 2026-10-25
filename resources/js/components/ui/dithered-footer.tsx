@@ -63,7 +63,7 @@ export default function DitheredFooter({
     brand = "Bigi Badminton",
     wordmark = "BIGI",
     brandHref = "/",
-    tagline = "Sistem Reservasi dan Informasi Open Mabar Bigi Badminton.",
+    tagline = "Pusat reservasi lapangan badminton modern dan wadah mabar komunitas di Kota Bengkulu.",
     columns = [],
     socials = [],
     legal = [],

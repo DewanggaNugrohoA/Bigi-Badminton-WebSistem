@@ -67,7 +67,7 @@ export function SiteFooter() {
                         </Link>
 
                         <p className="mt-3.5 text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm">
-                            Sistem Reservasi dan Informasi Open Mabar Bigi Badminton (2 Lapangan).
+                            Pusat reservasi lapangan badminton modern dan wadah mabar komunitas di Kota Bengkulu. Booking mudah, main makin seru!
                         </p>
                     </div>
 

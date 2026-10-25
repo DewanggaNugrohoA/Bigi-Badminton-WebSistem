@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { UserX, UserCheck } from "lucide-react";
 
 interface SetMemberModalProps {
     open: boolean;
@@ -64,6 +65,58 @@ export default function SetMemberModal({
         }
     }, [customer?.id_user, open]);
 
+    const isMemberSelected = data.jenis_pelanggan === "member" && data.status_member === "aktif";
+
+    const handleJenisChange = (newJenis: "member" | "reguler") => {
+        if (newJenis === "reguler") {
+            setData((prev) => ({
+                ...prev,
+                jenis_pelanggan: "reguler",
+                status_member: "tidak_aktif",
+                tanggal_mulai_member: "",
+                tanggal_akhir_member: "",
+            }));
+        } else {
+            const today = new Date().toISOString().substring(0, 10);
+            const nextMonth = new Date();
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            const nextMonthStr = nextMonth.toISOString().substring(0, 10);
+
+            setData((prev) => ({
+                ...prev,
+                jenis_pelanggan: "member",
+                status_member: "aktif",
+                tanggal_mulai_member: prev.tanggal_mulai_member || today,
+                tanggal_akhir_member: prev.tanggal_akhir_member || nextMonthStr,
+            }));
+        }
+    };
+
+    const handleStatusChange = (newStatus: "aktif" | "tidak_aktif") => {
+        if (newStatus === "tidak_aktif") {
+            setData((prev) => ({
+                ...prev,
+                status_member: "tidak_aktif",
+                jenis_pelanggan: "reguler",
+                tanggal_mulai_member: "",
+                tanggal_akhir_member: "",
+            }));
+        } else {
+            const today = new Date().toISOString().substring(0, 10);
+            const nextMonth = new Date();
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            const nextMonthStr = nextMonth.toISOString().substring(0, 10);
+
+            setData((prev) => ({
+                ...prev,
+                status_member: "aktif",
+                jenis_pelanggan: "member",
+                tanggal_mulai_member: prev.tanggal_mulai_member || today,
+                tanggal_akhir_member: prev.tanggal_akhir_member || nextMonthStr,
+            }));
+        }
+    };
+
     const isChanged =
         data.jenis_pelanggan !== initialJenis ||
         data.status_member !== initialStatus ||
@@ -88,7 +141,7 @@ export default function SetMemberModal({
                 <DialogHeader>
                     <DialogTitle className="text-base sm:text-lg">Atur Status Keanggotaan</DialogTitle>
                     <DialogDescription className="text-xs sm:text-sm">
-                        Ubah status member dan masa aktif untuk <strong className="text-foreground">{customer.nama}</strong> ({customer.no_whatsapp}).
+                        Kelola keanggotaan untuk <strong className="text-foreground">{customer.nama}</strong> ({customer.no_whatsapp}).
                     </DialogDescription>
                 </DialogHeader>
 
@@ -99,10 +152,10 @@ export default function SetMemberModal({
                             <Select
                                 id="jenis_pelanggan"
                                 value={data.jenis_pelanggan}
-                                onChange={(e) => setData("jenis_pelanggan", e.target.value as any)}
+                                onChange={(e) => handleJenisChange(e.target.value as any)}
                                 className="h-9 sm:h-10 text-xs sm:text-sm"
                             >
-                                <option value="reguler">Reguler</option>
+                                <option value="reguler">Reguler (User Biasa)</option>
                                 <option value="member">Member</option>
                             </Select>
                             {errors.jenis_pelanggan && (
@@ -115,10 +168,10 @@ export default function SetMemberModal({
                             <Select
                                 id="status_member"
                                 value={data.status_member}
-                                onChange={(e) => setData("status_member", e.target.value as any)}
+                                onChange={(e) => handleStatusChange(e.target.value as any)}
                                 className="h-9 sm:h-10 text-xs sm:text-sm"
                             >
-                                <option value="tidak_aktif">Tidak Aktif</option>
+                                <option value="tidak_aktif">Tidak Aktif (Nonaktif)</option>
                                 <option value="aktif">Aktif</option>
                             </Select>
                             {errors.status_member && (
@@ -127,43 +180,57 @@ export default function SetMemberModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="tanggal_mulai_member" className="text-xs sm:text-sm">Tanggal Mulai</Label>
-                            <Input
-                                id="tanggal_mulai_member"
-                                type="date"
-                                value={data.tanggal_mulai_member}
-                                onChange={(e) => setData("tanggal_mulai_member", e.target.value)}
-                                className="h-9 sm:h-10 text-xs sm:text-sm"
-                            />
-                            {errors.tanggal_mulai_member && (
-                                <p className="text-xs text-destructive">{errors.tanggal_mulai_member}</p>
-                            )}
-                        </div>
+                    {isMemberSelected ? (
+                        <>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="tanggal_mulai_member" className="text-xs sm:text-sm">Tanggal Mulai</Label>
+                                    <Input
+                                        id="tanggal_mulai_member"
+                                        type="date"
+                                        value={data.tanggal_mulai_member}
+                                        onChange={(e) => setData("tanggal_mulai_member", e.target.value)}
+                                        className="h-9 sm:h-10 text-xs sm:text-sm"
+                                    />
+                                    {errors.tanggal_mulai_member && (
+                                        <p className="text-xs text-destructive">{errors.tanggal_mulai_member}</p>
+                                    )}
+                                </div>
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="tanggal_akhir_member" className="text-xs sm:text-sm">Tanggal Berakhir</Label>
-                            <Input
-                                id="tanggal_akhir_member"
-                                type="date"
-                                value={data.tanggal_akhir_member}
-                                onChange={(e) => setData("tanggal_akhir_member", e.target.value)}
-                                className="h-9 sm:h-10 text-xs sm:text-sm"
-                            />
-                            {errors.tanggal_akhir_member && (
-                                <p className="text-xs text-destructive">{errors.tanggal_akhir_member}</p>
-                            )}
-                        </div>
-                    </div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="tanggal_akhir_member" className="text-xs sm:text-sm">Tanggal Berakhir</Label>
+                                    <Input
+                                        id="tanggal_akhir_member"
+                                        type="date"
+                                        value={data.tanggal_akhir_member}
+                                        onChange={(e) => setData("tanggal_akhir_member", e.target.value)}
+                                        className="h-9 sm:h-10 text-xs sm:text-sm"
+                                    />
+                                    {errors.tanggal_akhir_member && (
+                                        <p className="text-xs text-destructive">{errors.tanggal_akhir_member}</p>
+                                    )}
+                                </div>
+                            </div>
 
-                    <p className="text-[11px] text-muted-foreground">
-                        * Jika status diatur menjadi <strong>Member Aktif</strong>, pelanggan dapat diberikan paket sesi bermain dan harga khusus member.
-                    </p>
+                            <p className="text-[11px] text-muted-foreground">
+                                * Pelanggan berstatus <strong>Member Aktif</strong> dan dapat diberikan paket sesi bermain serta harga khusus member.
+                            </p>
+                        </>
+                    ) : (
+                        <div className="rounded-md border border-border/80 bg-muted/40 p-3 space-y-1 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5 font-medium text-foreground text-xs">
+                                <UserX className="size-3.5 text-amber-500 shrink-0" />
+                                <span>Status: Bukan Member (User Biasa)</span>
+                            </div>
+                            <p className="text-[11px] leading-relaxed">
+                                Keanggotaan member dihentikan. Pelanggan ini akan diperlakukan sebagai user biasa (reguler) tanpa akses paket sesi atau tarif khusus member.
+                            </p>
+                        </div>
+                    )}
 
                     {!isChanged && (
                         <p className="text-[11px] text-amber-500 font-medium">
-                            * Tidak ada perubahan data. Ubah salah satu data status di atas untuk mengaktifkan tombol simpan.
+                            * Tidak ada perubahan data. Ubah status di atas untuk mengaktifkan tombol simpan.
                         </p>
                     )}
 

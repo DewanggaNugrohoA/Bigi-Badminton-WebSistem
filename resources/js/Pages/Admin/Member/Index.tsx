@@ -181,11 +181,11 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                     </TableRow>
                                 ) : (
                                     customers.data.map((c) => {
-                                        const isMember = c.jenis_pelanggan === "member";
+                                        const isMember = c.jenis_pelanggan === "member" && c.status_member === "aktif";
                                         const statusBadgeVariant =
                                             c.status_label === "Member Aktif"
                                                 ? "success"
-                                                : c.status_label === "Kedaluwarsa"
+                                                : c.status_label === "Kedaluwarsa" || c.status_label === "Member Kedaluwarsa"
                                                 ? "warning"
                                                 : "neutral";
 
@@ -207,9 +207,9 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                                 <TableCell>
                                                     <Badge
                                                         variant={isMember ? "success" : "neutral"}
-                                                        className={isMember ? "bg-[var(--brand)] text-white border-transparent capitalize text-[10px]" : "capitalize text-[10px]"}
+                                                        className={isMember ? "bg-[var(--brand)] text-white border-transparent capitalize text-[10px]" : "capitalize text-[10px] text-muted-foreground"}
                                                     >
-                                                        {c.jenis_pelanggan}
+                                                        {isMember ? "Member" : "Reguler (User)"}
                                                     </Badge>
                                                 </TableCell>
 
@@ -294,11 +294,11 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                             </div>
                         ) : (
                             customers.data.map((c) => {
-                                const isMember = c.jenis_pelanggan === "member";
+                                const isMember = c.jenis_pelanggan === "member" && c.status_member === "aktif";
                                 const statusBadgeVariant =
                                     c.status_label === "Member Aktif"
                                         ? "success"
-                                        : c.status_label === "Kedaluwarsa"
+                                        : c.status_label === "Kedaluwarsa" || c.status_label === "Member Kedaluwarsa"
                                         ? "warning"
                                         : "neutral";
 
@@ -312,9 +312,9 @@ export default function MemberIndex({ customers, filters }: MemberIndexProps) {
                                             <div className="flex items-center gap-1 shrink-0">
                                                 <Badge
                                                     variant={isMember ? "success" : "neutral"}
-                                                    className={isMember ? "bg-[var(--brand)] text-white border-transparent capitalize text-[10px]" : "capitalize text-[10px]"}
+                                                    className={isMember ? "bg-[var(--brand)] text-white border-transparent capitalize text-[10px]" : "capitalize text-[10px] text-muted-foreground"}
                                                 >
-                                                    {c.jenis_pelanggan}
+                                                    {isMember ? "Member" : "Reguler"}
                                                 </Badge>
                                                 <Badge variant={statusBadgeVariant} className="text-[10px]">
                                                     {c.status_label}

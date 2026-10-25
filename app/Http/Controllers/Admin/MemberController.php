@@ -73,6 +73,7 @@ class MemberController extends Controller
         } elseif ($filter === 'bukan_member') {
             $query->where(function ($q) {
                 $q->where('jenis_pelanggan', '!=', User::JENIS_PELANGGAN_MEMBER)
+                    ->orWhere('status_member', User::STATUS_MEMBER_TIDAK_AKTIF)
                     ->orWhereNull('jenis_pelanggan');
             });
         } elseif ($filter === 'kedaluwarsa') {
@@ -98,13 +99,11 @@ class MemberController extends Controller
 
             $isExpired = $u->tanggal_akhir_member && Carbon::parse($u->tanggal_akhir_member)->startOfDay()->lt($today);
             $statusLabel = 'Bukan Member';
-            if ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER) {
-                if ($u->status_member === User::STATUS_MEMBER_AKTIF && ! $isExpired) {
+            if ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER && $u->status_member === User::STATUS_MEMBER_AKTIF) {
+                if (! $isExpired) {
                     $statusLabel = 'Member Aktif';
-                } elseif ($isExpired) {
-                    $statusLabel = 'Member Kedaluwarsa';
                 } else {
-                    $statusLabel = 'Member Tidak Aktif';
+                    $statusLabel = 'Member Kedaluwarsa';
                 }
             }
 
@@ -178,9 +177,9 @@ class MemberController extends Controller
                 'status_label' => $statusLabel,
                 'tanggal_mulai_member' => $u->tanggal_mulai_member?->format('Y-m-d'),
                 'tanggal_akhir_member' => $u->tanggal_akhir_member?->format('Y-m-d'),
-                'masa_berlaku_teks' => $u->tanggal_mulai_member && $u->tanggal_akhir_member
+                'masa_berlaku_teks' => ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER && $u->status_member === User::STATUS_MEMBER_AKTIF && $u->tanggal_mulai_member && $u->tanggal_akhir_member)
                     ? "{$u->tanggal_mulai_member->format('d/m/Y')} s/d {$u->tanggal_akhir_member->format('d/m/Y')}"
-                    : ($u->tanggal_mulai_member ? "Mulai {$u->tanggal_mulai_member->format('d/m/Y')}" : '-'),
+                    : ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER && $u->status_member === User::STATUS_MEMBER_AKTIF && $u->tanggal_mulai_member ? "Mulai {$u->tanggal_mulai_member->format('d/m/Y')}" : '-'),
                 'sisa_sesi_aktif' => $activePaket ? $activePaket->sisa_sesi : 0,
                 'paket_aktif_id' => $activePaket ? $activePaket->id_paket : null,
                 'paket_list' => $daftarPaket,
@@ -204,12 +203,8 @@ class MemberController extends Controller
         $user = User::where('role', User::ROLE_USER)->findOrFail($userId);
         $adminId = $request->user()->id_user;
 
-        $validated = $request->only([
-            'jenis_pelanggan',
-            'status_member',
-            'tanggal_mulai_member',
-            'tanggal_akhir_member',
-        ]);
+        $jenisPelanggan = $request->input('jenis_pelanggan');
+        $statusMember = $request->input('status_member');
 
         $oldStatus = [
             'jenis' => $user->jenis_pelanggan,
@@ -218,16 +213,46 @@ class MemberController extends Controller
             'akhir' => $user->tanggal_akhir_member?->format('Y-m-d'),
         ];
 
-        $user->update($validated);
+        // Jika dinonaktifkan atau disetel reguler, hilangkan status member secara tuntas
+        $isDeactivating = $statusMember === User::STATUS_MEMBER_TIDAK_AKTIF || $jenisPelanggan === User::JENIS_PELANGGAN_REGULER;
+
+        if ($isDeactivating) {
+            $user->update([
+                'jenis_pelanggan' => User::JENIS_PELANGGAN_REGULER,
+                'status_member' => User::STATUS_MEMBER_TIDAK_AKTIF,
+                'tanggal_mulai_member' => null,
+                'tanggal_akhir_member' => null,
+            ]);
+
+            $this->logAudit(
+                $adminId,
+                'UBAH_STATUS_MEMBER',
+                "Pengguna #{$user->id_user} ({$user->nama})",
+                "Mencabut status member {$user->nama}: berubah menjadi Pelanggan Reguler (User Biasa)."
+            );
+
+            return redirect()->back()->with('success', "Status keanggotaan {$user->nama} berhasil dihentikan. Pelanggan kini berstatus User Biasa (Reguler).");
+        }
+
+        // Aktifkan sebagai member
+        $tanggalMulai = $request->input('tanggal_mulai_member') ?: Carbon::today('Asia/Jakarta')->toDateString();
+        $tanggalAkhir = $request->input('tanggal_akhir_member');
+
+        $user->update([
+            'jenis_pelanggan' => User::JENIS_PELANGGAN_MEMBER,
+            'status_member' => User::STATUS_MEMBER_AKTIF,
+            'tanggal_mulai_member' => $tanggalMulai,
+            'tanggal_akhir_member' => $tanggalAkhir,
+        ]);
 
         $this->logAudit(
             $adminId,
             'UBAH_STATUS_MEMBER',
             "Pengguna #{$user->id_user} ({$user->nama})",
-            "Mengubah status member: {$oldStatus['jenis']}/{$oldStatus['status']} -> {$user->jenis_pelanggan}/{$user->status_member} (Masa aktif: {$user->tanggal_mulai_member?->format('d/m/Y')} - {$user->tanggal_akhir_member?->format('d/m/Y')})"
+            "Mengaktifkan status member {$user->nama} (Masa aktif: {$tanggalMulai} s/d " . ($tanggalAkhir ?: 'selamanya') . ")."
         );
 
-        return redirect()->back()->with('success', "Status keanggotaan {$user->nama} berhasil diperbarui.");
+        return redirect()->back()->with('success', "Status keanggotaan {$user->nama} berhasil diaktifkan sebagai Member.");
     }
 
     /**
