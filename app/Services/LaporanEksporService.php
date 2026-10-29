@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\BiayaOperasional;
 use App\Models\Pembayaran;
 use App\Models\Produk;
 use App\Models\Reservasi;
@@ -131,6 +132,13 @@ class LaporanEksporService
             ->whereDate('pembayaran.tanggal_pembayaran', '<=', $endDate)
             ->sum('pembayaran.jumlah');
 
+        $biayaOperasional = (float) BiayaOperasional::query()
+            ->whereDate('tanggal_biaya', '>=', $startDate)
+            ->whereDate('tanggal_biaya', '<=', $endDate)
+            ->sum('jumlah');
+
+        $labaBersih = $totalPendapatan - $biayaOperasional;
+
         $spreadsheet = new Spreadsheet();
         $spreadsheet->removeSheetByIndex(0);
 
@@ -145,6 +153,8 @@ class LaporanEksporService
             'sewaDp' => $sewaDp,
             'sewaLunas' => $sewaLunas,
             'totalPendapatan' => $totalPendapatan,
+            'biayaOperasional' => $biayaOperasional,
+            'labaBersih' => $labaBersih,
             'jumlahVoidRetur' => $jumlahVoidRetur,
             'totalNominalVoidRetur' => $totalNominalVoidRetur,
             'totalSelisihShift' => $totalSelisihShift,
@@ -252,6 +262,9 @@ class LaporanEksporService
             ['DI LUAR TOTAL PENDAPATAN', '', ''],
             ['  Piutang Sewa (Belum Lunas)', 'Sisa tagihan reservasi terkonfirmasi', $data['sisaTagihan']],
             ['  DP Reservasi Batal', 'Pembayaran sewa pada reservasi yang dibatalkan', $data['dpBatal']],
+            ['PENGELUARAN OPERASIONAL & LABA BERSIH', '', ''],
+            ['  Total Biaya Operasional', 'Beban operasional (listrik, wifi, gas, dll)', $data['biayaOperasional']],
+            ['LABA BERSIH (NETTO)', 'Total pendapatan kotor dikurangi biaya operasional', $data['labaBersih']],
         ];
 
         $r = 7;
@@ -263,12 +276,12 @@ class LaporanEksporService
                 $sheet->getStyle("C{$r}")->getNumberFormat()->setFormatCode('#,##0');
             }
 
-            if (in_array($item[0], ['PENDAPATAN', 'KOREKSI KAS', 'DI LUAR TOTAL PENDAPATAN'], true)) {
+            if (in_array($item[0], ['PENDAPATAN', 'KOREKSI KAS', 'DI LUAR TOTAL PENDAPATAN', 'PENGELUARAN OPERASIONAL & LABA BERSIH'], true)) {
                 $sheet->getStyle("A{$r}:C{$r}")->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('374151'));
                 $sheet->getStyle("A{$r}:C{$r}")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_HAIR);
             }
 
-            if ($item[0] === 'TOTAL PENDAPATAN (POS + SEWA)') {
+            if (in_array($item[0], ['TOTAL PENDAPATAN (POS + SEWA)', 'LABA BERSIH (NETTO)'], true)) {
                 $sheet->getStyle("A{$r}:C{$r}")->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['rgb' => '111827']],
                     'borders' => [

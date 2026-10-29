@@ -115,6 +115,15 @@ Route::middleware('auth:staff')->group(function () {
         Route::post('/admin/member/paket/{paket}/adjust', [\App\Http\Controllers\Admin\MemberController::class, 'adjustPaket'])->name('admin.member.adjust-paket');
         Route::post('/admin/member/paket/{paket}/cancel', [\App\Http\Controllers\Admin\MemberController::class, 'cancelPaket'])->name('admin.member.cancel-paket');
 
+        // Biaya Operasional (Pencatatan pengeluaran operasional GOR)
+        Route::get('/admin/biaya-operasional', [\App\Http\Controllers\Admin\BiayaOperasionalController::class, 'index'])->name('admin.biaya-operasional.index');
+        Route::post('/admin/biaya-operasional', [\App\Http\Controllers\Admin\BiayaOperasionalController::class, 'store'])->name('admin.biaya-operasional.store');
+        Route::put('/admin/biaya-operasional/{id}', [\App\Http\Controllers\Admin\BiayaOperasionalController::class, 'update'])->name('admin.biaya-operasional.update');
+        Route::delete('/admin/biaya-operasional/{id}', [\App\Http\Controllers\Admin\BiayaOperasionalController::class, 'destroy'])->name('admin.biaya-operasional.destroy');
+
+        // Audit Log (Rekam jejak aktivitas penting & keamanan)
+        Route::get('/admin/audit-log', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.audit-log.index');
+
         // Laporan Rekapitulasi & Ekspor Excel
         Route::get('/admin/laporan', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('admin.laporan');
         Route::post('/admin/laporan/pemeriksaan-lapangan', [\App\Http\Controllers\Admin\LaporanController::class, 'storePemeriksaan'])->name('admin.laporan.pemeriksaan-lapangan.store');

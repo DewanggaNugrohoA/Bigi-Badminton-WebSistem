@@ -17,6 +17,8 @@ import {
     BellRing,
     Volume2,
     VolumeX,
+    Receipt,
+    ShieldAlert,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -102,6 +104,7 @@ const MENU_GROUPS: MenuGroup[] = [
         items: [
             { title: "Reservasi", href: "/admin/reservasi", icon: CalendarDays },
             { title: "Open Mabar", href: "/admin/open-mabar", icon: Users },
+            { title: "Biaya Operasional", href: "/admin/biaya-operasional", icon: Receipt },
         ],
     },
     {
@@ -109,6 +112,7 @@ const MENU_GROUPS: MenuGroup[] = [
         items: [
             { title: "Member", href: "/admin/member", icon: BadgePercent },
             { title: "Laporan", href: "/admin/laporan", icon: FileSpreadsheet },
+            { title: "Audit Log", href: "/admin/audit-log", icon: ShieldAlert },
         ],
     },
 ];

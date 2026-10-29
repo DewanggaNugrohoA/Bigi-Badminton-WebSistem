@@ -172,3 +172,29 @@
     - Hak akses audio (Autoplay Policy) di-unlock otomatis saat klik/interaksi pertama admin di layar.
     - Pada header panel admin disediakan menu dropdown Bel Notifikasi lengkap dengan badge jumlah pengajuan *menunggu*, toggle suara (Aktif/Mati tersimpan di `localStorage`), dan tombol "Tes Bunyi Notifikasi (WA)".
     - Menu sidebar "Open Mabar" dilengkapi badge counter jumlah pengajuan yang berstatus *menunggu*.
+
+## 20. Pemulihan Kolom Subtotal pada detail_transaksi_pos & Penguatan Cetak Struk
+- Kolom `subtotal` (`decimal(12, 2)`) dipulihkan pada tabel `detail_transaksi_pos` melalui migrasi `2026_10_29_200001_add_subtotal_to_detail_transaksi_pos_table.php` untuk mencegah galat SQLSTATE 42S22 Unknown Column saat checkout POS dan memenuhi skema relasional asli.
+- Nilai `subtotal` pada baris yang telah ada disinkronkan otomatis (`jumlah * harga`).
+- Model `DetailTransaksiPos` mengembalikan `subtotal` dari kolom basis data atau kalkulasi dinamis sebagai fallback aman.
+- Komponen cetak struk (`Struk.tsx`) diperkuat dengan penanganan fallback array kosong, fallback nama produk jika null, serta format waktu/tanggal yang tahan terhadap ragam variasi string ISO.
+
+## 21. Fitur Manajemen Biaya Operasional Panel Admin
+- Disediakan modul CRUD penuh Biaya Operasional pada `/admin/biaya-operasional` khusus untuk role `admin` (role `kasir` dan `user` ditolak 403).
+- Kolom `jenis_pengeluaran` (`varchar(100)`) ditambahkan ke tabel `biaya_operasional` melalui migrasi `2026_10_29_200002_add_jenis_pengeluaran_to_biaya_operasional_table.php`.
+- Model `BiayaOperasional` menyediakan alias mutator dan accessor untuk `nominal` (alias `jumlah`) dan `tanggal` (alias `tanggal_biaya`) agar kompatibel lintas penggunaan.
+- Antarmuka menyediakan KPI ringkasan total pengeluaran per periode, filter rentang tanggal, filter jenis pengeluaran, pencarian keterangan, modal form tambah/edit dengan preset pengeluaran (Listrik, WiFi, Gas, Perlengkapan, dll), dan dialog konfirmasi hapus.
+
+## 22. Kalkulasi Laba Bersih pada Laporan Keuangan Eksekutif
+- Laba bersih (netto) dihitung secara akurat sesuai proposal:
+  `Laba Bersih = Total Pendapatan Kotor (Pendapatan Sewa Lapangan Valid + Pendapatan Penjualan POS Selesai) - Total Biaya Operasional`.
+- Pembayaran sewa dari reservasi batal (`status_reservasi = 'batal'`) dan transaksi POS yang di-void (`status_transaksi = 'void'`) dikecualikan dari kalkulasi pendapatan riil.
+- Nilai laba bersih, total pendapatan kotor, dan total biaya operasional ditampilkan secara visual pada 3 KPI Card ringkasan tab Keuangan serta rincian detail laporan dan berkas ekspor Excel.
+
+## 23. Fitur Audit Log Panel Admin & Centralized Logging
+- Disediakan modul Audit Log pada `/admin/audit-log` khusus untuk role `admin`.
+- Tabel `audit_log` diperluas melalui migrasi `2026_10_29_200003_add_columns_to_audit_log_table.php` dengan kolom `role`, `modul`, `data_lama` (JSON), `data_baru` (JSON), dan `ip_address`.
+- Layanan terpusat `AuditLogService` dan model event `AuditLog::creating` secara otomatis mengisi role aktor, timestamp, alamat IP, dan penyeragaman objek/modul.
+- Pencatatan log terhubung ke seluruh operasi penting: void transaksi, restock barang, stock opname, checkout kasir, login/logout (staf maupun pengguna umum), serta operasi CRUD biaya operasional.
+- Tampilan antarmuka audit log menyajikan urutan kronologis terbaru di atas dengan badge role, badge aksi berwarna, informasi pengguna, keterangan, alamat IP, filter tanggal/aksi/role/pengguna/pencarian, pagination, dan dialog penampil detail payload data.
+

@@ -45,9 +45,17 @@ export default function StrukKasir({ transaksi }: Props) {
         window.print();
     };
 
+    const detailItems = transaksi?.detail_transaksi_pos ?? (transaksi as any)?.detailTransaksiPos ?? [];
+    const tanggalStr = typeof transaksi?.tanggal === "string" ? transaksi.tanggal : "";
+    const jamStr = tanggalStr.length >= 16 ? tanggalStr.substring(11, 16) : "";
+    const totalSubtotal = transaksi?.subtotal ?? detailItems.reduce(
+        (acc, it) => acc + (Number(it.subtotal) || Number(it.jumlah) * Number(it.harga)),
+        0
+    );
+
     return (
         <KasirLayout title="Struk Pembayaran">
-            <Head title={`Struk ${transaksi.no_transaksi} - Bigi Badminton`} />
+            <Head title={`Struk ${transaksi?.no_transaksi || ""} - Bigi Badminton`} />
 
             <style>{`
                 :root {
@@ -148,7 +156,7 @@ export default function StrukKasir({ transaksi }: Props) {
                         <div className="flex justify-between">
                             <span>Waktu</span>
                             <span className="text-foreground tabular-nums">
-                                {formatTanggal(transaksi.tanggal)} {formatJam(transaksi.tanggal.substring(11, 16))}
+                                {formatTanggal(tanggalStr)} {jamStr ? formatJam(jamStr) : ""}
                             </span>
                         </div>
                         <div className="flex justify-between">
@@ -158,17 +166,17 @@ export default function StrukKasir({ transaksi }: Props) {
                     </div>
 
                     <div className="py-3 border-b border-dashed border-border flex flex-col gap-2">
-                        {transaksi.detail_transaksi_pos.map((item) => (
+                        {detailItems.map((item) => (
                             <div key={item.id_detail} className="print-item-block flex flex-col gap-0.5">
                                 <div className="product-name text-foreground font-medium">
-                                    {item.produk.nama_produk}
+                                    {item.produk?.nama_produk || "Produk"}
                                 </div>
                                 <div className="flex justify-between text-[11px] text-muted-foreground">
                                     <span className="tabular-nums">
                                         {item.jumlah} x {formatRupiah(item.harga)}
                                     </span>
                                     <span className="text-foreground font-semibold tabular-nums text-right">
-                                        {formatRupiah(item.jumlah * item.harga)}
+                                        {formatRupiah(item.subtotal ?? (Number(item.jumlah) * Number(item.harga)))}
                                     </span>
                                 </div>
                             </div>
@@ -179,9 +187,7 @@ export default function StrukKasir({ transaksi }: Props) {
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Subtotal</span>
                             <span className="tabular-nums text-right font-medium">
-                                {formatRupiah(
-                                    transaksi.detail_transaksi_pos.reduce((acc, it) => acc + (it.jumlah * it.harga), 0)
-                                )}
+                                {formatRupiah(totalSubtotal)}
                             </span>
                         </div>
                         {Number(transaksi.diskon) > 0 && (

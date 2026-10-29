@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePemeriksaanLapanganRequest;
+use App\Models\BiayaOperasional;
 use App\Models\Lapangan;
 use App\Models\Pembayaran;
 use App\Models\Produk;
@@ -100,6 +101,15 @@ class LaporanController extends Controller
             ->first();
 
         $pendapatanSewaLapangan = (float) ($sewaValidAgg->total_sewa ?? 0);
+
+        // Kalkulasi Total Biaya Operasional, Pendapatan Kotor, dan Laba Bersih
+        $totalBiayaOperasional = (float) BiayaOperasional::query()
+            ->whereDate('tanggal_biaya', '>=', $startDate)
+            ->whereDate('tanggal_biaya', '<=', $endDate)
+            ->sum('jumlah');
+
+        $totalPendapatanKotor = $pendapatanSewaLapangan + $pendapatanPos;
+        $labaBersih = $totalPendapatanKotor - $totalBiayaOperasional;
 
         $pembayaranSewaBreakdown = [
             'transfer' => (float) ($sewaValidAgg->transfer ?? 0),
@@ -218,6 +228,9 @@ class LaporanController extends Controller
                 'pos_tunai' => $posTunai,
                 'pos_qris' => $posQris,
                 'pendapatan_sewa_lapangan' => $pendapatanSewaLapangan,
+                'total_pendapatan_kotor' => $totalPendapatanKotor,
+                'total_biaya_operasional' => $totalBiayaOperasional,
+                'laba_bersih' => $labaBersih,
                 'dp_reservasi_batal' => $dpReservasiBatal,
                 'sisa_tagihan_belum_lunas' => $sisaTagihanBelumLunas,
                 'total_nominal_void_retur' => $totalNominalVoidRetur,

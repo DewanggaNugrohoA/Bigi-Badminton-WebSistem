@@ -187,6 +187,9 @@ interface Props {
         pos_tunai: number;
         pos_qris: number;
         pendapatan_sewa_lapangan: number;
+        total_pendapatan_kotor?: number;
+        total_biaya_operasional?: number;
+        laba_bersih?: number;
         dp_reservasi_batal: number;
         sisa_tagihan_belum_lunas: number;
         total_nominal_void_retur: number;
@@ -266,7 +269,9 @@ export default function LaporanIndex({
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    const totalPendapatan = (ringkasan?.pendapatan_pos || 0) + (ringkasan?.pendapatan_sewa_lapangan || 0);
+    const totalPendapatan = ringkasan?.total_pendapatan_kotor ?? ((ringkasan?.pendapatan_pos || 0) + (ringkasan?.pendapatan_sewa_lapangan || 0));
+    const totalBiayaOperasional = ringkasan?.total_biaya_operasional || 0;
+    const labaBersih = ringkasan?.laba_bersih ?? (totalPendapatan - totalBiayaOperasional);
 
     const handleFilter = (e: React.FormEvent) => {
         e.preventDefault();
@@ -1116,7 +1121,40 @@ export default function LaporanIndex({
                     </TabsContent>
 
 
-                    <TabsContent value="keuangan" className="space-y-10 pt-4">
+                    <TabsContent value="keuangan" className="space-y-8 pt-4">
+                        {/* 3 Kartu KPI Ringkasan Laba Bersih */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 print:hidden">
+                            <div className="bg-card border border-border rounded-xl p-5 shadow-xs">
+                                <span className="text-xs font-medium text-muted-foreground">Total Pendapatan Kotor</span>
+                                <h3 className="text-xl font-bold tracking-tight text-foreground tabular-nums mt-2">
+                                    {formatRupiah(totalPendapatan)}
+                                </h3>
+                                <p className="text-[11px] text-muted-foreground mt-1">
+                                    POS: {formatRupiah(ringkasan.pendapatan_pos)} + Sewa: {formatRupiah(ringkasan.pendapatan_sewa_lapangan)}
+                                </p>
+                            </div>
+
+                            <div className="bg-card border border-border rounded-xl p-5 shadow-xs">
+                                <span className="text-xs font-medium text-muted-foreground">Biaya Operasional</span>
+                                <h3 className="text-xl font-bold tracking-tight text-rose-500 tabular-nums mt-2">
+                                    {formatRupiah(totalBiayaOperasional)}
+                                </h3>
+                                <p className="text-[11px] text-muted-foreground mt-1">
+                                    Total pengeluaran operasional periode
+                                </p>
+                            </div>
+
+                            <div className="bg-card border border-primary/30 rounded-xl p-5 shadow-xs bg-primary/5">
+                                <span className="text-xs font-bold text-primary">Laba Bersih (Netto)</span>
+                                <h3 className={`text-xl font-extrabold tracking-tight tabular-nums mt-2 ${labaBersih >= 0 ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500"}`}>
+                                    {formatRupiah(labaBersih)}
+                                </h3>
+                                <p className="text-[11px] text-muted-foreground mt-1">
+                                    Pendapatan kotor dikurangi biaya operasional
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="border border-border p-5 sm:p-6 bg-card print:border-black print:border print:bg-white print:p-4">
                             <div className="border-b border-border pb-3 mb-4 print:border-b-2 print:border-black">
                                 <h2 className="text-xs font-bold uppercase tracking-wider text-foreground print:text-black">
@@ -1170,6 +1208,24 @@ export default function LaporanIndex({
                                             <span className="text-foreground print:text-black">Total Pendapatan (POS + Sewa)</span>
                                             <span className="tabular-nums text-foreground print:text-black font-extrabold">
                                                 {formatRupiah(totalPendapatan)}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between py-2 items-center pt-3 text-foreground">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium print:text-black">Pengeluaran Operasional</span>
+                                                <span className="text-[11px] text-muted-foreground print:text-black">Listrik, WiFi, gas, dll (dari menu Biaya Operasional)</span>
+                                            </div>
+                                            <span className="tabular-nums font-semibold text-rose-500 print:text-black">
+                                                -{formatRupiah(totalBiayaOperasional)}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between py-3 items-center border-t-2 border-primary/50 print:border-black mt-2 font-bold text-sm bg-primary/5 p-2 rounded-lg print:bg-transparent">
+                                            <div>
+                                                <span className="text-foreground print:text-black font-bold">LABA BERSIH (NETTO)</span>
+                                                <p className="text-[10px] text-muted-foreground font-normal print:text-black">Total Pendapatan Kotor dikurangi Biaya Operasional</p>
+                                            </div>
+                                            <span className={`tabular-nums font-extrabold text-base ${labaBersih >= 0 ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500"} print:text-black`}>
+                                                {formatRupiah(labaBersih)}
                                             </span>
                                         </div>
                                     </div>
