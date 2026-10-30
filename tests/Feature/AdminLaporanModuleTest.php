@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\DetailReservasi;
 use App\Models\Lapangan;
 use App\Models\Pembayaran;
 use App\Models\Produk;
@@ -220,6 +221,60 @@ class AdminLaporanModuleTest extends TestCase
             ->where('ringkasan.pembayaran_sewa_breakdown.qris', 100000)
             ->where('ringkasan.pembayaran_sewa_breakdown.dp', 50000)
             ->where('ringkasan.pembayaran_sewa_breakdown.lunas', 100000)
+            ->has('sewaHarian.data')
+            ->has('riwayatPembayaranSewa.data')
+        );
+    }
+
+    public function test_court_rental_daily_breakdown_and_payment_history_data(): void
+    {
+        $lap = Lapangan::first() ?? Lapangan::create([
+            'nama_lapangan' => 'Lapangan 1',
+            'status_lapangan' => 'tersedia',
+        ]);
+
+        $res = Reservasi::create([
+            'id_user' => $this->customerUser->id_user,
+            'nama_pemesan' => 'Budi Sanjaya',
+            'no_whatsapp_pemesan' => '081234567890',
+            'tanggal_pemesanan' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'total_biaya' => 120000,
+            'status_reservasi' => Reservasi::STATUS_TERKONFIRMASI,
+        ]);
+
+        DetailReservasi::create([
+            'id_reservasi' => $res->id_reservasi,
+            'id_lapangan' => $lap->id_lapangan,
+            'tanggal_main' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'jam_mulai' => '17:00:00',
+            'jam_selesai' => '19:00:00',
+            'durasi' => 2,
+            'subtotal' => 120000,
+        ]);
+
+        Pembayaran::create([
+            'id_reservasi' => $res->id_reservasi,
+            'tanggal_pembayaran' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'jenis_pembayaran' => Pembayaran::JENIS_DP,
+            'jumlah' => 50000,
+            'metode_pembayaran' => Pembayaran::METODE_TRANSFER,
+            'status_pembayaran' => Pembayaran::STATUS_TERKONFIRMASI,
+            'keterangan' => 'DP Booking',
+        ]);
+
+        $response = $this->actingAs($this->adminUser, 'staff')->get('/admin/laporan');
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/Laporan/Index')
+            ->has('sewaHarian.data', 1)
+            ->where('sewaHarian.data.0.total_transaksi', 1)
+            ->where('sewaHarian.data.0.dp', 50000)
+            ->where('sewaHarian.data.0.total', 50000)
+            ->has('riwayatPembayaranSewa.data', 1)
+            ->where('riwayatPembayaranSewa.data.0.nama_pemesan', 'Budi Sanjaya')
+            ->where('riwayatPembayaranSewa.data.0.jenis_pembayaran', 'DP')
+            ->where('riwayatPembayaranSewa.data.0.jumlah', 50000)
+            ->where('riwayatPembayaranSewa.data.0.keterangan', 'DP Booking')
         );
     }
 

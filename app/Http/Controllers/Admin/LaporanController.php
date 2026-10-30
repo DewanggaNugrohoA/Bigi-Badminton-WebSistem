@@ -159,6 +159,101 @@ class LaporanController extends Controller
 
         $totalSelisihKasShift = (float) ($shiftAgg->total_selisih ?? 0);
 
+        // Rekapitulasi Pendapatan Sewa per Hari (Tabel Harian Sewa Lapangan)
+        $sewaHarian = Pembayaran::query()
+            ->leftJoin('reservasi', 'pembayaran.id_reservasi', '=', 'reservasi.id_reservasi')
+            ->leftJoin('paket_member', 'pembayaran.id_paket', '=', 'paket_member.id_paket')
+            ->where('pembayaran.status_pembayaran', Pembayaran::STATUS_TERKONFIRMASI)
+            ->where(function ($q) {
+                $q->where(function ($qRes) {
+                    $qRes->whereNotNull('pembayaran.id_reservasi')
+                        ->where('reservasi.status_reservasi', '!=', Reservasi::STATUS_BATAL);
+                })->orWhere(function ($qPkt) {
+                    $qPkt->whereNotNull('pembayaran.id_paket')
+                        ->where('paket_member.status', '!=', \App\Models\PaketMember::STATUS_DIBATALKAN);
+                });
+            })
+            ->whereDate('pembayaran.tanggal_pembayaran', '>=', $startDate)
+            ->whereDate('pembayaran.tanggal_pembayaran', '<=', $endDate)
+            ->selectRaw('
+                DATE(pembayaran.tanggal_pembayaran) as tgl,
+                COUNT(pembayaran.id_pembayaran) as total_transaksi,
+                COALESCE(SUM(CASE WHEN pembayaran.jenis_pembayaran = "DP" THEN pembayaran.jumlah ELSE 0 END), 0) as dp,
+                COALESCE(SUM(CASE WHEN pembayaran.jenis_pembayaran = "Lunas" THEN pembayaran.jumlah ELSE 0 END), 0) as lunas,
+                COALESCE(SUM(CASE WHEN pembayaran.metode_pembayaran = "tunai" THEN pembayaran.jumlah ELSE 0 END), 0) as tunai,
+                COALESCE(SUM(CASE WHEN pembayaran.metode_pembayaran = "transfer" THEN pembayaran.jumlah ELSE 0 END), 0) as transfer,
+                COALESCE(SUM(CASE WHEN pembayaran.metode_pembayaran = "qris" THEN pembayaran.jumlah ELSE 0 END), 0) as qris,
+                COALESCE(SUM(pembayaran.jumlah), 0) as total
+            ')
+            ->groupBy(DB::raw('DATE(pembayaran.tanggal_pembayaran)'))
+            ->orderBy('tgl', 'desc')
+            ->paginate(10, ['*'], 'page_sewa_harian')
+            ->withQueryString();
+
+        $sewaHarian->through(function ($row) {
+            return [
+                'tgl' => (string) $row->tgl,
+                'total_transaksi' => (int) $row->total_transaksi,
+                'dp' => (float) $row->dp,
+                'lunas' => (float) $row->lunas,
+                'tunai' => (float) $row->tunai,
+                'transfer' => (float) $row->transfer,
+                'qris' => (float) $row->qris,
+                'total' => (float) $row->total,
+            ];
+        });
+
+        // Rincian Riwayat Transaksi Pembayaran Sewa Lapangan & Paket Member
+        $riwayatPembayaranSewa = Pembayaran::with([
+            'reservasi.user:id_user,nama,no_whatsapp,jenis_pelanggan',
+            'reservasi.detailReservasi.lapangan:id_lapangan,nama_lapangan',
+            'paket.user:id_user,nama,no_whatsapp,jenis_pelanggan',
+        ])
+            ->whereDate('tanggal_pembayaran', '>=', $startDate)
+            ->whereDate('tanggal_pembayaran', '<=', $endDate)
+            ->orderBy('tanggal_pembayaran', 'desc')
+            ->orderBy('id_pembayaran', 'desc')
+            ->paginate(15, ['*'], 'page_pembayaran_sewa')
+            ->withQueryString();
+
+        $riwayatPembayaranSewa->through(function ($p) {
+            $res = $p->reservasi;
+            $firstDetail = $res?->detailReservasi?->first();
+
+            $namaPemesan = $res?->nama_pemesan ?: ($res?->user?->nama ?: ($p->paket?->user?->nama ?: 'Pelanggan'));
+            $noWa = $res?->no_whatsapp_pemesan ?: ($res?->user?->no_whatsapp ?: ($p->paket?->user?->no_whatsapp ?: '-'));
+            $isMember = (bool) ($p->id_paket || ($res && $res->id_user && $res->user && $res->user->jenis_pelanggan === 'member'));
+
+            if ($p->id_paket) {
+                $itemLabel = 'Paket Member ' . ($p->paket?->nama_paket_label ?: 'Bulanan');
+            } elseif ($firstDetail) {
+                $jamMulai = substr($firstDetail->jam_mulai, 0, 5);
+                $jamSelesai = substr($firstDetail->jam_selesai, 0, 5);
+                $lapNama = $firstDetail->lapangan?->nama_lapangan ?: 'Lapangan';
+                $tglMain = Carbon::parse($firstDetail->tanggal_main)->format('d/m/Y');
+                $itemLabel = "{$lapNama} ({$tglMain}, {$jamMulai}-{$jamSelesai})";
+            } else {
+                $itemLabel = 'Sewa Lapangan';
+            }
+
+            return [
+                'id_pembayaran' => $p->id_pembayaran,
+                'id_reservasi' => $p->id_reservasi,
+                'id_paket' => $p->id_paket,
+                'tanggal_pembayaran' => $p->tanggal_pembayaran ? Carbon::parse($p->tanggal_pembayaran)->format('Y-m-d') : null,
+                'nama_pemesan' => $namaPemesan,
+                'no_whatsapp' => $noWa,
+                'is_member' => $isMember,
+                'item_label' => $itemLabel,
+                'jenis_pembayaran' => $p->jenis_pembayaran,
+                'metode_pembayaran' => $p->metode_pembayaran,
+                'jumlah' => (float) $p->jumlah,
+                'status_pembayaran' => $p->status_pembayaran,
+                'status_reservasi' => $res?->status_reservasi ?: ($p->paket?->status ?: 'terkonfirmasi'),
+                'keterangan' => $p->keterangan ?: '-',
+            ];
+        });
+
         $posHarian = TransaksiPos::query()
             ->where('status_transaksi', TransaksiPos::STATUS_SELESAI)
             ->whereDate('tanggal', '>=', $startDate)
@@ -253,6 +348,8 @@ class LaporanController extends Controller
             'riwayatLapangan' => $riwayatLapangan,
             'masterLapangan' => $masterLapangan,
             'posHarian' => $posHarian,
+            'sewaHarian' => $sewaHarian,
+            'riwayatPembayaranSewa' => $riwayatPembayaranSewa,
             'rekapShift' => $rekapShift,
             'riwayatVoidRetur' => $riwayatVoidRetur,
             'riwayatRestock' => $riwayatRestock,

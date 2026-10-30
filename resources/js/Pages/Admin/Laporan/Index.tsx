@@ -44,6 +44,34 @@ interface PosHarianItem {
     total: number;
 }
 
+interface SewaHarianItem {
+    tgl: string;
+    total_transaksi: number;
+    dp: number;
+    lunas: number;
+    tunai: number;
+    transfer: number;
+    qris: number;
+    total: number;
+}
+
+interface PembayaranSewaItem {
+    id_pembayaran: number;
+    id_reservasi: number | null;
+    id_paket: number | null;
+    tanggal_pembayaran: string | null;
+    nama_pemesan: string;
+    no_whatsapp: string;
+    is_member: boolean;
+    item_label: string;
+    jenis_pembayaran: "DP" | "Lunas";
+    metode_pembayaran: "tunai" | "transfer" | "qris";
+    jumlah: number;
+    status_pembayaran: string;
+    status_reservasi: string;
+    keterangan: string;
+}
+
 interface ShiftItem {
     id_shift: number;
     id_user: number;
@@ -208,6 +236,8 @@ interface Props {
     ringkasanLapangan?: RingkasanLapanganItem[];
     riwayatLapangan?: PaginatedData<RiwayatLapanganItem>;
     masterLapangan?: MasterLapanganItem[];
+    sewaHarian?: PaginatedData<SewaHarianItem>;
+    riwayatPembayaranSewa?: PaginatedData<PembayaranSewaItem>;
     posHarian: PaginatedData<PosHarianItem>;
     rekapShift: PaginatedData<ShiftItem>;
     riwayatVoidRetur: PaginatedData<ReturVoidItem>;
@@ -238,6 +268,8 @@ export default function LaporanIndex({
     ringkasanLapangan = [],
     riwayatLapangan,
     masterLapangan = [],
+    sewaHarian,
+    riwayatPembayaranSewa,
     posHarian,
     rekapShift,
     riwayatVoidRetur,
@@ -1310,6 +1342,207 @@ export default function LaporanIndex({
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div>
+                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
+                                    Pendapatan Sewa Lapangan per Hari
+                                </h3>
+                                <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
+                                    {sewaHarian?.total ?? 0} hari
+                                </span>
+                            </div>
+
+                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
+                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                            <TableHead className="w-[8%] print:w-[8%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Transaksi</TableHead>
+                                            <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">DP</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Pelunasan</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Tunai</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Transfer</TableHead>
+                                            <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">QRIS</TableHead>
+                                            <TableHead className="w-[16%] print:w-[16%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Uang Masuk</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {!sewaHarian || sewaHarian.data.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={8} className="text-center py-6 text-xs text-muted-foreground">
+                                                    Tidak ada data penerimaan sewa lapangan pada periode ini.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            sewaHarian.data.map((item) => (
+                                                <TableRow key={item.tgl} className="border-b border-border/60">
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
+                                                        {formatTanggal(item.tgl)}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-center tabular-nums text-foreground print:whitespace-normal">
+                                                        {item.total_transaksi}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
+                                                        {formatRupiah(item.dp)}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
+                                                        {formatRupiah(item.lunas)}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
+                                                        {formatRupiah(item.tunai)}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
+                                                        {formatRupiah(item.transfer)}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
+                                                        {formatRupiah(item.qris)}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right font-semibold text-foreground tabular-nums print:whitespace-normal">
+                                                        {formatRupiah(item.total)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {sewaHarian && sewaHarian.last_page > 1 && (
+                                <div className="print:hidden flex items-center justify-between pt-2 text-xs">
+                                    <span className="text-muted-foreground text-[11px]">
+                                        Halaman {sewaHarian.current_page} dari {sewaHarian.last_page}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!sewaHarian.prev_page_url}
+                                            onClick={() => sewaHarian.prev_page_url && router.get(sewaHarian.prev_page_url, {}, { preserveState: true })}
+                                            className="h-7 px-2 text-xs cursor-pointer"
+                                        >
+                                            Sebelumnya
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!sewaHarian.next_page_url}
+                                            onClick={() => sewaHarian.next_page_url && router.get(sewaHarian.next_page_url, {}, { preserveState: true })}
+                                            className="h-7 px-2 text-xs cursor-pointer"
+                                        >
+                                            Berikutnya
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
+                                    Rincian Riwayat Pembayaran Pemain & Member
+                                </h3>
+                                <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
+                                    {riwayatPembayaranSewa?.total ?? 0} transaksi
+                                </span>
+                            </div>
+
+                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Waktu / Tgl</TableHead>
+                                            <TableHead className="w-[22%] print:w-[22%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama Pemesan</TableHead>
+                                            <TableHead className="w-[22%] print:w-[22%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Item / Sesi Sewa</TableHead>
+                                            <TableHead className="w-[9%] print:w-[9%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Jenis</TableHead>
+                                            <TableHead className="w-[9%] print:w-[9%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Metode</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Nominal</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Catatan</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {!riwayatPembayaranSewa || riwayatPembayaranSewa.data.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={7} className="text-center py-6 text-xs text-muted-foreground">
+                                                    Tidak ada riwayat transaksi pembayaran sewa pada periode ini.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            riwayatPembayaranSewa.data.map((item) => (
+                                                <TableRow key={item.id_pembayaran} className="border-b border-border/60">
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
+                                                        {item.tanggal_pembayaran ? formatTanggalRingkas(item.tanggal_pembayaran) : "-"}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                                            <span>{item.nama_pemesan}</span>
+                                                            {item.is_member && (
+                                                                <Badge variant="info" className="text-[10px] py-0 px-1.5">
+                                                                    Member
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        {item.no_whatsapp && item.no_whatsapp !== "-" && (
+                                                            <div className="text-[11px] text-muted-foreground font-mono">
+                                                                {item.no_whatsapp}
+                                                            </div>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground">
+                                                        {item.item_label}
+                                                    </TableCell>
+                                                    <TableCell className="text-center whitespace-nowrap print:whitespace-normal">
+                                                        <Badge
+                                                            variant={item.jenis_pembayaran === "Lunas" ? "success" : "warning"}
+                                                            className="text-[10px] py-0 px-1.5 uppercase font-medium"
+                                                        >
+                                                            {item.jenis_pembayaran}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-center whitespace-nowrap print:whitespace-normal text-xs capitalize text-foreground">
+                                                        {item.metode_pembayaran}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-right font-semibold text-foreground tabular-nums print:whitespace-normal">
+                                                        {formatRupiah(item.jumlah)}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap print:whitespace-normal max-w-[200px] truncate" title={item.keterangan}>
+                                                        {item.keterangan}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {riwayatPembayaranSewa && riwayatPembayaranSewa.last_page > 1 && (
+                                <div className="print:hidden flex items-center justify-between pt-2 text-xs">
+                                    <span className="text-muted-foreground text-[11px]">
+                                        Halaman {riwayatPembayaranSewa.current_page} dari {riwayatPembayaranSewa.last_page}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!riwayatPembayaranSewa.prev_page_url}
+                                            onClick={() => riwayatPembayaranSewa.prev_page_url && router.get(riwayatPembayaranSewa.prev_page_url, {}, { preserveState: true })}
+                                            className="h-7 px-2 text-xs cursor-pointer"
+                                        >
+                                            Sebelumnya
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!riwayatPembayaranSewa.next_page_url}
+                                            onClick={() => riwayatPembayaranSewa.next_page_url && router.get(riwayatPembayaranSewa.next_page_url, {}, { preserveState: true })}
+                                            className="h-7 px-2 text-xs cursor-pointer"
+                                        >
+                                            Berikutnya
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div>

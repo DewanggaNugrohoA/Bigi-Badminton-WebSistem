@@ -249,5 +249,21 @@
   - 9 jadwal berstatus dibatalkan (❌) dilepaskan slotnya, termasuk kasus khusus PB FA (2 Okt) yang batal tetapi uang Rp 100.000 sudah diterima untuk ganti hari lain yang secara otomatis masuk ke kategori "DP Reservasi Batal" di laporan keuangan.
 - Pemasukan data ini murni melalui backend/artisan tanpa mengubah antarmuka (UI). Tanggal pembayaran (`tanggal_pembayaran`) disinkronkan ke tanggal transaksi asli agar laporan keuangan September dan Oktober 2026 menghasilkan angka omzet riil dan akurat.
 
+## 27. Rincian Detail Pembayaran Sewa Lapangan & Member di Laporan Keuangan
+- Berdasarkan permintaan pengguna:
+  - Pada tab **Keuangan** Panel Admin (`/admin/laporan`), kini tidak hanya sistem POS yang memiliki tabel rincian transaksi harian, melainkan sistem sewa lapangan dan paket member juga dilengkapi dua tabel detail paginasi:
+    1. **Pendapatan Sewa Lapangan per Hari (`sewaHarian`)**:
+       - Mengagregasikan uang masuk sewa lapangan per tanggal transaksi pembayaran.
+       - Kolom: Tanggal, Jumlah Transaksi, Total DP, Total Pelunasan, Pembayaran Tunai, Transfer Bank, QRIS, dan Total Uang Masuk per hari.
+       - Paginasi mandiri (`page_sewa_harian`).
+    2. **Rincian Riwayat Pembayaran Pemain & Member (`riwayatPembayaranSewa`)**:
+       - Menampilkan riwayat transaksi pembayaran per baris secara mendalam.
+       - Kolom: Tanggal/Waktu Bayar, Nama Pemesan / Member (disertai badge *Member* dan nomor kontak), Item / Sesi Sewa (lapangan & jam main atau nama paket member), Jenis Pembayaran (*DP* / *Lunas*), Metode Pembayaran (*Tunai* / *Transfer* / *QRIS*), Nominal, serta Status / Catatan.
+       - Paginasi mandiri (`page_pembayaran_sewa`).
+  - Penyesuaian modal tambah paket member (`TambahPaketModal.tsx`):
+    - Teks placeholder yang dicoret merah pada input catatan telah dibersihkan, sedangkan bidang textarea *Catatan Paket (Opsional)* tetap dipertahankan utuh untuk mencatat keterangan bank / pembayaran.
+    - Teks panduan header yang dicoret merah (*"Pembayaran dilakukan sekali di awal."*) dihapus sesuai arahan visual pengguna.
+
+
 
 
