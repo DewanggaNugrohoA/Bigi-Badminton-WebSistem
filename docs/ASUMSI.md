@@ -241,4 +241,13 @@
   - Jam Operasional: `08:00 - 23:00 WIB`.
   - Struk Kasir POS (`resources/js/Pages/Kasir/Struk.tsx`): Header alamat diperbarui menjadi "Bigi Badminton, Bengkulu".
 
+## 26. Impor Data Riil Pemakaian Lapangan (28 Sep – 1 Nov 2026)
+- Disediakan artisan command `php artisan bigi:import-jadwal-real {--fresh}` yang membaca data dari `database/data/jadwal_real_bigi.json`.
+- Seluruh 180 sesi pemakaian riil lapangan 1 dan lapangan 2 dari 28 September s.d. 1 November 2026 dimasukkan ke dalam database lokal:
+  - 103 sesi member terhubung ke 21 akun member aktif dan paket sesi masing-masing (`total_biaya = 0`).
+  - 77 pemesanan reguler dengan variasi status: Lunas penuh, DP (uang muka 30k, 40k, 50k, 60k), Gratis/Free (Okta dan Akbar Rp 0), Transfer 100k, dan event turnamen kampus HIMASIF (7 jam @ Rp 360k per lapangan).
+  - 9 jadwal berstatus dibatalkan (❌) dilepaskan slotnya, termasuk kasus khusus PB FA (2 Okt) yang batal tetapi uang Rp 100.000 sudah diterima untuk ganti hari lain yang secara otomatis masuk ke kategori "DP Reservasi Batal" di laporan keuangan.
+- Pemasukan data ini murni melalui backend/artisan tanpa mengubah antarmuka (UI). Tanggal pembayaran (`tanggal_pembayaran`) disinkronkan ke tanggal transaksi asli agar laporan keuangan September dan Oktober 2026 menghasilkan angka omzet riil dan akurat.
+
+
 

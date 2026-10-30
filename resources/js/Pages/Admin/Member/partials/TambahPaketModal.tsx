@@ -156,7 +156,7 @@ export default function TambahPaketModal({
                         Daftar Paket Member Baru
                     </DialogTitle>
                     <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
-                        Pilih paket resmi untuk <strong className="text-foreground">{customer.nama}</strong> ({customer.no_whatsapp}). Pembayaran dilakukan sekali di awal.
+                        Pilih paket resmi untuk <strong className="text-foreground">{customer.nama}</strong> ({customer.no_whatsapp}).
                     </DialogDescription>
                 </DialogHeader>
 
@@ -340,7 +340,6 @@ export default function TambahPaketModal({
                         <Label htmlFor="pkt_catatan" className="text-xs sm:text-sm">Catatan Paket (Opsional)</Label>
                         <Textarea
                             id="pkt_catatan"
-                            placeholder="Catatan tambahan pembayaran / keterangan bank..."
                             value={data.catatan}
                             onChange={(e) => setData("catatan", e.target.value)}
                             rows={2}
