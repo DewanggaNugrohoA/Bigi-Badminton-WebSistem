@@ -292,3 +292,8 @@
   - 21 akun member impor (ID 5 s/d 25 pada tabel `users`)
 - Seluruh 4 akun awal (`dewa nugroho`, `Admin Bigi`, `Kasir Bigi`, `Dewangga Nugroho`) tetap utuh.
 - Command `bigi:import-jadwal-real` tetap tersedia dan dapat dijalankan kembali kapan saja jika data riil ingin diimpor ulang.
+
+
+## 30. Penghapusan Search Box Pemain di Output Laporan Pemain
+- Kotak pencarian "Cari nama atau nomor..." pada judul tabel Daftar Kunjungan & Aktivitas Pemain di tab Pemain ([`resources/js/Pages/Admin/Laporan/Index.tsx`](file:///c:/laragon/www/bigi-badminton/resources/js/Pages/Admin/Laporan/Index.tsx)) dihapus sesuai arahan visual pengguna.
+- Output laporan eksekutif (tampilan cetak maupun layar) kini bersih tanpa kolom input pencarian, sehingga format tabel laporan seragam dan rapi.

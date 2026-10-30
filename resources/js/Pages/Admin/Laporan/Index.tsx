@@ -315,7 +315,6 @@ export default function LaporanIndex({
     const { auth } = usePage<{ auth: { user: { nama: string; role: string } } }>().props;
     const [startDate, setStartDate] = useState(filters.start_date || "");
     const [endDate, setEndDate] = useState(filters.end_date || "");
-    const [searchPemain, setSearchPemain] = useState(filters.search_pemain || "");
     const [filterLapangan, setFilterLapangan] = useState(filters.id_lapangan || "");
     const [dateError, setDateError] = useState("");
 
@@ -353,21 +352,7 @@ export default function LaporanIndex({
             {
                 start_date: startDate,
                 end_date: endDate,
-                search_pemain: searchPemain || undefined,
-                id_lapangan: filterLapangan || undefined,
-            },
-            { preserveState: true }
-        );
-    };
-
-    const handleSearchPemainSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get(
-            "/admin/laporan",
-            {
-                start_date: startDate,
-                end_date: endDate,
-                search_pemain: searchPemain || undefined,
+                search_pemain: filters.search_pemain || undefined,
                 id_lapangan: filterLapangan || undefined,
             },
             { preserveState: true }
@@ -381,7 +366,7 @@ export default function LaporanIndex({
             {
                 start_date: startDate,
                 end_date: endDate,
-                search_pemain: searchPemain || undefined,
+                search_pemain: filters.search_pemain || undefined,
                 id_lapangan: val || undefined,
             },
             { preserveState: true }
@@ -638,7 +623,7 @@ export default function LaporanIndex({
                         </div>
 
                         <div>
-                            <div className="border-b border-border pb-2 mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="border-b border-border pb-2 mb-3 flex items-center justify-between">
                                 <div>
                                     <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                                         Daftar Kunjungan & Aktivitas Pemain
@@ -647,44 +632,6 @@ export default function LaporanIndex({
                                         {daftarPemain?.total ?? 0} entri terdaftar & walk-in
                                     </span>
                                 </div>
-
-                                <form onSubmit={handleSearchPemainSubmit} className="flex items-center gap-2">
-                                    <Input
-                                        type="text"
-                                        placeholder="Cari nama atau nomor..."
-                                        value={searchPemain}
-                                        onChange={(e) => setSearchPemain(e.target.value)}
-                                        className="h-10 text-xs w-48 sm:w-64"
-                                        aria-label="Pencarian nama atau nomor WhatsApp pemain"
-                                    />
-                                    <Button
-                                        type="submit"
-                                        variant="default"
-                                        className="h-10 text-xs font-medium cursor-pointer"
-                                    >
-                                        Cari
-                                    </Button>
-                                    {filters.search_pemain && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={() => {
-                                                setSearchPemain("");
-                                                router.get(
-                                                    "/admin/laporan",
-                                                    {
-                                                        start_date: startDate,
-                                                        end_date: endDate,
-                                                    },
-                                                    { preserveState: true }
-                                                );
-                                            }}
-                                            className="h-10 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-                                        >
-                                            Reset
-                                        </Button>
-                                    )}
-                                </form>
                             </div>
 
                             <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
