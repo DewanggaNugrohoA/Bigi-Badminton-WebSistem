@@ -280,3 +280,15 @@
   2. **Tampilan Sederhana & Rapi**:
      - Kotak-kotak terpisah untuk DP dan Lunas serta kartu grid metode pembayaran sewa lapangan dihapus.
      - Ringkasan Keuangan atas disederhanakan dengan baris ringkas: Pendapatan Sewa, Pendapatan POS, Total Pendapatan Kotor, Pengeluaran Operasional, Laba Bersih, Koreksi Kas, dan Piutang Sewa.
+
+
+## 29. Pembersihan Data Riil Pemakaian Lapangan & Member
+- Disediakan artisan command `php artisan bigi:hapus-data-real {--force}` untuk membersihkan seluruh data riil pemakaian lapangan, reservasi sewa, transaksi pembayaran sewa, paket member, dan akun-akun member impor.
+- Data yang telah dibersihkan bersih dari database:
+  - 180 sesi pemakaian lapangan (`detail_reservasi`)
+  - 180 reservasi lapangan (`reservasi`)
+  - 93 riwayat transaksi pembayaran sewa & paket (`pembayaran`)
+  - 21 paket member (`paket_member`)
+  - 21 akun member impor (ID 5 s/d 25 pada tabel `users`)
+- Seluruh 4 akun awal (`dewa nugroho`, `Admin Bigi`, `Kasir Bigi`, `Dewangga Nugroho`) tetap utuh.
+- Command `bigi:import-jadwal-real` tetap tersedia dan dapat dijalankan kembali kapan saja jika data riil ingin diimpor ulang.
