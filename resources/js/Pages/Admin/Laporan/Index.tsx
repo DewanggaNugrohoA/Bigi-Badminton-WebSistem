@@ -46,6 +46,13 @@ interface PosHarianItem {
 
 interface SewaHarianItem {
     tgl: string;
+    hari?: string;
+    total_sesi?: number;
+    sesi_lap1?: number;
+    sesi_lap2?: number;
+    sesi_member?: number;
+    sesi_reguler?: number;
+    total_jam?: number;
     total_transaksi: number;
     dp: number;
     lunas: number;
@@ -53,6 +60,26 @@ interface SewaHarianItem {
     transfer: number;
     qris: number;
     total: number;
+    ada_aktivitas?: boolean;
+}
+
+interface SesiPemakaianItem {
+    id_detail: number;
+    tanggal_main: string;
+    nama_lapangan: string;
+    jam_mulai: string;
+    jam_selesai: string;
+    durasi_jam: number;
+    nama_pemain: string;
+    no_whatsapp: string;
+    is_member: boolean;
+    tipe_label: string;
+    status_reservasi: string;
+    status_bayar: string;
+    total_biaya: number;
+    sudah_dibayar: number;
+    metode_bayar: string;
+    catatan: string;
 }
 
 interface PembayaranSewaItem {
@@ -237,6 +264,7 @@ interface Props {
     riwayatLapangan?: PaginatedData<RiwayatLapanganItem>;
     masterLapangan?: MasterLapanganItem[];
     sewaHarian?: PaginatedData<SewaHarianItem>;
+    sesiPemakaianLapangan?: PaginatedData<SesiPemakaianItem>;
     riwayatPembayaranSewa?: PaginatedData<PembayaranSewaItem>;
     posHarian: PaginatedData<PosHarianItem>;
     rekapShift: PaginatedData<ShiftItem>;
@@ -269,6 +297,7 @@ export default function LaporanIndex({
     riwayatLapangan,
     masterLapangan = [],
     sewaHarian,
+    sesiPemakaianLapangan,
     riwayatPembayaranSewa,
     posHarian,
     rekapShift,
@@ -1346,11 +1375,16 @@ export default function LaporanIndex({
 
                         <div>
                             <div className="border-b border-border pb-2 mb-3 flex items-center justify-between print:border-b-2 print:border-black">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
-                                    Pendapatan Sewa Lapangan per Hari
-                                </h3>
+                                <div>
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
+                                        Rekapitulasi Pemakaian & Pendapatan Lapangan per Hari
+                                    </h3>
+                                    <p className="text-[11px] text-muted-foreground">
+                                        Menampilkan seluruh tanggal secara urut (kronologis) beserta status aktivitas lapangan dan uang masuk.
+                                    </p>
+                                </div>
                                 <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
-                                    {sewaHarian?.total ?? 0} hari
+                                    {sewaHarian?.total ?? 0} hari dalam periode
                                 </span>
                             </div>
 
@@ -1358,49 +1392,78 @@ export default function LaporanIndex({
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                            <TableHead className="w-[16%] print:w-[16%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal & Hari</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Sesi Bermain</TableHead>
+                                            <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Total Jam</TableHead>
                                             <TableHead className="w-[8%] print:w-[8%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Transaksi</TableHead>
                                             <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">DP</TableHead>
-                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Pelunasan</TableHead>
-                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Tunai</TableHead>
-                                            <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Transfer</TableHead>
-                                            <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">QRIS</TableHead>
-                                            <TableHead className="w-[16%] print:w-[16%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Uang Masuk</TableHead>
+                                            <TableHead className="w-[11%] print:w-[11%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Pelunasan</TableHead>
+                                            <TableHead className="w-[11%] print:w-[11%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Tunai</TableHead>
+                                            <TableHead className="w-[11%] print:w-[11%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Transfer</TableHead>
+                                            <TableHead className="w-[11%] print:w-[11%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right">Total Uang</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {!sewaHarian || sewaHarian.data.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={8} className="text-center py-6 text-xs text-muted-foreground">
-                                                    Tidak ada data penerimaan sewa lapangan pada periode ini.
+                                                <TableCell colSpan={9} className="text-center py-6 text-xs text-muted-foreground">
+                                                    Tidak ada data pemakaian sewa lapangan pada periode ini.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             sewaHarian.data.map((item) => (
-                                                <TableRow key={item.tgl} className="border-b border-border/60">
+                                                <TableRow key={item.tgl} className="border-b border-border/60 hover:bg-muted/40 transition-colors">
                                                     <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
-                                                        {formatTanggal(item.tgl)}
+                                                        <div className="font-semibold">
+                                                            {item.hari ? `${item.hari}, ${formatTanggalRingkas(item.tgl)}` : formatTanggal(item.tgl)}
+                                                        </div>
+                                                        <div className="text-[10px] text-muted-foreground font-mono">{item.tgl}</div>
                                                     </TableCell>
                                                     <TableCell className="text-xs text-center tabular-nums text-foreground print:whitespace-normal">
-                                                        {item.total_transaksi}
+                                                        {(item.total_sesi ?? 0) > 0 ? (
+                                                            <div>
+                                                                <span className="font-bold text-foreground">{item.total_sesi} Sesi</span>
+                                                                <div className="text-[10px] text-muted-foreground">
+                                                                    Lap 1: {item.sesi_lap1 ?? 0} | Lap 2: {item.sesi_lap2 ?? 0}
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-muted-foreground/60 text-[11px]">- Kosong -</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-center tabular-nums text-foreground print:whitespace-normal">
+                                                        {(item.total_jam ?? 0) > 0 ? (
+                                                            <div>
+                                                                <span>{item.total_jam} Jam</span>
+                                                                <div className="text-[10px] text-muted-foreground">
+                                                                    M: {item.sesi_member ?? 0} | R: {item.sesi_reguler ?? 0}
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-muted-foreground/60">-</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-center tabular-nums text-foreground print:whitespace-normal">
+                                                        {item.total_transaksi > 0 ? (
+                                                            <span className="font-medium">{item.total_transaksi}</span>
+                                                        ) : (
+                                                            <span className="text-muted-foreground/60">-</span>
+                                                        )}
                                                     </TableCell>
                                                     <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
-                                                        {formatRupiah(item.dp)}
+                                                        {item.dp > 0 ? formatRupiah(item.dp) : "-"}
                                                     </TableCell>
                                                     <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
-                                                        {formatRupiah(item.lunas)}
+                                                        {item.lunas > 0 ? formatRupiah(item.lunas) : "-"}
                                                     </TableCell>
                                                     <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
-                                                        {formatRupiah(item.tunai)}
+                                                        {item.tunai > 0 ? formatRupiah(item.tunai) : "-"}
                                                     </TableCell>
                                                     <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
-                                                        {formatRupiah(item.transfer)}
-                                                    </TableCell>
-                                                    <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal">
-                                                        {formatRupiah(item.qris)}
+                                                        {item.transfer > 0 ? formatRupiah(item.transfer) : "-"}
                                                     </TableCell>
                                                     <TableCell className="text-xs text-right font-semibold text-foreground tabular-nums print:whitespace-normal">
-                                                        {formatRupiah(item.total)}
+                                                        {item.total > 0 ? formatRupiah(item.total) : "-"}
                                                     </TableCell>
                                                 </TableRow>
                                             ))
@@ -1412,7 +1475,7 @@ export default function LaporanIndex({
                             {sewaHarian && sewaHarian.last_page > 1 && (
                                 <div className="print:hidden flex items-center justify-between pt-2 text-xs">
                                     <span className="text-muted-foreground text-[11px]">
-                                        Halaman {sewaHarian.current_page} dari {sewaHarian.last_page}
+                                        Halaman {sewaHarian.current_page} dari {sewaHarian.last_page} ({sewaHarian.total} hari)
                                     </span>
                                     <div className="flex items-center gap-1">
                                         <Button
@@ -1429,6 +1492,140 @@ export default function LaporanIndex({
                                             size="sm"
                                             disabled={!sewaHarian.next_page_url}
                                             onClick={() => sewaHarian.next_page_url && router.get(sewaHarian.next_page_url, {}, { preserveState: true })}
+                                            className="h-7 px-2 text-xs cursor-pointer"
+                                        >
+                                            Berikutnya
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <div className="border-b border-border pb-2 mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 print:border-b-2 print:border-black">
+                                <div>
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 print:text-black">
+                                        Rincian Seluruh Sesi Pemakaian Lapangan & Pemain
+                                    </h3>
+                                    <p className="text-[11px] text-muted-foreground">
+                                        Daftar seluruh jadwal sesi bermain pemain (Member & Reguler) mulai dari awal periode.
+                                    </p>
+                                </div>
+                                <span className="text-[11px] text-muted-foreground tabular-nums print:text-black font-semibold">
+                                    {sesiPemakaianLapangan?.total ?? 0} sesi bermain tercatat
+                                </span>
+                            </div>
+
+                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Tanggal</TableHead>
+                                            <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Lapangan</TableHead>
+                                            <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Jam Main</TableHead>
+                                            <TableHead className="w-[20%] print:w-[20%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Nama Pemain / Tim</TableHead>
+                                            <TableHead className="w-[10%] print:w-[10%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center">Tipe</TableHead>
+                                            <TableHead className="w-[16%] print:w-[16%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Status Sewa & Bayar</TableHead>
+                                            <TableHead className="w-[20%] print:w-[20%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold">Catatan</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {!sesiPemakaianLapangan || sesiPemakaianLapangan.data.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={7} className="text-center py-6 text-xs text-muted-foreground">
+                                                    Tidak ada data sesi pemakaian lapangan pada periode ini.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            sesiPemakaianLapangan.data.map((item) => (
+                                                <TableRow key={item.id_detail} className="border-b border-border/60 hover:bg-muted/40 transition-colors">
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
+                                                        {formatTanggal(item.tanggal_main)}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
+                                                        <span className={item.nama_lapangan.includes("1") ? "text-primary font-semibold" : "text-amber-500 font-semibold"}>
+                                                            {item.nama_lapangan}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal tabular-nums text-foreground">
+                                                        <div className="font-semibold">{item.jam_mulai} - {item.jam_selesai}</div>
+                                                        <div className="text-[10px] text-muted-foreground">{item.durasi_jam} Jam</div>
+                                                    </TableCell>
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal font-medium text-foreground">
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                                            <span className="font-semibold">{item.nama_pemain}</span>
+                                                            {item.is_member && (
+                                                                <Badge variant="info" className="text-[10px] py-0 px-1.5">
+                                                                    Member
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        {item.no_whatsapp && item.no_whatsapp !== "-" && (
+                                                            <div className="text-[10px] text-muted-foreground font-mono">
+                                                                {item.no_whatsapp}
+                                                            </div>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-center whitespace-nowrap print:whitespace-normal text-xs">
+                                                        {item.is_member ? (
+                                                            <span className="font-semibold text-sky-400">Member</span>
+                                                        ) : (
+                                                            <span className="text-muted-foreground">Reguler</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs whitespace-nowrap print:whitespace-normal">
+                                                        <div>
+                                                            <Badge
+                                                                variant={
+                                                                    item.status_bayar === "Lunas"
+                                                                        ? "success"
+                                                                        : item.status_bayar.startsWith("DP")
+                                                                        ? "warning"
+                                                                        : item.status_bayar === "Paket Member"
+                                                                        ? "info"
+                                                                        : "neutral"
+                                                                }
+                                                                className="text-[10px] py-0 px-1.5 font-medium"
+                                                            >
+                                                                {item.status_bayar}
+                                                            </Badge>
+                                                        </div>
+                                                        {item.sudah_dibayar > 0 && (
+                                                            <div className="text-[10px] text-muted-foreground tabular-nums mt-0.5">
+                                                                Uang Masuk: {formatRupiah(item.sudah_dibayar)} ({item.metode_bayar})
+                                                            </div>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap print:whitespace-normal max-w-[240px] truncate" title={item.catatan}>
+                                                        {item.catatan}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {sesiPemakaianLapangan && sesiPemakaianLapangan.last_page > 1 && (
+                                <div className="print:hidden flex items-center justify-between pt-2 text-xs">
+                                    <span className="text-muted-foreground text-[11px]">
+                                        Halaman {sesiPemakaianLapangan.current_page} dari {sesiPemakaianLapangan.last_page} ({sesiPemakaianLapangan.total} sesi)
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!sesiPemakaianLapangan.prev_page_url}
+                                            onClick={() => sesiPemakaianLapangan.prev_page_url && router.get(sesiPemakaianLapangan.prev_page_url, {}, { preserveState: true })}
+                                            className="h-7 px-2 text-xs cursor-pointer"
+                                        >
+                                            Sebelumnya
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={!sesiPemakaianLapangan.next_page_url}
+                                            onClick={() => sesiPemakaianLapangan.next_page_url && router.get(sesiPemakaianLapangan.next_page_url, {}, { preserveState: true })}
                                             className="h-7 px-2 text-xs cursor-pointer"
                                         >
                                             Berikutnya

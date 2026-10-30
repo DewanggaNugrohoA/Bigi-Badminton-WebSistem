@@ -249,20 +249,21 @@
   - 9 jadwal berstatus dibatalkan (❌) dilepaskan slotnya, termasuk kasus khusus PB FA (2 Okt) yang batal tetapi uang Rp 100.000 sudah diterima untuk ganti hari lain yang secara otomatis masuk ke kategori "DP Reservasi Batal" di laporan keuangan.
 - Pemasukan data ini murni melalui backend/artisan tanpa mengubah antarmuka (UI). Tanggal pembayaran (`tanggal_pembayaran`) disinkronkan ke tanggal transaksi asli agar laporan keuangan September dan Oktober 2026 menghasilkan angka omzet riil dan akurat.
 
-## 27. Rincian Detail Pembayaran Sewa Lapangan & Member di Laporan Keuangan
-- Berdasarkan permintaan pengguna:
-  - Pada tab **Keuangan** Panel Admin (`/admin/laporan`), kini tidak hanya sistem POS yang memiliki tabel rincian transaksi harian, melainkan sistem sewa lapangan dan paket member juga dilengkapi dua tabel detail paginasi:
-    1. **Pendapatan Sewa Lapangan per Hari (`sewaHarian`)**:
-       - Mengagregasikan uang masuk sewa lapangan per tanggal transaksi pembayaran.
-       - Kolom: Tanggal, Jumlah Transaksi, Total DP, Total Pelunasan, Pembayaran Tunai, Transfer Bank, QRIS, dan Total Uang Masuk per hari.
-       - Paginasi mandiri (`page_sewa_harian`).
-    2. **Rincian Riwayat Pembayaran Pemain & Member (`riwayatPembayaranSewa`)**:
-       - Menampilkan riwayat transaksi pembayaran per baris secara mendalam.
-       - Kolom: Tanggal/Waktu Bayar, Nama Pemesan / Member (disertai badge *Member* dan nomor kontak), Item / Sesi Sewa (lapangan & jam main atau nama paket member), Jenis Pembayaran (*DP* / *Lunas*), Metode Pembayaran (*Tunai* / *Transfer* / *QRIS*), Nominal, serta Status / Catatan.
-       - Paginasi mandiri (`page_pembayaran_sewa`).
-  - Penyesuaian modal tambah paket member (`TambahPaketModal.tsx`):
-    - Teks placeholder yang dicoret merah pada input catatan telah dibersihkan, sedangkan bidang textarea *Catatan Paket (Opsional)* tetap dipertahankan utuh untuk mencatat keterangan bank / pembayaran.
-    - Teks panduan header yang dicoret merah (*"Pembayaran dilakukan sekali di awal."*) dihapus sesuai arahan visual pengguna.
+## 27. Rincian Detail Sesi Pemakaian Lapangan & Pembayaran di Laporan Keuangan
+- Berdasarkan permintaan pengguna agar output laporan menampilkan detail riil seluruh tanggal dari 1 s.d. 31 Oktober secara berurutan dan tidak hanya sepotong tanggal di akhir bulan:
+  1. **Rekapitulasi Pemakaian & Pendapatan Lapangan per Hari (`sewaHarian`)**:
+     - Mengagregasikan seluruh tanggal dalam periode secara kronologis (dari tanggal 1 s.d. 31 Oktober).
+     - Menampilkan rekapitulasi komprehensif per hari: Tanggal & Hari, Total Sesi Bermain (rincian Lapangan 1 & 2 serta Member & Reguler), Total Jam Bermain, Jumlah Transaksi Bayar, DP, Pelunasan, Tunai, Transfer, Total Uang Masuk, serta Status Hari (Aktif / Kosong).
+     - Paginasi mandiri (`page_sewa_harian`) dengan ukuran 35 per halaman sehingga seluruh 31 hari dalam satu bulan langsung tampil utuh dalam satu halaman tanpa terpotong ke halaman lain.
+  2. **Rincian Seluruh Sesi Pemakaian Lapangan & Pemain (`sesiPemakaianLapangan`)**:
+     - Menampilkan seluruh sesi bermain pemain di lapangan secara berurutan mulai dari tanggal 1 Oktober (mencakup 162 sesi riil).
+     - Menyatukan data bermain pemain Member (yang menggunakan paket kuota) dan Reguler (Lunas, DP, Gratis/Free, Transfer).
+     - Kolom: Tanggal Main, Lapangan (1 / 2), Jam Main & Durasi, Nama Pemain / Tim (dengan badge Member & kontak WA), Kategori (Member / Reguler), Status Sewa & Bayar, Metode Bayar, serta Catatan asli ("Bayar 100k", "Free", "Acara 7 jam", dll).
+     - Paginasi mandiri (`page_sesi`) ukuran 50 sesi per halaman.
+  3. **Rincian Riwayat Pembayaran Pemain & Member (`riwayatPembayaranSewa`)**:
+     - Menampilkan seluruh transaksi uang masuk secara kronologis dari awal periode dengan paginasi mandiri 50 transaksi per halaman.
+  4. **Penyelarasan Modal Paket Member (`TambahPaketModal.tsx`)**:
+     - Teks panduan header yang dicoret merah (*"Pembayaran dilakukan sekali di awal."*) dan placeholder catatan dihapus sesuai arahan visual pengguna, sementara textarea *Catatan Paket (Opsional)* tetap dipertahankan.
 
 
 

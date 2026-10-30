@@ -262,7 +262,8 @@ class AdminLaporanModuleTest extends TestCase
             'keterangan' => 'DP Booking',
         ]);
 
-        $response = $this->actingAs($this->adminUser, 'staff')->get('/admin/laporan');
+        $today = Carbon::now('Asia/Jakarta')->toDateString();
+        $response = $this->actingAs($this->adminUser, 'staff')->get("/admin/laporan?start_date={$today}&end_date={$today}");
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page
             ->component('Admin/Laporan/Index')
@@ -270,6 +271,8 @@ class AdminLaporanModuleTest extends TestCase
             ->where('sewaHarian.data.0.total_transaksi', 1)
             ->where('sewaHarian.data.0.dp', 50000)
             ->where('sewaHarian.data.0.total', 50000)
+            ->has('sesiPemakaianLapangan.data', 1)
+            ->where('sesiPemakaianLapangan.data.0.nama_pemain', 'Budi Sanjaya')
             ->has('riwayatPembayaranSewa.data', 1)
             ->where('riwayatPembayaranSewa.data.0.nama_pemesan', 'Budi Sanjaya')
             ->where('riwayatPembayaranSewa.data.0.jenis_pembayaran', 'DP')

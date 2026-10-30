@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePemeriksaanLapanganRequest;
 use App\Models\BiayaOperasional;
+use App\Models\DetailReservasi;
 use App\Models\Lapangan;
 use App\Models\Pembayaran;
 use App\Models\Produk;
@@ -19,7 +20,10 @@ use App\Services\LaporanEksporService;
 use App\Services\LaporanLapanganService;
 use App\Services\LaporanPemainService;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -159,8 +163,27 @@ class LaporanController extends Controller
 
         $totalSelisihKasShift = (float) ($shiftAgg->total_selisih ?? 0);
 
-        // Rekapitulasi Pendapatan Sewa per Hari (Tabel Harian Sewa Lapangan)
-        $sewaHarian = Pembayaran::query()
+        // Rekapitulasi Pemakaian & Pendapatan Sewa per Hari (Tabel Harian Sewa Lapangan)
+        $sessionsByDate = DetailReservasi::query()
+            ->join('reservasi', 'detail_reservasi.id_reservasi', '=', 'reservasi.id_reservasi')
+            ->leftJoin('users', 'reservasi.id_user', '=', 'users.id_user')
+            ->whereDate('detail_reservasi.tanggal_main', '>=', $startDate)
+            ->whereDate('detail_reservasi.tanggal_main', '<=', $endDate)
+            ->where('reservasi.status_reservasi', '!=', Reservasi::STATUS_BATAL)
+            ->selectRaw('
+                DATE(detail_reservasi.tanggal_main) as tgl,
+                COUNT(detail_reservasi.id_detail_reservasi) as total_sesi,
+                SUM(CASE WHEN detail_reservasi.id_lapangan = 1 THEN 1 ELSE 0 END) as sesi_lap1,
+                SUM(CASE WHEN detail_reservasi.id_lapangan = 2 THEN 1 ELSE 0 END) as sesi_lap2,
+                SUM(CASE WHEN users.jenis_pelanggan = "member" THEN 1 ELSE 0 END) as sesi_member,
+                SUM(CASE WHEN users.jenis_pelanggan != "member" OR users.jenis_pelanggan IS NULL THEN 1 ELSE 0 END) as sesi_reguler,
+                SUM(detail_reservasi.durasi) as total_menit
+            ')
+            ->groupBy(DB::raw('DATE(detail_reservasi.tanggal_main)'))
+            ->get()
+            ->keyBy('tgl');
+
+        $paymentsByDate = Pembayaran::query()
             ->leftJoin('reservasi', 'pembayaran.id_reservasi', '=', 'reservasi.id_reservasi')
             ->leftJoin('paket_member', 'pembayaran.id_paket', '=', 'paket_member.id_paket')
             ->where('pembayaran.status_pembayaran', Pembayaran::STATUS_TERKONFIRMASI)
@@ -186,20 +209,121 @@ class LaporanController extends Controller
                 COALESCE(SUM(pembayaran.jumlah), 0) as total
             ')
             ->groupBy(DB::raw('DATE(pembayaran.tanggal_pembayaran)'))
-            ->orderBy('tgl', 'desc')
-            ->paginate(10, ['*'], 'page_sewa_harian')
+            ->get()
+            ->keyBy('tgl');
+
+        $period = CarbonPeriod::create($startDate, $endDate);
+        $dailyList = [];
+
+        foreach ($period as $dt) {
+            $dateKey = $dt->format('Y-m-d');
+            $sess = $sessionsByDate->get($dateKey);
+            $pay = $paymentsByDate->get($dateKey);
+
+            $totalSesi = (int) ($sess->total_sesi ?? 0);
+            $totalMenit = (int) ($sess->total_menit ?? 0);
+            $totalJam = $totalMenit > 0 ? round($totalMenit / 60, 1) : 0;
+            $totalTransaksi = (int) ($pay->total_transaksi ?? 0);
+            $totalUang = (float) ($pay->total ?? 0);
+
+            $dailyList[] = [
+                'tgl' => $dateKey,
+                'hari' => $dt->locale('id')->isoFormat('dddd'),
+                'total_sesi' => $totalSesi,
+                'sesi_lap1' => (int) ($sess->sesi_lap1 ?? 0),
+                'sesi_lap2' => (int) ($sess->sesi_lap2 ?? 0),
+                'sesi_member' => (int) ($sess->sesi_member ?? 0),
+                'sesi_reguler' => (int) ($sess->sesi_reguler ?? 0),
+                'total_jam' => $totalJam,
+                'total_transaksi' => $totalTransaksi,
+                'dp' => (float) ($pay->dp ?? 0),
+                'lunas' => (float) ($pay->lunas ?? 0),
+                'tunai' => (float) ($pay->tunai ?? 0),
+                'transfer' => (float) ($pay->transfer ?? 0),
+                'qris' => (float) ($pay->qris ?? 0),
+                'total' => $totalUang,
+                'ada_aktivitas' => ($totalSesi > 0 || $totalTransaksi > 0),
+            ];
+        }
+
+        $currentPageHarian = LengthAwarePaginator::resolveCurrentPage('page_sewa_harian');
+        $perPageHarian = 35; // Seluruh 31 hari dalam satu bulan tampil utuh tanpa terpotong
+        $harianCollection = collect($dailyList);
+        $currentPageItemsHarian = $harianCollection->slice(($currentPageHarian - 1) * $perPageHarian, $perPageHarian)->values();
+        $sewaHarian = new LengthAwarePaginator(
+            $currentPageItemsHarian,
+            $harianCollection->count(),
+            $perPageHarian,
+            $currentPageHarian,
+            ['path' => LengthAwarePaginator::resolveCurrentPath(), 'pageName' => 'page_sewa_harian']
+        );
+        $sewaHarian->appends($request->all());
+
+        // Rincian Lengkap Seluruh Sesi Pemakaian Lapangan & Pemain (Jadwal Main Harian)
+        $sesiPemakaianLapangan = DetailReservasi::with([
+            'lapangan:id_lapangan,nama_lapangan',
+            'reservasi.user:id_user,nama,no_whatsapp,jenis_pelanggan',
+            'reservasi.pembayaran:id_pembayaran,id_reservasi,jenis_pembayaran,metode_pembayaran,jumlah,status_pembayaran,keterangan',
+        ])
+            ->whereDate('tanggal_main', '>=', $startDate)
+            ->whereDate('tanggal_main', '<=', $endDate)
+            ->whereHas('reservasi', function ($q) {
+                $q->where('status_reservasi', '!=', Reservasi::STATUS_BATAL);
+            })
+            ->orderBy('tanggal_main', 'asc')
+            ->orderBy('id_lapangan', 'asc')
+            ->orderBy('jam_mulai', 'asc')
+            ->paginate(50, ['*'], 'page_sesi')
             ->withQueryString();
 
-        $sewaHarian->through(function ($row) {
+        $sesiPemakaianLapangan->through(function ($detail) {
+            $res = $detail->reservasi;
+            $user = $res?->user;
+            $namaPemesan = $res?->nama_pemesan ?: ($user?->nama ?: 'Pelanggan');
+            $noWa = $res?->no_whatsapp_pemesan ?: ($user?->no_whatsapp ?: '-');
+            $isMember = ($user?->jenis_pelanggan === 'member');
+            $tipeLabel = $isMember ? 'Member' : 'Reguler';
+
+            $totalBayar = (float) ($res?->pembayaran?->where('status_pembayaran', Pembayaran::STATUS_TERKONFIRMASI)->sum('jumlah') ?? 0);
+            $totalBiaya = (float) ($res?->total_biaya ?? 0);
+
+            if ($isMember) {
+                $statusBayar = 'Paket Member';
+            } elseif ($totalBiaya == 0) {
+                $statusBayar = 'Free / Gratis';
+            } elseif ($totalBayar >= $totalBiaya && $totalBiaya > 0) {
+                $statusBayar = 'Lunas';
+            } elseif ($totalBayar > 0) {
+                $statusBayar = 'DP Rp ' . number_format($totalBayar, 0, ',', '.');
+            } else {
+                $statusBayar = 'Belum Bayar';
+            }
+
+            $firstPayment = $res?->pembayaran?->first();
+            $metodeBayar = $firstPayment?->metode_pembayaran ?: '-';
+            $catatan = $firstPayment?->keterangan ?: ($res?->catatan ?: '-');
+
+            $jamMulai = substr($detail->jam_mulai, 0, 5);
+            $jamSelesai = substr($detail->jam_selesai, 0, 5);
+            $durasiJam = $detail->durasi ? round($detail->durasi / 60, 1) : 0;
+
             return [
-                'tgl' => (string) $row->tgl,
-                'total_transaksi' => (int) $row->total_transaksi,
-                'dp' => (float) $row->dp,
-                'lunas' => (float) $row->lunas,
-                'tunai' => (float) $row->tunai,
-                'transfer' => (float) $row->transfer,
-                'qris' => (float) $row->qris,
-                'total' => (float) $row->total,
+                'id_detail' => $detail->id_detail_reservasi,
+                'tanggal_main' => Carbon::parse($detail->tanggal_main)->format('Y-m-d'),
+                'nama_lapangan' => $detail->lapangan?->nama_lapangan ?: 'Lapangan',
+                'jam_mulai' => $jamMulai,
+                'jam_selesai' => $jamSelesai,
+                'durasi_jam' => $durasiJam,
+                'nama_pemain' => $namaPemesan,
+                'no_whatsapp' => $noWa,
+                'is_member' => $isMember,
+                'tipe_label' => $tipeLabel,
+                'status_reservasi' => $res?->status_reservasi ?: 'terkonfirmasi',
+                'status_bayar' => $statusBayar,
+                'total_biaya' => $totalBiaya,
+                'sudah_dibayar' => $totalBayar,
+                'metode_bayar' => $metodeBayar,
+                'catatan' => $catatan,
             ];
         });
 
@@ -211,9 +335,9 @@ class LaporanController extends Controller
         ])
             ->whereDate('tanggal_pembayaran', '>=', $startDate)
             ->whereDate('tanggal_pembayaran', '<=', $endDate)
-            ->orderBy('tanggal_pembayaran', 'desc')
-            ->orderBy('id_pembayaran', 'desc')
-            ->paginate(15, ['*'], 'page_pembayaran_sewa')
+            ->orderBy('tanggal_pembayaran', 'asc')
+            ->orderBy('id_pembayaran', 'asc')
+            ->paginate(50, ['*'], 'page_pembayaran_sewa')
             ->withQueryString();
 
         $riwayatPembayaranSewa->through(function ($p) {
@@ -349,6 +473,7 @@ class LaporanController extends Controller
             'masterLapangan' => $masterLapangan,
             'posHarian' => $posHarian,
             'sewaHarian' => $sewaHarian,
+            'sesiPemakaianLapangan' => $sesiPemakaianLapangan,
             'riwayatPembayaranSewa' => $riwayatPembayaranSewa,
             'rekapShift' => $rekapShift,
             'riwayatVoidRetur' => $riwayatVoidRetur,
