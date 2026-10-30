@@ -20,7 +20,10 @@ class PaketMember extends Model
 
     protected $fillable = [
         'id_user',
+        'jenis_paket',
         'jumlah_sesi',
+        'durasi_jam_per_sesi',
+        'harga_paket',
         'tanggal_mulai',
         'tanggal_akhir',
         'status',
@@ -33,6 +36,8 @@ class PaketMember extends Model
             'tanggal_mulai' => 'date',
             'tanggal_akhir' => 'date',
             'jumlah_sesi' => 'integer',
+            'durasi_jam_per_sesi' => 'integer',
+            'harga_paket' => 'float',
         ];
     }
 
@@ -49,6 +54,21 @@ class PaketMember extends Model
     public function penyesuaian()
     {
         return $this->hasMany(PenyesuaianPaket::class, 'id_paket');
+    }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(Pembayaran::class, 'id_paket');
+    }
+
+    public function getNamaPaketLabelAttribute(): string
+    {
+        return match ($this->jenis_paket) {
+            'bulanan_4x3' => 'Member Bulanan 4 Hari x 3 Jam',
+            'bulanan_4x2' => 'Member Bulanan 4 Hari x 2 Jam',
+            'pagi_4x3' => 'Member Pagi 4 Hari x 3 Jam',
+            default => 'Paket Member ' . ($this->jumlah_sesi ? "{$this->jumlah_sesi} Sesi" : 'Kustom'),
+        };
     }
 
     

@@ -32,7 +32,7 @@ class AdminOpenMabarApprovalTest extends TestCase
         $this->lapangan1 = Lapangan::first();
         $this->lapangan2 = Lapangan::skip(1)->first() ?? Lapangan::create([
             'nama_lapangan' => 'Lapangan 2',
-            'harga_per_jam' => 50000,
+            'harga_per_jam' => 60000,
             'status_lapangan' => 'tersedia',
         ]);
 

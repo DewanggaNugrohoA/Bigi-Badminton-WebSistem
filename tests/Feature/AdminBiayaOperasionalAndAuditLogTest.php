@@ -157,7 +157,7 @@ class AdminBiayaOperasionalAndAuditLogTest extends TestCase
         // 1. Sewa Lapangan Valid: Rp 600.000
         $lapangan = Lapangan::create([
             'nama_lapangan' => 'Lapangan 1',
-            'harga_per_jam' => 50000,
+            'harga_per_jam' => 60000,
             'status_lapangan' => 'tersedia',
         ]);
 

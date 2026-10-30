@@ -85,9 +85,18 @@ class LaporanController extends Controller
             ->withQueryString();
 
         $sewaValidAgg = Pembayaran::query()
-            ->join('reservasi', 'pembayaran.id_reservasi', '=', 'reservasi.id_reservasi')
+            ->leftJoin('reservasi', 'pembayaran.id_reservasi', '=', 'reservasi.id_reservasi')
+            ->leftJoin('paket_member', 'pembayaran.id_paket', '=', 'paket_member.id_paket')
             ->where('pembayaran.status_pembayaran', Pembayaran::STATUS_TERKONFIRMASI)
-            ->where('reservasi.status_reservasi', '!=', Reservasi::STATUS_BATAL)
+            ->where(function ($q) {
+                $q->where(function ($qRes) {
+                    $qRes->whereNotNull('pembayaran.id_reservasi')
+                        ->where('reservasi.status_reservasi', '!=', Reservasi::STATUS_BATAL);
+                })->orWhere(function ($qPkt) {
+                    $qPkt->whereNotNull('pembayaran.id_paket')
+                        ->where('paket_member.status', '!=', \App\Models\PaketMember::STATUS_DIBATALKAN);
+                });
+            })
             ->whereDate('pembayaran.tanggal_pembayaran', '>=', $startDate)
             ->whereDate('pembayaran.tanggal_pembayaran', '<=', $endDate)
             ->selectRaw('

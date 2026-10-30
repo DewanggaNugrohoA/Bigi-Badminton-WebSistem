@@ -21,7 +21,11 @@ class StorePaketMemberRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'jenis_paket' => ['nullable', 'string', 'in:bulanan_4x3,bulanan_4x2,pagi_4x3,kustom'],
             'jumlah_sesi' => ['required', 'integer', 'min:1', 'max:200'],
+            'durasi_jam_per_sesi' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'harga_paket' => ['nullable', 'numeric', 'min:0'],
+            'metode_pembayaran' => ['nullable', 'in:tunai,transfer,qris'],
             'tanggal_mulai' => ['required', 'date'],
             'tanggal_akhir' => ['nullable', 'date', 'after:tanggal_mulai'],
             'catatan' => ['nullable', 'string', 'max:500'],

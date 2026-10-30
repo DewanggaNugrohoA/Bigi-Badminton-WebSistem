@@ -51,13 +51,13 @@ class AdminReservasiRescheduleAndRefundTest extends TestCase
 
         $this->lapangan1 = Lapangan::create([
             'nama_lapangan' => 'Lapangan 1',
-            'harga_per_jam' => 50000,
+            'harga_per_jam' => 60000,
             'status_lapangan' => Lapangan::STATUS_TERSEDIA,
         ]);
 
         $this->lapangan2 = Lapangan::create([
             'nama_lapangan' => 'Lapangan 2',
-            'harga_per_jam' => 50000,
+            'harga_per_jam' => 60000,
             'status_lapangan' => Lapangan::STATUS_TERSEDIA,
         ]);
 

@@ -28,9 +28,9 @@ class StoreMemberAutofieldRequest extends FormRequest
             'jam_selesai' => ['required', 'date_format:H:i', 'after:jam_mulai'],
             'harga_per_sesi' => ['nullable', 'integer', 'min:1', 'max:100000000'],
             'jumlah_sesi' => ['nullable'],
-            'jenis_pembayaran' => ['required', 'in:DP,Lunas'],
-            'jumlah_bayar' => ['required', 'integer', 'min:1', 'max:100000000'],
-            'metode_pembayaran' => ['required', 'in:tunai,transfer,qris'],
+            'jenis_pembayaran' => ['nullable', 'in:DP,Lunas'],
+            'jumlah_bayar' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+            'metode_pembayaran' => ['nullable', 'in:tunai,transfer,qris'],
         ];
     }
 

@@ -66,9 +66,16 @@ export const APP_CONTENT = {
     nama: 'Bigi Badminton',
     tagline: 'Pusat Olahraga Badminton Modern & Nyaman di Kota Bengkulu',
     deskripsi: 'GOR Bigi Badminton menyediakan 2 lapangan badminton standar turnamen dengan karpet vinyl berkualitas, pencahayaan LED optimal, dan fasilitas pendukung lengkap untuk kenyamanan latihan serta turnamen Anda.',
-    alamat: 'Jl. Universitas Bengkulu No. 1, Kota Bengkulu',
-    instagram: '@bigibadminton',
+    alamat: 'Lihat lokasi di peta',
+    maps_url: 'https://maps.google.com/?q=-3.815252,102.293190',
+    maps_embed_url: 'https://maps.google.com/maps?q=-3.815252,102.293190&z=16&output=embed',
+    instagram: '@bigi_badminton',
+    instagram_url: 'https://instagram.com/bigi_badminton',
     jam_operasional: '08:00 - 23:00 WIB',
+    telepon_reservasi: [
+        { nomor: '085664943141', wa: '6285664943141' },
+        { nomor: '082374236585', wa: '6282374236585' },
+    ],
     fasilitas: [
         {
             judul: '2 Lapangan Karpet Vinyl',

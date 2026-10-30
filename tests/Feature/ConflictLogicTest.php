@@ -314,7 +314,8 @@ class ConflictLogicTest extends TestCase
 
             $sumSubtotal = $res->detailReservasi()->sum('subtotal');
             $this->assertEquals((float) $res->total_biaya, (float) $sumSubtotal);
-            $this->assertGreaterThan(0, $res->total_biaya);
+            // Pada aturan baru, sesi member tidak memiliki tagihan (total_biaya = 0) karena dibayar di awal saat daftar paket
+            $this->assertEquals(0, (float) $res->total_biaya);
         }
     }
 

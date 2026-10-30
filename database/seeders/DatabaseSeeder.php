@@ -13,13 +13,13 @@ class DatabaseSeeder extends Seeder
         // Inisialisasi 2 data master lapangan badminton standar GOR Bigi Badminton
         $lapangan1 = Lapangan::create([
             'nama_lapangan' => 'Lapangan 1',
-            'harga_per_jam' => 50000,
+            'harga_per_jam' => 60000,
             'status_lapangan' => 'tersedia',
         ]);
 
         $lapangan2 = Lapangan::create([
             'nama_lapangan' => 'Lapangan 2',
-            'harga_per_jam' => 50000,
+            'harga_per_jam' => 60000,
             'status_lapangan' => 'tersedia',
         ]);
 

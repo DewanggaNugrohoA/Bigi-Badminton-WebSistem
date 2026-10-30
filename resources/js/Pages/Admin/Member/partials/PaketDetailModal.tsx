@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import PenyesuaianModal from "./PenyesuaianModal";
 import { Plus, SlidersHorizontal, Ban, AlertCircle } from "lucide-react";
+import { formatRupiah } from "@/lib/admin-format";
 
 interface PaketDetailModalProps {
     open: boolean;
@@ -86,10 +87,15 @@ export default function PaketDetailModal({
                                         className="p-3.5 sm:p-4 rounded-md border border-border bg-card space-y-3"
                                     >
                                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-wrap">
                                                 <span className="font-semibold text-xs sm:text-sm text-foreground">
-                                                    Paket #{pkt.id_paket}
+                                                    {pkt.nama_paket || `Paket #${pkt.id_paket}`}
                                                 </span>
+                                                {pkt.harga_paket > 0 && (
+                                                    <span className="text-xs font-mono font-medium text-[var(--brand)]">
+                                                        ({formatRupiah(pkt.harga_paket)})
+                                                    </span>
+                                                )}
                                                 <Badge variant="neutral" className="text-[10px] sm:text-[11px] font-normal text-muted-foreground border-border rounded-md capitalize">
                                                     {pkt.status_dinamis || pkt.status}
                                                 </Badge>

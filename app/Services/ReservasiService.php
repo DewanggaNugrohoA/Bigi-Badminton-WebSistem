@@ -24,6 +24,27 @@ use Illuminate\Validation\ValidationException;
 class ReservasiService
 {
     /**
+     * Hitung tarif sewa lapangan badminton berdasarkan durasi bermain dalam menit.
+     * Aturan tarif resmi:
+     * - 1 jam (60 menit) = Rp 60.000
+     * - 2 jam (120 menit) = Rp 100.000
+     * - Lebih dari 2 jam: floor(jam/2) * 100.000 + (jam mod 2) * 60.000
+     *   (3 jam = 160.000, 4 jam = 200.000, 5 jam = 260.000, dst.)
+     */
+    public static function hitungTarifReservasi(int $durasiMenit): int
+    {
+        if ($durasiMenit <= 0) {
+            return 0;
+        }
+
+        $jam = (int) ceil($durasiMenit / 60);
+        $kelipatanDuaJam = intdiv($jam, 2);
+        $sisaSatuJam = $jam % 2;
+
+        return ($kelipatanDuaJam * 100000) + ($sisaSatuJam * 60000);
+    }
+
+    /**
      * Catat aktivitas perubahan data reservasi ke tabel audit_log.
      */
     public function logAktivitas(int $idUser, string $aksi, string $objek, ?string $keterangan = null): void
@@ -218,11 +239,10 @@ class ReservasiService
 
             $mulai = Carbon::parse($data['jam_mulai']);
             $selesai = Carbon::parse($data['jam_selesai']);
-            $durasiMenit = $mulai->diffInMinutes($selesai);
-            $durasiJam = $durasiMenit / 60;
+            $durasiMenit = (int) $mulai->diffInMinutes($selesai);
+            $totalBiaya = self::hitungTarifReservasi($durasiMenit);
 
             $lapangan = Lapangan::findOrFail($data['id_lapangan']);
-            $totalBiaya = (int) round($durasiJam * $lapangan->harga_per_jam);
 
             $jenisPembayaran = $data['jenis_pembayaran']; 
 
@@ -389,13 +409,37 @@ class ReservasiService
 
         $mulai = Carbon::parse($jamMulai);
         $selesai = Carbon::parse($jamSelesai);
-        $durasiMenit = $mulai->diffInMinutes($selesai);
-        $subtotalPerSesi = ($hargaPerSesi !== null && $hargaPerSesi > 0)
-            ? $hargaPerSesi
-            : (int) round(($durasiMenit / 60) * $lapangan->harga_per_jam);
-
-        
+        $durasiMenit = (int) $mulai->diffInMinutes($selesai);
         $activePaket = $this->getActivePaketMember($user->id_user);
+
+        // Validasi backend Member Pagi: hanya Senin s.d Kamis, jam mulai >= 08:00, jam selesai <= 12:00, durasi per sesi 3 jam.
+        if ($activePaket && $activePaket->jenis_paket === 'pagi_4x3') {
+            $targetDayIndex = (int) $hari;
+            if ($targetDayIndex < 1 || $targetDayIndex > 4) {
+                throw ValidationException::withMessages([
+                    'hari' => 'Paket Member Pagi hanya berlaku untuk hari Senin s.d Kamis.',
+                ]);
+            }
+
+            $mulaiH = Carbon::parse($jamMulai)->format('H:i');
+            $selesaiH = Carbon::parse($jamSelesai)->format('H:i');
+
+            if ($mulaiH < '08:00' || $selesaiH > '12:00') {
+                throw ValidationException::withMessages([
+                    'jam_mulai' => 'Paket Member Pagi hanya berlaku pada rentang jam 08:00 s.d 12:00.',
+                ]);
+            }
+
+            if ($durasiMenit !== 180) {
+                throw ValidationException::withMessages([
+                    'jam_selesai' => 'Durasi per sesi untuk Member Pagi harus tepat 3 jam (180 menit).',
+                ]);
+            }
+        }
+
+        // Sesi autofield/jadwal member tidak membuat tagihan baru dan tidak memakai harga per jam.
+        // Sesi hanya memakai kuota paket. Nilai per sesi 0 karena sudah dibayar di awal saat daftar paket.
+        $subtotalPerSesi = 0;
 
         $sisaSesiPaket = $activePaket ? $activePaket->sisa_sesi : 0;
 
@@ -525,35 +569,40 @@ class ReservasiService
 
             $user = User::findOrFail($data['id_user']);
             $lapangan = Lapangan::findOrFail($data['id_lapangan']);
-            $totalBiaya = $preview['total_biaya'];
-            $jenisPembayaran = $data['jenis_pembayaran'];
-            $jumlahBayar = (float) $data['jumlah_bayar'];
 
-            if ($jenisPembayaran === Pembayaran::JENIS_LUNAS) {
-                if ($jumlahBayar < $totalBiaya) {
-                    throw ValidationException::withMessages([
-                        'jumlah_bayar' => 'Pembayaran Lunas harus mencakup seluruh total biaya paket sesi.',
-                    ]);
-                }
-            } elseif ($jenisPembayaran === Pembayaran::JENIS_DP) {
-                if ($jumlahBayar <= 0 || $jumlahBayar >= $totalBiaya) {
-                    throw ValidationException::withMessages([
-                        'jumlah_bayar' => 'Pembayaran DP harus lebih dari 0 dan kurang dari total biaya.',
-                    ]);
-                }
-            } else {
-                throw ValidationException::withMessages([
-                    'jenis_pembayaran' => 'Jenis pembayaran tidak valid (harus DP atau Lunas).',
-                ]);
-            }
-
-            
             $paket = $this->getActivePaketMember($user->id_user, true);
 
             if (! $paket) {
                 throw ValidationException::withMessages([
                     'id_user' => 'Member ini tidak memiliki paket sesi aktif yang masih berlaku.',
                 ]);
+            }
+
+            // Validasi backend Member Pagi: hanya Senin s.d Kamis, jam mulai >= 08:00, jam selesai <= 12:00, durasi per sesi 3 jam.
+            if ($paket->jenis_paket === 'pagi_4x3') {
+                $targetDayIndex = (int) $data['hari'];
+                if ($targetDayIndex < 1 || $targetDayIndex > 4) {
+                    throw ValidationException::withMessages([
+                        'hari' => 'Paket Member Pagi hanya berlaku untuk hari Senin s.d Kamis.',
+                    ]);
+                }
+
+                $mulaiH = Carbon::parse($data['jam_mulai'])->format('H:i');
+                $selesaiH = Carbon::parse($data['jam_selesai'])->format('H:i');
+
+                if ($mulaiH < '08:00' || $selesaiH > '12:00') {
+                    throw ValidationException::withMessages([
+                        'jam_mulai' => 'Paket Member Pagi hanya berlaku pada rentang jam 08:00 s.d 12:00.',
+                    ]);
+                }
+
+                $mulaiCarbon = Carbon::parse($data['jam_mulai']);
+                $selesaiCarbon = Carbon::parse($data['jam_selesai']);
+                if ((int) $mulaiCarbon->diffInMinutes($selesaiCarbon) !== 180) {
+                    throw ValidationException::withMessages([
+                        'jam_selesai' => 'Durasi per sesi untuk Member Pagi harus tepat 3 jam (180 menit).',
+                    ]);
+                }
             }
 
             $totalSesiDibutuhkan = count($preview['jadwal']);
@@ -563,12 +612,13 @@ class ReservasiService
                 ]);
             }
 
-            
+            // Sesi autofield/jadwal member TIDAK membuat tagihan baru dan TIDAK memakai harga per jam.
+            // Sesi hanya memakai kuota paket. Pembayaran sudah dilakukan sekali di awal saat paket didaftarkan.
             $reservasi = Reservasi::create([
                 'id_user' => $user->id_user,
                 'id_paket' => $paket->id_paket,
                 'tanggal_pemesanan' => Carbon::now('Asia/Jakarta')->toDateString(),
-                'total_biaya' => $totalBiaya,
+                'total_biaya' => 0,
                 'status_reservasi' => Reservasi::STATUS_TERKONFIRMASI,
             ]);
 
@@ -576,9 +626,7 @@ class ReservasiService
             $selesai = Carbon::parse($data['jam_selesai']);
             $durasiMenit = $mulai->diffInMinutes($selesai);
 
-            
             foreach ($preview['jadwal'] as $sesi) {
-                
                 $con = $this->checkSlotConflict(
                     $lapangan->id_lapangan,
                     $sesi['tanggal'],
@@ -601,26 +649,16 @@ class ReservasiService
                     'jam_mulai' => $mulai->format('H:i:s'),
                     'jam_selesai' => $selesai->format('H:i:s'),
                     'durasi' => $durasiMenit,
-                    'subtotal' => $sesi['subtotal'],
+                    'subtotal' => 0,
                 ]);
             }
 
-            
-            Pembayaran::create([
-                'id_reservasi' => $reservasi->id_reservasi,
-                'tanggal_pembayaran' => Carbon::now('Asia/Jakarta')->toDateString(),
-                'jenis_pembayaran' => $jenisPembayaran,
-                'jumlah' => $jumlahBayar,
-                'metode_pembayaran' => $data['metode_pembayaran'] ?? Pembayaran::METODE_TRANSFER,
-                'status_pembayaran' => Pembayaran::STATUS_TERKONFIRMASI,
-                'keterangan' => $data['keterangan'] ?? 'Reservasi Member Rutin',
-            ]);
-
+            // Sesi member tidak membuat pembayaran atau pendapatan baru.
             $this->logAktivitas(
                 $adminUserId,
                 'TAMBAH_RESERVASI_MEMBER',
                 "Reservasi #{$reservasi->id_reservasi}",
-                "Membuat paket member autofield untuk {$user->nama} ({$preview['total_sesi']} sesi, Total Rp " . number_format($totalBiaya, 0, ',', '.') . ')'
+                "Membuat jadwal rutin autofield untuk {$user->nama} ({$preview['total_sesi']} sesi dari Paket #{$paket->id_paket})"
             );
 
             return $reservasi;

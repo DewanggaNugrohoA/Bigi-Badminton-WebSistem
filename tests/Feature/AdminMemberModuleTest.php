@@ -94,7 +94,7 @@ class AdminMemberModuleTest extends TestCase
             'jam_mulai' => '09:00',
             'jam_selesai' => '10:00',
             'jenis_pembayaran' => Pembayaran::JENIS_LUNAS,
-            'jumlah_bayar' => 50000,
+            'jumlah_bayar' => 60000,
             'metode_pembayaran' => Pembayaran::METODE_TUNAI,
         ], $this->admin->id_user);
 
@@ -114,7 +114,7 @@ class AdminMemberModuleTest extends TestCase
             'jam_mulai' => '10:00',
             'jam_selesai' => '11:00',
             'jenis_pembayaran' => Pembayaran::JENIS_LUNAS,
-            'jumlah_bayar' => 50000,
+            'jumlah_bayar' => 60000,
             'metode_pembayaran' => Pembayaran::METODE_TUNAI,
         ], $this->admin->id_user);
     }
@@ -135,7 +135,7 @@ class AdminMemberModuleTest extends TestCase
             'jam_mulai' => '14:00',
             'jam_selesai' => '15:00',
             'jenis_pembayaran' => Pembayaran::JENIS_LUNAS,
-            'jumlah_bayar' => 50000,
+            'jumlah_bayar' => 60000,
             'metode_pembayaran' => Pembayaran::METODE_TUNAI,
         ], $this->admin->id_user);
 
@@ -288,7 +288,7 @@ class AdminMemberModuleTest extends TestCase
             'jam_mulai' => '09:00',
             'jam_selesai' => '10:00',
             'jenis_pembayaran' => Pembayaran::JENIS_LUNAS,
-            'jumlah_bayar' => 50000,
+            'jumlah_bayar' => 60000,
             'metode_pembayaran' => Pembayaran::METODE_TUNAI,
         ], $this->admin->id_user);
 
@@ -317,7 +317,7 @@ class AdminMemberModuleTest extends TestCase
             'jam_mulai' => '09:00',
             'jam_selesai' => '10:00',
             'jenis_pembayaran' => Pembayaran::JENIS_LUNAS,
-            'jumlah_bayar' => 50000,
+            'jumlah_bayar' => 60000,
             'metode_pembayaran' => Pembayaran::METODE_TUNAI,
         ], $this->admin->id_user);
 
@@ -549,7 +549,7 @@ class AdminMemberModuleTest extends TestCase
             'jam_mulai' => '08:00',
             'jam_selesai' => '09:00',
             'jenis_pembayaran' => Pembayaran::JENIS_LUNAS,
-            'jumlah_bayar' => 50000,
+            'jumlah_bayar' => 60000,
             'metode_pembayaran' => Pembayaran::METODE_TUNAI,
         ], $this->admin->id_user);
 

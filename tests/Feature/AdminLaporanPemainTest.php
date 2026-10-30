@@ -57,7 +57,7 @@ class AdminLaporanPemainTest extends TestCase
 
         $this->lapangan = Lapangan::create([
             'nama_lapangan' => 'Lapangan A',
-            'harga_per_jam' => 50000,
+            'harga_per_jam' => 60000,
             'status_lapangan' => Lapangan::STATUS_TERSEDIA,
         ]);
     }

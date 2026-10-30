@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { formatRupiah } from "@/lib/admin-format";
 import { cn } from "@/lib/utils";
 
@@ -268,7 +268,7 @@ export default function BookingModal({
                                             type="text"
                                             inputMode="numeric"
                                             autoComplete="off"
-                                            placeholder="Contoh: 50.000"
+                                            placeholder="Contoh: 60.000"
                                             value={
                                                 regularForm.data.nominal_dp
                                                     ? Number(regularForm.data.nominal_dp).toLocaleString("id-ID")
@@ -542,9 +542,9 @@ export default function BookingModal({
                                             )}
                                         </div>
                                         <div>
-                                            <span className="font-semibold text-foreground">Total Biaya: </span>
-                                            <span className="font-bold text-[var(--brand)] font-mono">
-                                                {formatRupiah(autofieldPreview.total_biaya)}
+                                            <span className="font-semibold text-foreground">Status Biaya: </span>
+                                            <span className="font-bold text-emerald-500 font-mono">
+                                                {autofieldPreview.total_biaya > 0 ? formatRupiah(autofieldPreview.total_biaya) : "Termasuk Paket (Rp 0)"}
                                             </span>
                                         </div>
                                     </div>
@@ -555,9 +555,6 @@ export default function BookingModal({
                                                 <div>
                                                     <span className={cn("font-medium", j.melebihi_kuota ? "text-rose-400" : "text-foreground")}>
                                                         {j.tanggal_format}
-                                                    </span>
-                                                    <span className="text-[11px] text-muted-foreground ml-2 font-mono">
-                                                        ({formatRupiah(j.subtotal)})
                                                     </span>
                                                 </div>
                                                 {j.status === "OK" ? (
@@ -583,86 +580,14 @@ export default function BookingModal({
                             )}
 
                             {autofieldPreview?.bisa_disimpan && (
-                                <div className="grid grid-cols-3 gap-3 pt-2">
-                                    <div className="space-y-1.5">
-                                        <Label>Jenis Bayar</Label>
-                                        <Select
-                                            value={memberForm.data.jenis_pembayaran}
-                                            onChange={(e) => {
-                                                const j = e.target.value;
-                                                memberForm.setData("jenis_pembayaran", j);
-                                                memberForm.clearErrors("jumlah_bayar");
-                                                if (j === "Lunas" && autofieldPreview?.total_biaya) {
-                                                    memberForm.setData("jumlah_bayar", String(autofieldPreview.total_biaya));
-                                                }
-                                            }}
-                                        >
-                                            <option value="Lunas">Lunas</option>
-                                            <option value="DP">DP</option>
-                                        </Select>
+                                <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+                                        <span>Jadwal memotong kuota paket aktif (Lunas di awal, tanpa tagihan tambahan).</span>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="nominal-autofield">Nominal (Rp)</Label>
-                                        <Input
-                                            id="nominal-autofield"
-                                            type="text"
-                                            inputMode="numeric"
-                                            autoComplete="off"
-                                            placeholder="Contoh: 200.000"
-                                            readOnly={memberForm.data.jenis_pembayaran === "Lunas"}
-                                            className={cn(
-                                                memberForm.data.jenis_pembayaran === "Lunas" &&
-                                                    "bg-muted/60 text-muted-foreground cursor-not-allowed"
-                                            )}
-                                            value={
-                                                memberForm.data.jumlah_bayar
-                                                    ? Number(memberForm.data.jumlah_bayar).toLocaleString("id-ID")
-                                                    : ""
-                                            }
-                                            onKeyDown={(e) => {
-                                                if (["-", "+", "e", "E", ".", ","].includes(e.key)) {
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                            onWheel={(e) => (e.target as HTMLElement).blur()}
-                                            onChange={(e) => {
-                                                const cleanDigits = e.target.value.replace(/\D/g, "");
-                                                const parsed = cleanDigits ? String(parseInt(cleanDigits, 10)) : "";
-                                                memberForm.setData("jumlah_bayar", parsed);
-                                                if (memberForm.errors.jumlah_bayar) {
-                                                    memberForm.clearErrors("jumlah_bayar");
-                                                }
-                                            }}
-                                            onPaste={(e) => {
-                                                e.preventDefault();
-                                                const pasted = e.clipboardData.getData("text").replace(/\D/g, "");
-                                                const parsed = pasted ? String(parseInt(pasted, 10)) : "";
-                                                memberForm.setData("jumlah_bayar", parsed);
-                                                if (memberForm.errors.jumlah_bayar) {
-                                                    memberForm.clearErrors("jumlah_bayar");
-                                                }
-                                            }}
-                                        />
-                                        {memberForm.data.jenis_pembayaran === "DP" && autofieldPreview?.total_biaya && (
-                                            <p className="text-[11px] text-muted-foreground">
-                                                Batas DP: Rp 1 s/d {formatRupiah(Math.max(0, autofieldPreview.total_biaya - 1))}
-                                            </p>
-                                        )}
-                                        {memberForm.errors.jumlah_bayar && (
-                                            <p className="text-xs text-destructive">{memberForm.errors.jumlah_bayar}</p>
-                                        )}
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label>Metode</Label>
-                                        <Select
-                                            value={memberForm.data.metode_pembayaran}
-                                            onChange={(e) => memberForm.setData("metode_pembayaran", e.target.value)}
-                                        >
-                                            <option value="transfer">Transfer</option>
-                                            <option value="tunai">Tunai</option>
-                                            <option value="qris">QRIS</option>
-                                        </Select>
-                                    </div>
+                                    <Badge variant="outline" className="text-emerald-600 border-emerald-500/30 font-semibold">
+                                        {autofieldPreview.total_sesi} Sesi Terpakai
+                                    </Badge>
                                 </div>
                             )}
 

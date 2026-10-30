@@ -72,9 +72,18 @@ class LaporanEksporService
         $posQris = (float) ($posSelesai->total_qris ?? 0);
 
         $sewaValidAgg = Pembayaran::query()
-            ->join('reservasi', 'pembayaran.id_reservasi', '=', 'reservasi.id_reservasi')
+            ->leftJoin('reservasi', 'pembayaran.id_reservasi', '=', 'reservasi.id_reservasi')
+            ->leftJoin('paket_member', 'pembayaran.id_paket', '=', 'paket_member.id_paket')
             ->where('pembayaran.status_pembayaran', Pembayaran::STATUS_TERKONFIRMASI)
-            ->where('reservasi.status_reservasi', '!=', Reservasi::STATUS_BATAL)
+            ->where(function ($q) {
+                $q->where(function ($qRes) {
+                    $qRes->whereNotNull('pembayaran.id_reservasi')
+                        ->where('reservasi.status_reservasi', '!=', Reservasi::STATUS_BATAL);
+                })->orWhere(function ($qPkt) {
+                    $qPkt->whereNotNull('pembayaran.id_paket')
+                        ->where('paket_member.status', '!=', \App\Models\PaketMember::STATUS_DIBATALKAN);
+                });
+            })
             ->whereDate('pembayaran.tanggal_pembayaran', '>=', $startDate)
             ->whereDate('pembayaran.tanggal_pembayaran', '<=', $endDate)
             ->selectRaw('
@@ -494,7 +503,7 @@ class LaporanEksporService
 
         $this->applySheetStyles($sheet, 'I', 1);
 
-        $pembayaran = Pembayaran::with(['reservasi.user'])
+        $pembayaran = Pembayaran::with(['reservasi.user', 'paket.user'])
             ->whereDate('tanggal_pembayaran', '>=', $startDate)
             ->whereDate('tanggal_pembayaran', '<=', $endDate)
             ->orderBy('tanggal_pembayaran', 'asc')
@@ -503,16 +512,18 @@ class LaporanEksporService
         $row = 2;
         foreach ($pembayaran as $p) {
             $res = $p->reservasi;
-            $namaPemesan = $res?->nama_pemesan ?: ($res?->user?->nama ?: 'Pelanggan');
+            $namaPemesan = $res?->nama_pemesan ?: ($res?->user?->nama ?: ($p->paket?->user?->nama ?: 'Pelanggan'));
+            $refId = $p->id_reservasi ? ('#' . $p->id_reservasi) : ('Paket #' . $p->id_paket);
+            $statusSewa = $res ? ucfirst($res->status_reservasi) : ucfirst($p->paket?->status ?? 'Aktif');
 
             $sheet->setCellValue("A{$row}", Carbon::parse($p->tanggal_pembayaran)->format('d/m/Y'));
-            $sheet->setCellValueExplicit("B{$row}", '#' . $p->id_reservasi, DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("B{$row}", $refId, DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("C{$row}", $this->sanitizeText($namaPemesan), DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("D{$row}", $p->jenis_pembayaran, DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("E{$row}", strtoupper($p->metode_pembayaran), DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("F{$row}", (float) $p->jumlah, DataType::TYPE_NUMERIC);
             $sheet->setCellValueExplicit("G{$row}", ucfirst($p->status_pembayaran), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("H{$row}", ucfirst($res?->status_reservasi ?? '-'), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("H{$row}", $statusSewa, DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("I{$row}", $this->sanitizeText($p->keterangan ?? '-'), DataType::TYPE_STRING);
 
             $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('#,##0');

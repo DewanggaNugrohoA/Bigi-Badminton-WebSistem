@@ -149,6 +149,10 @@ class MemberController extends Controller
 
                 return [
                     'id_paket' => $p->id_paket,
+                    'jenis_paket' => $p->jenis_paket,
+                    'durasi_jam_per_sesi' => $p->durasi_jam_per_sesi,
+                    'harga_paket' => (float) $p->harga_paket,
+                    'nama_paket' => $p->nama_paket_label,
                     'jumlah_sesi' => $p->jumlah_sesi,
                     'sesi_terpakai' => $p->sesi_terpakai,
                     'sisa_sesi' => $p->sisa_sesi,
@@ -263,23 +267,62 @@ class MemberController extends Controller
         $user = User::where('role', User::ROLE_USER)->findOrFail($userId);
         $adminId = $request->user()->id_user;
 
-        $paket = PaketMember::create([
-            'id_user' => $user->id_user,
-            'jumlah_sesi' => $request->jumlah_sesi,
-            'tanggal_mulai' => $request->tanggal_mulai,
-            'tanggal_akhir' => $request->tanggal_akhir,
-            'status' => PaketMember::STATUS_AKTIF,
-            'catatan' => $request->catatan,
-        ]);
+        return DB::transaction(function () use ($user, $request, $adminId) {
+            $jenis = $request->input('jenis_paket', 'kustom');
+            $jumlahSesi = (int) $request->input('jumlah_sesi');
+            $durasi = $request->filled('durasi_jam_per_sesi') ? (int) $request->input('durasi_jam_per_sesi') : null;
+            $harga = $request->filled('harga_paket') ? (float) $request->input('harga_paket') : 0;
 
-        $this->logAudit(
-            $adminId,
-            'TAMBAH_PAKET_MEMBER',
-            "Paket Member #{$paket->id_paket}",
-            "Menambahkan paket {$paket->jumlah_sesi} sesi untuk {$user->nama} (Masa berlaku: {$paket->tanggal_mulai->format('d/m/Y')}" . ($paket->tanggal_akhir ? " s/d {$paket->tanggal_akhir->format('d/m/Y')}" : '') . ')'
-        );
+            if ($jenis === 'bulanan_4x3') {
+                $jumlahSesi = 4;
+                $durasi = 3;
+                $harga = 450000.00;
+            } elseif ($jenis === 'bulanan_4x2') {
+                $jumlahSesi = 4;
+                $durasi = 2;
+                $harga = 350000.00;
+            } elseif ($jenis === 'pagi_4x3') {
+                $jumlahSesi = 4;
+                $durasi = 3;
+                $harga = 300000.00;
+            }
 
-        return redirect()->back()->with('success', "Paket sesi ({$paket->jumlah_sesi} sesi) berhasil ditambahkan untuk {$user->nama}.");
+            $paket = PaketMember::create([
+                'id_user' => $user->id_user,
+                'jenis_paket' => $jenis,
+                'jumlah_sesi' => $jumlahSesi,
+                'durasi_jam_per_sesi' => $durasi,
+                'harga_paket' => $harga,
+                'tanggal_mulai' => $request->tanggal_mulai,
+                'tanggal_akhir' => $request->tanggal_akhir,
+                'status' => PaketMember::STATUS_AKTIF,
+                'catatan' => $request->catatan,
+            ]);
+
+            // Catat pembayaran SATU KALI di awal jika harga paket > 0
+            if ($harga > 0) {
+                $metode = $request->input('metode_pembayaran', 'transfer') ?: 'transfer';
+                \App\Models\Pembayaran::create([
+                    'id_paket' => $paket->id_paket,
+                    'id_reservasi' => null,
+                    'tanggal_pembayaran' => Carbon::now('Asia/Jakarta')->toDateString(),
+                    'jenis_pembayaran' => \App\Models\Pembayaran::JENIS_LUNAS,
+                    'jumlah' => $harga,
+                    'metode_pembayaran' => $metode,
+                    'status_pembayaran' => \App\Models\Pembayaran::STATUS_TERKONFIRMASI,
+                    'keterangan' => "Pembayaran Paket Member #{$paket->id_paket} ({$paket->nama_paket_label})",
+                ]);
+            }
+
+            $this->logAudit(
+                $adminId,
+                'TAMBAH_PAKET_MEMBER',
+                "Paket Member #{$paket->id_paket}",
+                "Menambahkan paket {$paket->nama_paket_label} ({$paket->jumlah_sesi} sesi" . ($harga > 0 ? ", Rp " . number_format($harga, 0, ',', '.') : '') . ") untuk {$user->nama}"
+            );
+
+            return redirect()->back()->with('success', "Paket {$paket->nama_paket_label} berhasil ditambahkan untuk {$user->nama}.");
+        });
     }
 
     /**

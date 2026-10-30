@@ -198,3 +198,47 @@
 - Pencatatan log terhubung ke seluruh operasi penting: void transaksi, restock barang, stock opname, checkout kasir, login/logout (staf maupun pengguna umum), serta operasi CRUD biaya operasional.
 - Tampilan antarmuka audit log menyajikan urutan kronologis terbaru di atas dengan badge role, badge aksi berwarna, informasi pengguna, keterangan, alamat IP, filter tanggal/aksi/role/pengguna/pencarian, pagination, dan dialog penampil detail payload data.
 
+## 24. Perubahan A: Tarif Sewa Lapangan & Paket Member Bayar di Awal
+- **Tarif Sewa Lapangan Reguler:**
+  - Tarif baru:
+    - 1 jam = Rp 60.000
+    - 2 jam = Rp 100.000
+    - Lebih dari 2 jam dihitung dengan formula kelipatan 2 jam + sisa ganjil: `floor(jam / 2) * 100.000 + (jam % 2) * 60.000`. Contoh: 3 jam = Rp 160.000, 4 jam = Rp 200.000, 5 jam = Rp 260.000.
+  - Perhitungan tarif dikelola terpusat di satu sumber kebenaran: `ReservasiService::hitungTarifReservasi` (backend) dan `resources/js/lib/admin-format.ts` (frontend).
+  - Kolom `harga_per_jam` pada tabel `lapangan` diperbarui menjadi 60.000 lewat migrasi `2026_10_30_100001_update_harga_per_jam_on_lapangan_table.php` dan `DatabaseSeeder`.
+  - Data historis reservasi lama tidak diubah harganya.
+- **Paket Member (Bayar Sekali di Awal):**
+  - Tiga paket resmi Bigi Badminton:
+    1. Member Bulanan 4 hari x 3 jam = Rp 450.000
+    2. Member Bulanan 4 hari x 2 jam = Rp 350.000
+    3. Member Pagi (Senin s.d Kamis, 08.00-12.00), 4 hari x 3 jam = Rp 300.000
+    4. Opsi Paket Kustom (sesi, durasi, harga fleksibel).
+  - Skema pembayaran member: Member membayar satu kali di awal untuk satu paket penuh. Pembayaran dicatat langsung ke tabel `pembayaran` (`id_paket` terisi, `id_reservasi = null`).
+  - Kolom pendukung `jenis_paket`, `durasi_jam_per_sesi`, dan `harga_paket` ditambahkan ke tabel `paket_member`, serta `id_paket` pada tabel `pembayaran` melalui migrasi `2026_10_30_100002_add_paket_details_and_pembayaran_paket_id.php`.
+  - Sesi autofield / jadwal sewa member yang dibuat hanya mengonsumsi kuota paket (`sisa_sesi`) tanpa membuat tagihan baru (`total_biaya = 0`, `subtotal = 0`) dan tanpa membuat pembayaran ganda.
+  - Fitur pencatatan sesi member (penyesuaian kuota manual oleh Admin) tetap utuh dan hanya mengurangi kuota tanpa menimbulkan tagihan atau pencatatan pendapatan baru.
+  - Validasi ketat backend untuk Paket Member Pagi:
+    - Hanya berlaku untuk hari Senin s.d Kamis (index 1 s.d 4).
+    - Jam mulai >= 08:00 dan jam selesai <= 12:00.
+    - Durasi per sesi harus tepat 3 jam (180 menit).
+- **Laporan Keuangan Eksekutif & Ekspor Excel:**
+  - Pendapatan paket member dihitung satu kali sebesar harga paket pada tanggal pembayaran paket.
+  - Sesi reservasi autofield member tidak dihitung ulang sebagai pendapatan sewa lapangan agar terhindar dari perhitungan ganda (*no double counting*).
+  - Laba bersih tetap akurat: `(Pendapatan Sewa Valid + Pendapatan Paket Member + Pendapatan POS Selesai) - Biaya Operasional`.
+
+## 25. Perubahan B: Footer, Kontak Resmi, dan Google Maps Embed
+- **Tata Letak Footer (`resources/js/components/site-footer.tsx`):**
+  - Susunan desktop (`lg:grid-cols-12`): Brand (3 kolom) | Navigasi (2 kolom) | Open Mabar (2 kolom) | Kontak (2 kolom) | Peta Google Maps (3 kolom).
+  - Kolom Kontak digeser ke sebelah kiri tepat berdampingan dengan kolom Open Mabar.
+  - Kolom paling kanan memuat iframe embed Google Maps koordinat `-3.815252, 102.293190` dengan sudut membulat, garis tepi, atribut `loading="lazy"`, serta tombol tautan "Buka di Google Maps".
+  - Responsif:
+    - Mobile: Satu kolom vertikal rapi, peta berada di paling bawah dengan lebar 100%.
+    - Tablet: Brand selebar layar, Navigasi dan Open Mabar bersanding di baris kedua, Kontak dan Peta bersanding di baris ketiga.
+- **Informasi Kontak Resmi (`config/bigi.php` dan `resources/js/lib/content.ts`):**
+  - Nomor WhatsApp Reservasi: `085664943141` dan `082374236585` (keduanya ditampilkan dengan tautan `wa.me`).
+  - Akun Instagram: `@bigi_badminton` (`https://instagram.com/bigi_badminton`).
+  - Alamat: "Lihat lokasi di peta" yang langsung membuka Google Maps di tab baru.
+  - Jam Operasional: `08:00 - 23:00 WIB`.
+  - Struk Kasir POS (`resources/js/Pages/Kasir/Struk.tsx`): Header alamat diperbarui menjadi "Bigi Badminton, Bengkulu".
+
+

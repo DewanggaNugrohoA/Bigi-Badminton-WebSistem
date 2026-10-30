@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { hitungTarifReservasi } from "@/lib/admin-format";
 import BookingModal from "./partials/BookingModal";
 import PelunasanModal from "./partials/PelunasanModal";
 import BatalModal from "./partials/BatalModal";
@@ -182,26 +183,21 @@ export default function ReservasiIndex({
 
     
     const getTarifStandarRegular = () => {
-        const lap = lapangan.find((l) => String(l.id_lapangan) === regularForm.data.id_lapangan);
-        const harga = lap?.harga_per_jam || 50000;
         const [startH, startM = 0] = (regularForm.data.jam_mulai || "").split(":").map(Number);
         const [endH, endM = 0] = (regularForm.data.jam_selesai || "").split(":").map(Number);
         if (isNaN(startH) || isNaN(endH)) return 0;
         const durasiMenit = (endH * 60 + endM) - (startH * 60 + startM);
         if (durasiMenit <= 0) return 0;
-        return Math.round((durasiMenit / 60) * harga);
+        return hitungTarifReservasi(durasiMenit);
     };
 
-    
     const getTarifStandarMemberSesi = () => {
-        const lap = lapangan.find((l) => String(l.id_lapangan) === memberForm.data.id_lapangan);
-        const harga = lap?.harga_per_jam || 50000;
         const [startH, startM = 0] = (memberForm.data.jam_mulai || "").split(":").map(Number);
         const [endH, endM = 0] = (memberForm.data.jam_selesai || "").split(":").map(Number);
         if (isNaN(startH) || isNaN(endH)) return 0;
         const durasiMenit = (endH * 60 + endM) - (startH * 60 + startM);
         if (durasiMenit <= 0) return 0;
-        return Math.round((durasiMenit / 60) * harga);
+        return hitungTarifReservasi(durasiMenit);
     };
 
     

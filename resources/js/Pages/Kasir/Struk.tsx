@@ -145,7 +145,7 @@ export default function StrukKasir({ transaksi }: Props) {
                     <div className="print-item-block text-center pb-4 border-b border-dashed border-border">
                         <h1 className="font-bold text-sm tracking-tight text-foreground">BIGI BADMINTON</h1>
                         <p className="text-[11px] text-muted-foreground mt-0.5">GOR Badminton 2 Lapangan</p>
-                        <p className="text-[10px] text-muted-foreground">Komp. Olahraga, Bengkulu</p>
+                        <p className="text-[10px] text-muted-foreground">Bigi Badminton, Bengkulu</p>
                     </div>
 
                     <div className="print-item-block py-3 border-b border-dashed border-border flex flex-col gap-1 text-[11px] text-muted-foreground">
