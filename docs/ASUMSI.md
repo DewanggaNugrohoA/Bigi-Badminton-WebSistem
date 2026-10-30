@@ -297,3 +297,11 @@
 ## 30. Penghapusan Search Box Pemain di Output Laporan Pemain
 - Kotak pencarian "Cari nama atau nomor..." pada judul tabel Daftar Kunjungan & Aktivitas Pemain di tab Pemain ([`resources/js/Pages/Admin/Laporan/Index.tsx`](file:///c:/laragon/www/bigi-badminton/resources/js/Pages/Admin/Laporan/Index.tsx)) dihapus sesuai arahan visual pengguna.
 - Output laporan eksekutif (tampilan cetak maupun layar) kini bersih tanpa kolom input pencarian, sehingga format tabel laporan seragam dan rapi.
+
+
+## 31. Header Judul Laporan Dinamis Sesuai Jenis Laporan
+- Header cetak dokumen pada output laporan ([`resources/js/Pages/Admin/Laporan/Index.tsx`](file:///c:/laragon/www/bigi-badminton/resources/js/Pages/Admin/Laporan/Index.tsx)) kini dinamis mengikuti tab laporan yang sedang aktif:
+  - Tab Keuangan : `BIGI BADMINTON - LAPORAN KEUANGAN`
+  - Tab Pemain   : `BIGI BADMINTON - LAPORAN PEMAIN`
+  - Tab Lapangan : `BIGI BADMINTON - LAPORAN LAPANGAN`
+- Judul halaman, meta title `<Head>`, dan breadcrumb layout juga otomatis tersinkronisasi mengikuti jenis tab laporan yang dipilih.

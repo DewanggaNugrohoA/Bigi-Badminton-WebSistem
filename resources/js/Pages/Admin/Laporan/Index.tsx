@@ -317,6 +317,31 @@ export default function LaporanIndex({
     const [endDate, setEndDate] = useState(filters.end_date || "");
     const [filterLapangan, setFilterLapangan] = useState(filters.id_lapangan || "");
     const [dateError, setDateError] = useState("");
+    const [activeTab, setActiveTab] = useState<string>(() => {
+        if (typeof window !== "undefined") {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get("tab");
+            if (tab && ["keuangan", "pemain", "lapangan"].includes(tab)) {
+                return tab;
+            }
+        }
+        return "keuangan";
+    });
+
+    const labelJenisLaporan: Record<string, string> = {
+        keuangan: "LAPORAN KEUANGAN",
+        pemain: "LAPORAN PEMAIN",
+        lapangan: "LAPORAN LAPANGAN",
+    };
+
+    const labelJenisTitle: Record<string, string> = {
+        keuangan: "Laporan Keuangan",
+        pemain: "Laporan Pemain",
+        lapangan: "Laporan Lapangan",
+    };
+
+    const currentJenisHeader = labelJenisLaporan[activeTab] || "LAPORAN KEUANGAN";
+    const currentTitle = labelJenisTitle[activeTab] || "Laporan Keuangan";
 
     // Form input pemeriksaan lapangan
     const todayStr = new Date().toISOString().split("T")[0];
@@ -445,16 +470,16 @@ export default function LaporanIndex({
 
     return (
         <AdminLayout
-            title="Laporan Eksekutif"
-            breadcrumb={[{ label: "Laporan" }, { label: "Keuangan" }]}
+            title={currentTitle}
+            breadcrumb={[{ label: "Laporan" }, { label: currentTitle.replace("Laporan ", "") }]}
         >
-            <Head title="Laporan - Bigi Badminton" />
+            <Head title={`${currentTitle} - Bigi Badminton`} />
 
             <div className="hidden print:block mb-4 border-b-2 border-black pb-3 w-full">
                 <div className="flex justify-between items-start gap-4 w-full">
                     <div className="shrink-0">
                         <h1 className="text-lg font-bold tracking-tight text-black">
-                            BIGI BADMINTON - LAPORAN EKSEKUTIF
+                            BIGI BADMINTON - {currentJenisHeader}
                         </h1>
                         <p className="text-xs text-black mt-0.5 font-medium">
                             Periode: {formatTanggal(filters.start_date)} s.d. {formatTanggal(filters.end_date)}
@@ -552,7 +577,7 @@ export default function LaporanIndex({
                     )}
                 </div>
 
-                <Tabs defaultValue="keuangan" className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="print:hidden w-full sm:w-auto self-start bg-transparent border-b border-border rounded-none p-0 h-auto gap-4">
                         <TabsTrigger
                             value="keuangan"
