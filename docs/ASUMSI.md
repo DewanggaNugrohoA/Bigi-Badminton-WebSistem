@@ -268,3 +268,15 @@
 
 
 
+
+
+## 28. Penyederhanaan Laporan Keuangan ke Arus Kas Pendapatan & Pengeluaran Harian
+- Berdasarkan arahan pengguna bahwa laporan keuangan tidak perlu mencantumkan nama pemain dan format kotak-kotak DP/Lunas dihilangkan agar tampilan sederhana namun tetap rapi:
+  1. **Fokus Murni Arus Kas / Ledger Keuangan Harian**:
+     - Tabel nama pemain dan riwayat pembayaran pemain dilepas dari tab Keuangan (data pemain tetap dapat diakses di tab Pemain dan menu Reservasi).
+     - Tab Keuangan berfokus pada **Rekapitulasi Arus Kas Harian (Pendapatan & Pengeluaran)** dengan kolom: Tanggal & Hari, Pendapatan Sewa, Pendapatan POS, Total Pendapatan, Pengeluaran Operasional, dan Laba Bersih / Selisih Harian.
+     - Seluruh tanggal dalam periode (misal 1 s.d. 31 Oktober) tampil berurutan; hari dengan atau tanpa aktivitas terlihat jelas dengan perolehan uang masuk dan keluar.
+     - Disediakan baris ringkasan total keseluruhan periode di bagian bawah tabel.
+  2. **Tampilan Sederhana & Rapi**:
+     - Kotak-kotak terpisah untuk DP dan Lunas serta kartu grid metode pembayaran sewa lapangan dihapus.
+     - Ringkasan Keuangan atas disederhanakan dengan baris ringkas: Pendapatan Sewa, Pendapatan POS, Total Pendapatan Kotor, Pengeluaran Operasional, Laba Bersih, Koreksi Kas, dan Piutang Sewa.

@@ -212,6 +212,33 @@ class LaporanController extends Controller
             ->get()
             ->keyBy('tgl');
 
+        $posByDate = TransaksiPos::query()
+            ->where('status_transaksi', TransaksiPos::STATUS_SELESAI)
+            ->whereDate('tanggal', '>=', $startDate)
+            ->whereDate('tanggal', '<=', $endDate)
+            ->selectRaw('
+                DATE(tanggal) as tgl,
+                COUNT(id_transaksi) as total_transaksi,
+                COALESCE(SUM(CASE WHEN metode_bayar = "tunai" THEN total ELSE 0 END), 0) as tunai,
+                COALESCE(SUM(CASE WHEN metode_bayar = "qris" THEN total ELSE 0 END), 0) as qris,
+                COALESCE(SUM(total), 0) as total
+            ')
+            ->groupBy(DB::raw('DATE(tanggal)'))
+            ->get()
+            ->keyBy('tgl');
+
+        $expensesByDate = BiayaOperasional::query()
+            ->whereDate('tanggal_biaya', '>=', $startDate)
+            ->whereDate('tanggal_biaya', '<=', $endDate)
+            ->selectRaw('
+                DATE(tanggal_biaya) as tgl,
+                COUNT(id_biaya) as total_biaya_items,
+                COALESCE(SUM(jumlah), 0) as total
+            ')
+            ->groupBy(DB::raw('DATE(tanggal_biaya)'))
+            ->get()
+            ->keyBy('tgl');
+
         $period = CarbonPeriod::create($startDate, $endDate);
         $dailyList = [];
 
@@ -219,12 +246,19 @@ class LaporanController extends Controller
             $dateKey = $dt->format('Y-m-d');
             $sess = $sessionsByDate->get($dateKey);
             $pay = $paymentsByDate->get($dateKey);
+            $pos = $posByDate->get($dateKey);
+            $exp = $expensesByDate->get($dateKey);
 
             $totalSesi = (int) ($sess->total_sesi ?? 0);
             $totalMenit = (int) ($sess->total_menit ?? 0);
             $totalJam = $totalMenit > 0 ? round($totalMenit / 60, 1) : 0;
             $totalTransaksi = (int) ($pay->total_transaksi ?? 0);
             $totalUang = (float) ($pay->total ?? 0);
+            $pendapatanSewa = $totalUang;
+            $pendapatanPosHarian = (float) ($pos->total ?? 0);
+            $totalPendapatanHarian = $pendapatanSewa + $pendapatanPosHarian;
+            $pengeluaranOperasionalHarian = (float) ($exp->total ?? 0);
+            $labaBersihHarian = $totalPendapatanHarian - $pengeluaranOperasionalHarian;
 
             $dailyList[] = [
                 'tgl' => $dateKey,
@@ -242,7 +276,12 @@ class LaporanController extends Controller
                 'transfer' => (float) ($pay->transfer ?? 0),
                 'qris' => (float) ($pay->qris ?? 0),
                 'total' => $totalUang,
-                'ada_aktivitas' => ($totalSesi > 0 || $totalTransaksi > 0),
+                'pendapatan_sewa' => $pendapatanSewa,
+                'pendapatan_pos' => $pendapatanPosHarian,
+                'total_pendapatan' => $totalPendapatanHarian,
+                'pengeluaran_operasional' => $pengeluaranOperasionalHarian,
+                'laba_bersih' => $labaBersihHarian,
+                'ada_aktivitas' => ($totalPendapatanHarian > 0 || $pengeluaranOperasionalHarian > 0 || $totalSesi > 0),
             ];
         }
 
