@@ -183,7 +183,7 @@
 - Disediakan modul CRUD penuh Biaya Operasional pada `/admin/biaya-operasional` khusus untuk role `admin` (role `kasir` dan `user` ditolak 403).
 - Kolom `jenis_pengeluaran` (`varchar(100)`) ditambahkan ke tabel `biaya_operasional` melalui migrasi `2026_10_29_200002_add_jenis_pengeluaran_to_biaya_operasional_table.php`.
 - Model `BiayaOperasional` menyediakan alias mutator dan accessor untuk `nominal` (alias `jumlah`) dan `tanggal` (alias `tanggal_biaya`) agar kompatibel lintas penggunaan.
-- Antarmuka menyediakan KPI ringkasan total pengeluaran per periode, filter rentang tanggal, filter jenis pengeluaran, pencarian keterangan, modal form tambah/edit dengan preset pengeluaran (Listrik, WiFi, Gas, Perlengkapan, dll), dan dialog konfirmasi hapus.
+- Antarmuka menyediakan KPI ringkasan total pengeluaran per periode, filter tanggal tunggal (bidang 'Tanggal Selesai' dihapus agar lebih ringkas dan praktis), filter jenis pengeluaran, pencarian keterangan, modal form tambah/edit dengan preset pengeluaran (Listrik, WiFi, Gas, Perlengkapan, dll), dan dialog konfirmasi hapus.
 
 ## 22. Kalkulasi Laba Bersih pada Laporan Keuangan Eksekutif
 - Laba bersih (netto) dihitung secara akurat sesuai proposal:

@@ -13,22 +13,23 @@ class BiayaOperasionalController extends Controller
 {
     public function index(Request $request)
     {
-        $defaultStart = Carbon::now('Asia/Jakarta')->startOfMonth()->format('Y-m-d');
-        $defaultEnd = Carbon::now('Asia/Jakarta')->endOfMonth()->format('Y-m-d');
-
-        $startDate = $request->query('start_date', $defaultStart);
-        $endDate = $request->query('end_date', $defaultEnd);
+        $tanggal = $request->query('tanggal');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
         $jenisFilter = $request->query('jenis_pengeluaran');
         $search = $request->query('search');
 
         $query = BiayaOperasional::with('user:id_user,nama,role');
 
-        if ($startDate) {
-            $query->whereDate('tanggal_biaya', '>=', $startDate);
-        }
-
-        if ($endDate) {
-            $query->whereDate('tanggal_biaya', '<=', $endDate);
+        if ($tanggal) {
+            $query->whereDate('tanggal_biaya', $tanggal);
+        } else {
+            if ($startDate) {
+                $query->whereDate('tanggal_biaya', '>=', $startDate);
+            }
+            if ($endDate) {
+                $query->whereDate('tanggal_biaya', '<=', $endDate);
+            }
         }
 
         if ($jenisFilter) {
@@ -60,8 +61,9 @@ class BiayaOperasionalController extends Controller
             'totalBiaya' => $totalBiaya,
             'kategoriList' => $kategoriList,
             'filters' => [
-                'start_date' => $startDate,
-                'end_date' => $endDate,
+                'tanggal' => $tanggal ?? '',
+                'start_date' => $startDate ?? '',
+                'end_date' => $endDate ?? '',
                 'jenis_pengeluaran' => $jenisFilter ?? '',
                 'search' => $search ?? '',
             ],

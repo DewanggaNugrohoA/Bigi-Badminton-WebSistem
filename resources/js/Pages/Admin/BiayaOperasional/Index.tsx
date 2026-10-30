@@ -63,8 +63,9 @@ interface Props {
     totalBiaya: number;
     kategoriList: string[];
     filters: {
-        start_date: string;
-        end_date: string;
+        tanggal?: string;
+        start_date?: string;
+        end_date?: string;
         jenis_pengeluaran: string;
         search: string;
     };
@@ -88,8 +89,7 @@ export default function BiayaOperasionalIndex({
     kategoriList,
     filters,
 }: Props) {
-    const [startDate, setStartDate] = useState(filters.start_date || "");
-    const [endDate, setEndDate] = useState(filters.end_date || "");
+    const [tanggal, setTanggal] = useState(filters.tanggal || filters.start_date || "");
     const [jenisFilter, setJenisFilter] = useState(filters.jenis_pengeluaran || "");
     const [search, setSearch] = useState(filters.search || "");
 
@@ -113,8 +113,7 @@ export default function BiayaOperasionalIndex({
         router.get(
             "/admin/biaya-operasional",
             {
-                start_date: startDate || undefined,
-                end_date: endDate || undefined,
+                tanggal: tanggal || undefined,
                 jenis_pengeluaran: jenisFilter || undefined,
                 search: search || undefined,
             },
@@ -123,8 +122,7 @@ export default function BiayaOperasionalIndex({
     };
 
     const handleReset = () => {
-        setStartDate("");
-        setEndDate("");
+        setTanggal("");
         setJenisFilter("");
         setSearch("");
         router.get("/admin/biaya-operasional", {}, { preserveState: true });
@@ -268,9 +266,11 @@ export default function BiayaOperasionalIndex({
                             </h2>
                             <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                                 <Calendar className="size-3" />
-                                {filters.start_date && filters.end_date
+                                {filters.tanggal
+                                    ? formatTanggal(filters.tanggal)
+                                    : filters.start_date && filters.end_date
                                     ? `${formatTanggal(filters.start_date)} - ${formatTanggal(filters.end_date)}`
-                                    : "Bulan Berjalan"}
+                                    : "Seluruh Periode"}
                             </p>
                         </div>
                     </div>
@@ -314,28 +314,15 @@ export default function BiayaOperasionalIndex({
                 <div className="bg-card border border-border rounded-xl p-4 sm:p-5">
                     <form onSubmit={handleFilter} className="flex flex-wrap items-end gap-3">
                         <div className="flex flex-col gap-1">
-                            <Label htmlFor="start_date" className="text-xs font-medium text-muted-foreground">
-                                Tanggal Mulai
+                            <Label htmlFor="tanggal" className="text-xs font-medium text-muted-foreground">
+                                Tanggal
                             </Label>
                             <Input
-                                id="start_date"
+                                id="tanggal"
                                 type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="h-9 text-xs w-36 sm:w-40"
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                            <Label htmlFor="end_date" className="text-xs font-medium text-muted-foreground">
-                                Tanggal Selesai
-                            </Label>
-                            <Input
-                                id="end_date"
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="h-9 text-xs w-36 sm:w-40"
+                                value={tanggal}
+                                onChange={(e) => setTanggal(e.target.value)}
+                                className="h-9 text-xs w-36 sm:w-44"
                             />
                         </div>
 
@@ -379,7 +366,7 @@ export default function BiayaOperasionalIndex({
                             Terapkan Filter
                         </Button>
 
-                        {(startDate || endDate || jenisFilter || search) && (
+                        {(tanggal || jenisFilter || search) && (
                             <Button
                                 type="button"
                                 variant="ghost"
