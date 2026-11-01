@@ -703,7 +703,7 @@ export default function LaporanIndex({
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border print:border-black">
+                            <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border print:border-black">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60">
@@ -809,7 +809,7 @@ export default function LaporanIndex({
                                 </h2>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible print:border-0">
+                            <div className="overflow-x-auto scrollbar-none print:overflow-visible print:border-0">
                                 <Table className="print:border-0">
                                     <TableHeader>
                                         <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
@@ -1113,7 +1113,7 @@ export default function LaporanIndex({
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible print:border-0">
+                            <div className="overflow-x-auto scrollbar-none print:overflow-visible print:border-0">
                                 <Table className="print:border-0">
                                     <TableHeader>
                                         <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
@@ -1319,7 +1319,7 @@ export default function LaporanIndex({
                                 </p>
                             ) : (
                                 <div className="space-y-2">
-                                    <div className="overflow-x-auto print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
+                                    <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
                                         <Table className="print:border-0">
                                             <TableHeader>
                                                 <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
@@ -1432,7 +1432,7 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
+                            <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
                                 <Table className="print:border-0">
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
@@ -1573,7 +1573,7 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
+                            <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
                                 <Table className="print:border-0">
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
@@ -1655,7 +1655,7 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
+                            <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
                                 <Table className="print:border-0">
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
@@ -1776,7 +1776,7 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
+                            <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
                                 <Table className="print:border-0">
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
@@ -1874,15 +1874,15 @@ export default function LaporanIndex({
                                     </span>
                                 </div>
 
-                                <div className="overflow-x-auto print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
+                                <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
                                     <Table className="print:border-0">
                                         <TableHeader>
                                             <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
-                                                <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Tanggal</TableHead>
-                                                <TableHead className="w-[25%] print:w-[25%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Produk</TableHead>
-                                                <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right print:text-black">Jumlah</TableHead>
-                                                <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Kasir</TableHead>
-                                                <TableHead className="w-[27%] print:w-[27%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Keterangan</TableHead>
+                                                <TableHead className="w-[18%] print:w-[18%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Tanggal</TableHead>
+                                                <TableHead className="w-[25%] print:w-[25%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Produk</TableHead>
+                                                <TableHead className="w-[12%] print:w-[12%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right print:text-black">Jumlah</TableHead>
+                                                <TableHead className="w-[18%] print:w-[18%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Kasir</TableHead>
+                                                <TableHead className="w-[27%] print:w-[27%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Keterangan</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1895,19 +1895,19 @@ export default function LaporanIndex({
                                             ) : (
                                                 riwayatRestock.data.map((item) => (
                                                     <TableRow key={item.id_restock} className="border-b border-border/60 print:border-b print:border-slate-300 print:break-inside-avoid">
-                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground print:text-black">
-                                                            {formatTanggal(item.tanggal)}
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-foreground print:text-black">
+                                                            {formatTanggalRingkas(item.tanggal)}
                                                         </TableCell>
-                                                        <TableCell className="text-xs font-medium whitespace-nowrap print:whitespace-normal text-foreground print:text-black">
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 font-medium whitespace-nowrap print:whitespace-normal text-foreground print:text-black max-w-[140px] truncate" title={item.produk?.nama_produk || ""}>
                                                             {item.produk?.nama_produk || "-"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground print:whitespace-normal print:text-black">
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 text-right tabular-nums font-semibold text-foreground print:whitespace-normal print:text-black">
                                                             +{item.jumlah}
                                                         </TableCell>
-                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground print:text-black">
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-foreground print:text-black max-w-[100px] truncate" title={item.user?.nama || "Kasir"}>
                                                             {item.user?.nama || "Kasir"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate print:max-w-none print:whitespace-normal print:text-black">
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 text-muted-foreground max-w-[140px] truncate print:max-w-none print:whitespace-normal print:text-black" title={item.keterangan || ""}>
                                                             {item.keterangan || "-"}
                                                         </TableCell>
                                                     </TableRow>
@@ -1956,16 +1956,16 @@ export default function LaporanIndex({
                                     </span>
                                 </div>
 
-                                <div className="overflow-x-auto print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
+                                <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
                                     <Table className="print:border-0">
                                         <TableHeader>
                                             <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
-                                                <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Tanggal</TableHead>
-                                                <TableHead className="w-[26%] print:w-[26%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Produk</TableHead>
-                                                <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right print:text-black">Sistem</TableHead>
-                                                <TableHead className="w-[12%] print:w-[12%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right print:text-black">Fisik</TableHead>
-                                                <TableHead className="w-[14%] print:w-[14%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center print:text-black">Selisih</TableHead>
-                                                <TableHead className="w-[18%] print:w-[18%] whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Kasir</TableHead>
+                                                <TableHead className="w-[18%] print:w-[18%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Tanggal</TableHead>
+                                                <TableHead className="w-[26%] print:w-[26%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Produk</TableHead>
+                                                <TableHead className="w-[12%] print:w-[12%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right print:text-black">Sistem</TableHead>
+                                                <TableHead className="w-[12%] print:w-[12%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-right print:text-black">Fisik</TableHead>
+                                                <TableHead className="w-[14%] print:w-[14%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold text-center print:text-black">Selisih</TableHead>
+                                                <TableHead className="w-[18%] print:w-[18%] px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-xs text-slate-700 dark:text-slate-100 font-semibold print:text-black">Kasir</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1978,19 +1978,19 @@ export default function LaporanIndex({
                                             ) : (
                                                 riwayatOpname.data.map((item) => (
                                                     <TableRow key={item.id_opname} className="border-b border-border/60 print:border-b print:border-slate-300 print:break-inside-avoid">
-                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground print:text-black">
-                                                            {formatTanggal(item.tanggal)}
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-foreground print:text-black">
+                                                            {formatTanggalRingkas(item.tanggal)}
                                                         </TableCell>
-                                                        <TableCell className="text-xs font-medium whitespace-nowrap print:whitespace-normal text-foreground print:text-black">
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 font-medium whitespace-nowrap print:whitespace-normal text-foreground print:text-black max-w-[140px] truncate" title={item.produk?.nama_produk || ""}>
                                                             {item.produk?.nama_produk || "-"}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums text-foreground print:whitespace-normal print:text-black">
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 text-right tabular-nums text-foreground print:whitespace-normal print:text-black">
                                                             {item.stok_sistem}
                                                         </TableCell>
-                                                        <TableCell className="text-xs text-right tabular-nums font-semibold text-foreground print:whitespace-normal print:text-black">
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 text-right tabular-nums font-semibold text-foreground print:whitespace-normal print:text-black">
                                                             {item.stok_fisik}
                                                         </TableCell>
-                                                        <TableCell className="text-center whitespace-nowrap print:whitespace-normal print:text-black">
+                                                        <TableCell className="text-center px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal print:text-black">
                                                             <Badge
                                                                 variant="outline"
                                                                 className="text-[11px] print:text-[7pt] py-0 px-1.5 font-mono font-semibold border-border text-foreground print:whitespace-normal print:bg-transparent print:border-black"
@@ -1998,7 +1998,7 @@ export default function LaporanIndex({
                                                                 {item.selisih > 0 ? `+${item.selisih}` : item.selisih}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell className="text-xs whitespace-nowrap print:whitespace-normal text-foreground print:text-black">
+                                                        <TableCell className="text-xs px-2 sm:px-2.5 whitespace-nowrap print:whitespace-normal text-foreground print:text-black max-w-[100px] truncate" title={item.user?.nama || "Kasir"}>
                                                             {item.user?.nama || "Kasir"}
                                                         </TableCell>
                                                     </TableRow>
@@ -2048,7 +2048,7 @@ export default function LaporanIndex({
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
+                            <div className="overflow-x-auto scrollbar-none print:overflow-visible max-w-full border border-border rounded-lg print:border-0 print:rounded-none">
                                 <Table className="print:border-0">
                                     <TableHeader>
                                         <TableRow className="border-b border-border bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">

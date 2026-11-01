@@ -209,6 +209,48 @@
   --sidebar-ring: #2563eb;
 }
 
+/* Custom scrollbar halus untuk tema gelap (anti scrollbar default putih/terang) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Utilitas untuk menyembunyikan scrollbar visual, namun konten tetap bisa digeser (touch/trackpad) */
+.scrollbar-none,
+.no-scrollbar,
+[data-slot="table-container"],
+.table-scroll-container {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar,
+[data-slot="table-container"]::-webkit-scrollbar,
+.table-scroll-container::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera, Edge */
+  width: 0 !important;
+  height: 0 !important;
+}
+
 @page {
   size: A4 portrait;
   margin: 10mm 10mm 10mm 10mm;
