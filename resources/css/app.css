@@ -295,6 +295,12 @@
     border-color: #000000 !important;
   }
 
+  .print\:border-0,
+  .print\:border-none {
+    border: none !important;
+    border-width: 0 !important;
+  }
+
   /* Pastikan tabel 100% fit di halaman tanpa terpotong atau horizontal overflow */
   table, [data-slot="table"] {
     width: 100% !important;
