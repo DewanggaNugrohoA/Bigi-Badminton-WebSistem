@@ -301,6 +301,15 @@
     border-width: 0 !important;
   }
 
+  .print\:whitespace-nowrap {
+    white-space: nowrap !important;
+  }
+
+  .print\:break-normal {
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+  }
+
   /* Pastikan tabel 100% fit di halaman tanpa terpotong atau horizontal overflow */
   table, [data-slot="table"] {
     width: 100% !important;

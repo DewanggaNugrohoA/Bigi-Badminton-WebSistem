@@ -523,7 +523,7 @@ export default function LaporanIndex({
                             Bigi Badminton
                         </h1>
                         <p className="text-xs font-bold uppercase text-black">
-                            {activeTab === "keuangan" ? "Laporan Keuangan" : currentJenisHeader}
+                            {activeTab === "keuangan" ? "Laporan Keuangan" : activeTab === "lapangan" ? "Laporan Lapangan" : currentJenisHeader}
                         </p>
                         <p className="text-[10px] text-black mt-0.5">
                             Periode: {formatTanggal(filters.start_date)} s.d. {formatTanggal(filters.end_date)}
@@ -800,57 +800,66 @@ export default function LaporanIndex({
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="lapangan" className="space-y-10 pt-4">
-                        {/* 1. Ringkasan Kondisi Terakhir Lapangan */}
-                        <div className="border border-border p-5 sm:p-6 bg-card rounded-md">
-                            <div className="border-b border-border pb-3 mb-4">
-                                <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                                    Ringkasan Kondisi Terakhir Lapangan
+                    <TabsContent value="lapangan" className="space-y-10 print:space-y-6 pt-4 print:pt-0">
+                        {/* 1. Kondisi Terakhir Lapangan */}
+                        <div className="bg-card border border-border p-5 sm:p-6 rounded-xl print:border-0 print:p-0 print:bg-transparent print:shadow-none print:rounded-none">
+                            <div className="border-b border-border pb-2 mb-3 print:border-b print:border-black">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-foreground print:text-black">
+                                    Kondisi Terakhir Lapangan
                                 </h2>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible">
-                                <Table>
+                            <div className="overflow-x-auto print:overflow-visible print:border-0">
+                                <Table className="print:border-0">
                                     <TableHeader>
-                                        <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Lapangan</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Status</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Pemeriksaan Terakhir</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Komponen Perlu Perhatian</TableHead>
-                                            <TableHead className="text-xs font-semibold text-slate-700 dark:text-slate-100 h-9">Pemeriksa</TableHead>
+                                        <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
+                                            <TableHead className="w-[18%] print:w-[18%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Lapangan</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Status</TableHead>
+                                            <TableHead className="w-[22%] print:w-[22%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Pemeriksaan Terakhir</TableHead>
+                                            <TableHead className="w-[32%] print:w-[32%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:break-normal">Komponen Perlu Perhatian</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Pemeriksa</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {ringkasanLapangan.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={5} className="text-center py-6 text-xs text-muted-foreground">
+                                                <TableCell colSpan={5} className="text-center py-6 text-xs text-muted-foreground print:text-black print:text-left print:py-3 print:italic">
                                                     Belum ada data lapangan.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             ringkasanLapangan.map((item) => (
-                                                <TableRow key={item.id_lapangan} className="border-border text-xs">
-                                                    <TableCell className="font-medium text-foreground">
+                                                <TableRow key={item.id_lapangan} className="border-b border-border/60 print:border-b print:border-slate-300 print:break-inside-avoid">
+                                                    <TableCell className="font-medium text-foreground print:text-black whitespace-nowrap print:whitespace-normal">
                                                         {item.nama_lapangan}
                                                     </TableCell>
-                                                    <TableCell className="text-muted-foreground capitalize">
+                                                    <TableCell className="text-muted-foreground print:text-black capitalize whitespace-nowrap print:whitespace-normal">
                                                         {item.status_lapangan}
                                                     </TableCell>
-                                                    <TableCell className="tabular-nums text-muted-foreground">
-                                                        {item.tanggal_terakhir ? formatTanggal(item.tanggal_terakhir) : "Belum diperiksa"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {item.komponen_tidak_baik.length === 0 ? (
-                                                            <span className="text-muted-foreground">Semua kondisi baik</span>
+                                                    <TableCell className="tabular-nums text-muted-foreground print:text-black whitespace-nowrap print:whitespace-normal">
+                                                        {item.tanggal_terakhir ? (
+                                                            <>
+                                                                <span className="hidden print:inline">{formatTanggalRingkas(item.tanggal_terakhir)}</span>
+                                                                <span className="print:hidden">{formatTanggal(item.tanggal_terakhir)}</span>
+                                                            </>
                                                         ) : (
-                                                            <span className="text-destructive font-medium">
+                                                            "Belum diperiksa"
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="print:text-black">
+                                                        {!item.tanggal_terakhir ? (
+                                                            <span className="text-muted-foreground print:text-black">Belum diperiksa</span>
+                                                        ) : item.komponen_tidak_baik.length === 0 ? (
+                                                            <span className="text-muted-foreground print:text-black">Semua kondisi baik</span>
+                                                        ) : (
+                                                            <span className="text-destructive font-medium print:text-black print:font-semibold">
                                                                 {item.komponen_tidak_baik
                                                                     .map((k) => `${k.komponen} (${k.kondisi_label})`)
                                                                     .join(", ")}
                                                             </span>
                                                         )}
                                                     </TableCell>
-                                                    <TableCell className="text-muted-foreground">
+                                                    <TableCell className="text-muted-foreground print:text-black whitespace-nowrap print:whitespace-normal">
                                                         {item.diperiksa_oleh || "-"}
                                                     </TableCell>
                                                 </TableRow>
@@ -861,8 +870,8 @@ export default function LaporanIndex({
                             </div>
                         </div>
 
-                        {/* 2. Form Input Pemeriksaan Rutin */}
-                        <div className="border border-border p-5 sm:p-6 bg-card rounded-md">
+                        {/* 2. Form Input Pemeriksaan Rutin - disembunyikan saat cetak */}
+                        <div className="border border-border p-5 sm:p-6 bg-card rounded-md print:hidden">
                             <div className="border-b border-border pb-3 mb-5">
                                 <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                                     Catat Pemeriksaan Kondisi Lapangan
@@ -1073,18 +1082,18 @@ export default function LaporanIndex({
                         </div>
 
                         {/* 3. Tabel Riwayat Pemeriksaan */}
-                        <div className="border border-border p-5 sm:p-6 bg-card rounded-md">
-                            <div className="border-b border-border pb-3 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="bg-card border border-border p-5 sm:p-6 rounded-xl print:border-0 print:p-0 print:bg-transparent print:shadow-none print:rounded-none">
+                            <div className="border-b border-border pb-2 mb-3 print:border-b print:border-black flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                 <div>
-                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground print:text-black">
                                         Riwayat Pemeriksaan Lapangan
                                     </h3>
-                                    <span className="text-[11px] text-muted-foreground tabular-nums">
+                                    <span className="text-[11px] text-muted-foreground tabular-nums print:hidden">
                                         {riwayatLapangan?.total ?? 0} catatan pemeriksaan
                                     </span>
                                 </div>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 print:hidden">
                                     <Label htmlFor="filter_lapangan" className="text-xs text-muted-foreground shrink-0">
                                         Filter Lapangan:
                                     </Label>
@@ -1104,27 +1113,27 @@ export default function LaporanIndex({
                                 </div>
                             </div>
 
-                            <div className="overflow-x-auto print:overflow-visible">
-                                <Table>
+                            <div className="overflow-x-auto print:overflow-visible print:border-0">
+                                <Table className="print:border-0">
                                     <TableHeader>
-                                        <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60">
-                                            <TableHead className="w-[12%] print:w-[12%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Tanggal</TableHead>
-                                            <TableHead className="w-[14%] print:w-[14%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Lapangan</TableHead>
-                                            <TableHead className="w-[8%] print:w-[8%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Karpet/Vinil</TableHead>
-                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Net</TableHead>
-                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Tiang</TableHead>
-                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Lampu</TableHead>
-                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Lantai</TableHead>
-                                            <TableHead className="w-[7%] print:w-[7%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Dinding</TableHead>
-                                            <TableHead className="w-[18%] print:w-[18%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Catatan</TableHead>
-                                            <TableHead className="w-[13%] print:w-[13%] text-xs font-semibold text-slate-700 dark:text-slate-100 h-9 whitespace-nowrap print:whitespace-normal">Pemeriksa</TableHead>
+                                        <TableRow className="border-border hover:bg-transparent bg-slate-100/70 dark:bg-slate-900/60 print:bg-transparent print:border-b print:border-black">
+                                            <TableHead className="w-[11%] print:w-[11%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Tanggal</TableHead>
+                                            <TableHead className="w-[11%] print:w-[11%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Lapangan</TableHead>
+                                            <TableHead className="w-[10%] print:w-[10%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:break-normal">Karpet / Vinil</TableHead>
+                                            <TableHead className="w-[6%] print:w-[6%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Net</TableHead>
+                                            <TableHead className="w-[6%] print:w-[6%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Tiang</TableHead>
+                                            <TableHead className="w-[6%] print:w-[6%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Lampu</TableHead>
+                                            <TableHead className="w-[6%] print:w-[6%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Lantai</TableHead>
+                                            <TableHead className="w-[8%] print:w-[8%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-nowrap print:break-normal">Dinding</TableHead>
+                                            <TableHead className="w-[22%] print:w-[22%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-normal">Catatan</TableHead>
+                                            <TableHead className="w-[14%] print:w-[14%] text-xs font-semibold text-foreground print:text-black h-9 print:h-auto whitespace-nowrap print:whitespace-normal">Pemeriksa</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {!riwayatLapangan || riwayatLapangan.data.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={10} className="text-center py-6 text-xs text-muted-foreground">
-                                                    Tidak ada riwayat pemeriksaan pada periode dan filter ini.
+                                                <TableCell colSpan={10} className="text-center py-6 text-xs text-muted-foreground print:text-black print:text-left print:py-3 print:italic">
+                                                    Tidak ada catatan pemeriksaan pada periode ini.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
@@ -1138,17 +1147,18 @@ export default function LaporanIndex({
                                                     };
                                                     const label = labelMap[val] || val;
                                                     if (val === "baik") {
-                                                        return <span className="text-muted-foreground">{label}</span>;
+                                                        return <span className="text-muted-foreground print:text-black print:font-normal">{label}</span>;
                                                     }
-                                                    return <span className="text-destructive font-medium">{label}</span>;
+                                                    return <span className="text-destructive font-medium print:text-black print:font-bold">{label}</span>;
                                                 };
 
                                                 return (
-                                                    <TableRow key={item.id} className="border-border text-xs">
-                                                        <TableCell className="tabular-nums text-foreground whitespace-nowrap print:whitespace-normal">
-                                                            {formatTanggal(item.tanggal_pemeriksaan)}
+                                                    <TableRow key={item.id} className="border-b border-border/60 print:border-b print:border-slate-300 print:break-inside-avoid">
+                                                        <TableCell className="tabular-nums text-foreground print:text-black whitespace-nowrap print:whitespace-normal">
+                                                            <span className="hidden print:inline">{formatTanggalRingkas(item.tanggal_pemeriksaan)}</span>
+                                                            <span className="print:hidden">{formatTanggal(item.tanggal_pemeriksaan)}</span>
                                                         </TableCell>
-                                                        <TableCell className="font-medium text-foreground whitespace-nowrap print:whitespace-normal">
+                                                        <TableCell className="font-medium text-foreground print:text-black whitespace-nowrap print:whitespace-normal">
                                                             {item.lapangan?.nama_lapangan ?? `Lapangan #${item.id_lapangan}`}
                                                         </TableCell>
                                                         <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.karpet_vinil)}</TableCell>
@@ -1157,10 +1167,10 @@ export default function LaporanIndex({
                                                         <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.lampu)}</TableCell>
                                                         <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.lantai)}</TableCell>
                                                         <TableCell className="whitespace-nowrap print:whitespace-normal">{renderKondisi(item.dinding)}</TableCell>
-                                                        <TableCell className="max-w-[200px] truncate text-muted-foreground print:max-w-none print:whitespace-normal" title={item.catatan || ""}>
+                                                        <TableCell className="max-w-[200px] truncate text-muted-foreground print:max-w-none print:whitespace-normal print:text-black" title={item.catatan || ""}>
                                                             {item.catatan || "-"}
                                                         </TableCell>
-                                                        <TableCell className="text-muted-foreground whitespace-nowrap print:whitespace-normal">
+                                                        <TableCell className="text-muted-foreground print:text-black whitespace-nowrap print:whitespace-normal">
                                                             {item.pemeriksa?.nama ?? "-"}
                                                         </TableCell>
                                                     </TableRow>
@@ -1173,7 +1183,7 @@ export default function LaporanIndex({
 
                             {/* Paginasi Riwayat Lapangan */}
                             {riwayatLapangan && riwayatLapangan.last_page > 1 && (
-                                <div className="border-t border-border pt-4 mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                                <div className="border-t border-border pt-4 mt-4 flex items-center justify-between text-xs text-muted-foreground print:hidden">
                                     <span>
                                         Halaman {riwayatLapangan.current_page} dari {riwayatLapangan.last_page}
                                     </span>
