@@ -241,6 +241,20 @@ interface MasterLapanganItem {
     status_lapangan: string;
 }
 
+export interface BiayaOperasionalItem {
+    id_biaya: number;
+    tanggal_biaya: string;
+    jenis_pengeluaran: string;
+    keterangan: string;
+    jumlah: number;
+}
+
+export interface RingkasanKategoriBiayaItem {
+    jenis: string;
+    total: number;
+    jumlah_item: number;
+}
+
 interface Props {
     ringkasan: {
         pendapatan_pos: number;
@@ -262,7 +276,11 @@ interface Props {
             dp: number;
             lunas: number;
         };
+        biaya_operasional_items?: BiayaOperasionalItem[];
+        ringkasan_kategori_biaya?: RingkasanKategoriBiayaItem[];
     };
+    biayaOperasionalItems?: BiayaOperasionalItem[];
+    ringkasanKategoriBiaya?: RingkasanKategoriBiayaItem[];
     ringkasanPemain?: RingkasanPemain;
     daftarPemain?: PaginatedData<PemainItem>;
     ringkasanLapangan?: RingkasanLapanganItem[];
@@ -311,7 +329,11 @@ export default function LaporanIndex({
     riwayatOpname,
     stokMenipis,
     filters,
+    biayaOperasionalItems: propsItems,
+    ringkasanKategoriBiaya: propsKategori,
 }: Props) {
+    const itemsBiaya = propsItems || ringkasan.biaya_operasional_items || [];
+    const kategoriBiaya = propsKategori || ringkasan.ringkasan_kategori_biaya || [];
     const { auth } = usePage<{ auth: { user: { nama: string; role: string } } }>().props;
     const [startDate, setStartDate] = useState(filters.start_date || "");
     const [endDate, setEndDate] = useState(filters.end_date || "");
@@ -1236,14 +1258,107 @@ export default function LaporanIndex({
                                                 {formatRupiah(totalPendapatan)}
                                             </span>
                                         </div>
-                                        <div className="flex justify-between py-2 items-center pt-3 text-foreground">
-                                            <div className="flex flex-col">
-                                                <span className="font-medium print:text-black">Pengeluaran Operasional</span>
-                                                <span className="text-[11px] text-muted-foreground print:text-black">Listrik, WiFi, gas, dll (dari menu Biaya Operasional)</span>
+                                        {/* Pengeluaran Operasional: Rincian & Ringkasan Kategori */}
+                                        <div className="py-3 border-t border-border/60 print:border-black space-y-3.5">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                                                <div>
+                                                    <span className="font-semibold text-foreground print:text-black text-xs sm:text-sm block">
+                                                        Pengeluaran Operasional
+                                                    </span>
+                                                    <span className="text-[11px] text-muted-foreground print:text-black">
+                                                        Listrik, WiFi, gas, dll (dari menu Biaya Operasional)
+                                                    </span>
+                                                </div>
+                                                <div className="text-left sm:text-right">
+                                                    <span className="text-[11px] text-muted-foreground print:text-black sm:inline mr-1">Total:</span>
+                                                    <span className="tabular-nums font-bold text-rose-500 print:text-black text-xs sm:text-sm">
+                                                        -{formatRupiah(totalBiayaOperasional)}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <span className="tabular-nums font-semibold text-rose-500 print:text-black">
-                                                -{formatRupiah(totalBiayaOperasional)}
-                                            </span>
+
+                                            {/* B. Ringkasan per jenis pengeluaran (subtotal per kategori) */}
+                                            {kategoriBiaya.length > 0 && (
+                                                <div className="space-y-1.5 pt-0.5">
+                                                    <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground print:text-black">
+                                                        Ringkasan per Jenis Pengeluaran
+                                                    </span>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-0.5 print:grid-cols-3">
+                                                        {kategoriBiaya.map((kat) => (
+                                                            <div
+                                                                key={kat.jenis}
+                                                                className="bg-muted/40 dark:bg-muted/20 border border-border/70 rounded-lg p-2 flex flex-col justify-between print:border-black print:bg-white print:break-inside-avoid"
+                                                            >
+                                                                <div className="flex items-center justify-between gap-1">
+                                                                    <span className="text-[11px] font-medium text-foreground print:text-black truncate" title={kat.jenis}>
+                                                                        {kat.jenis}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-muted-foreground print:text-black shrink-0">
+                                                                        {kat.jumlah_item}x
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-xs font-bold tabular-nums text-rose-500 print:text-black mt-1">
+                                                                    {formatRupiah(kat.total)}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* A. Rincian per item */}
+                                            <div className="space-y-1.5 pt-0.5">
+                                                <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground print:text-black">
+                                                    Rincian Item Pengeluaran
+                                                </span>
+
+                                                {itemsBiaya.length === 0 ? (
+                                                    <div className="py-3 px-3 text-center text-xs text-muted-foreground italic border border-dashed border-border rounded-lg print:border-slate-400 print:text-black">
+                                                        Tidak ada pengeluaran operasional pada periode ini
+                                                    </div>
+                                                ) : (
+                                                    <div className="overflow-x-auto print:overflow-visible border border-border rounded-lg print:border-black print:rounded-none">
+                                                        <table className="w-full text-xs text-left border-collapse print:text-[9.5pt]">
+                                                            <thead className="bg-muted/60 dark:bg-muted/30 border-b border-border text-slate-700 dark:text-slate-200 font-semibold print:bg-slate-100 print:text-black print:border-black">
+                                                                <tr>
+                                                                    <th className="py-1.5 px-3 w-[22%] print:w-[20%] font-semibold">Tanggal</th>
+                                                                    <th className="py-1.5 px-3 w-[22%] print:w-[22%] font-semibold">Jenis Pengeluaran</th>
+                                                                    <th className="py-1.5 px-3 w-[36%] print:w-[38%] font-semibold">Keterangan</th>
+                                                                    <th className="py-1.5 px-3 w-[20%] print:w-[20%] text-right font-semibold">Nominal</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-border/40 print:divide-slate-300">
+                                                                {itemsBiaya.map((item) => (
+                                                                    <tr key={item.id_biaya} className="hover:bg-muted/30 transition-colors print:break-inside-avoid">
+                                                                        <td className="py-1.5 px-3 tabular-nums text-foreground print:text-black whitespace-nowrap">
+                                                                            {formatTanggalRingkas(item.tanggal_biaya)}
+                                                                        </td>
+                                                                        <td className="py-1.5 px-3 font-medium text-foreground print:text-black">
+                                                                            {item.jenis_pengeluaran}
+                                                                        </td>
+                                                                        <td className="py-1.5 px-3 text-muted-foreground print:text-black">
+                                                                            {item.keterangan || "-"}
+                                                                        </td>
+                                                                        <td className="py-1.5 px-3 text-right font-semibold tabular-nums text-rose-500 print:text-black whitespace-nowrap">
+                                                                            {formatRupiah(item.jumlah)}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                            <tfoot className="bg-muted/40 dark:bg-muted/20 border-t-2 border-border print:border-black print:bg-white font-semibold">
+                                                                <tr className="print:break-inside-avoid">
+                                                                    <td colSpan={3} className="py-2 px-3 text-foreground print:text-black font-bold text-xs print:text-[10pt]">
+                                                                        Total Pengeluaran Operasional
+                                                                    </td>
+                                                                    <td className="py-2 px-3 text-right tabular-nums text-rose-500 print:text-black font-extrabold text-xs print:text-[10pt] whitespace-nowrap">
+                                                                        -{formatRupiah(totalBiayaOperasional)}
+                                                                    </td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="flex justify-between py-3 items-center border-t-2 border-primary/50 print:border-black mt-2 font-bold text-sm bg-primary/5 p-2 rounded-lg print:bg-transparent">
                                             <div>

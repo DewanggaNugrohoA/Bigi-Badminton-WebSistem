@@ -116,10 +116,35 @@ class LaporanController extends Controller
         $pendapatanSewaLapangan = (float) ($sewaValidAgg->total_sewa ?? 0);
 
         // Kalkulasi Total Biaya Operasional, Pendapatan Kotor, dan Laba Bersih
-        $totalBiayaOperasional = (float) BiayaOperasional::query()
+        $biayaOperasionalItems = BiayaOperasional::query()
             ->whereDate('tanggal_biaya', '>=', $startDate)
             ->whereDate('tanggal_biaya', '<=', $endDate)
-            ->sum('jumlah');
+            ->orderBy('tanggal_biaya', 'asc')
+            ->orderBy('id_biaya', 'asc')
+            ->get(['id_biaya', 'tanggal_biaya', 'jenis_pengeluaran', 'keterangan', 'jumlah'])
+            ->map(function ($item) {
+                return [
+                    'id_biaya' => $item->id_biaya,
+                    'tanggal_biaya' => $item->tanggal_biaya ? Carbon::parse($item->tanggal_biaya)->format('Y-m-d') : null,
+                    'jenis_pengeluaran' => $item->jenis_pengeluaran ?: 'Operasional',
+                    'keterangan' => $item->keterangan ?: '-',
+                    'jumlah' => (float) $item->jumlah,
+                ];
+            });
+
+        $totalBiayaOperasional = (float) $biayaOperasionalItems->sum('jumlah');
+
+        $ringkasanKategoriBiaya = $biayaOperasionalItems
+            ->groupBy('jenis_pengeluaran')
+            ->map(function ($group, $jenis) {
+                return [
+                    'jenis' => $jenis,
+                    'total' => (float) $group->sum('jumlah'),
+                    'jumlah_item' => $group->count(),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
 
         $totalPendapatanKotor = $pendapatanSewaLapangan + $pendapatanPos;
         $labaBersih = $totalPendapatanKotor - $totalBiayaOperasional;
@@ -504,7 +529,11 @@ class LaporanController extends Controller
                 'jumlah_void_retur' => $jumlahVoidRetur,
                 'total_selisih_kas_shift' => $totalSelisihKasShift,
                 'pembayaran_sewa_breakdown' => $pembayaranSewaBreakdown,
+                'biaya_operasional_items' => $biayaOperasionalItems,
+                'ringkasan_kategori_biaya' => $ringkasanKategoriBiaya,
             ],
+            'biayaOperasionalItems' => $biayaOperasionalItems,
+            'ringkasanKategoriBiaya' => $ringkasanKategoriBiaya,
             'ringkasanPemain' => $ringkasanPemain,
             'daftarPemain' => $daftarPemain,
             'ringkasanLapangan' => $ringkasanLapangan,
