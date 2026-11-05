@@ -305,3 +305,23 @@
   - Tab Pemain   : `BIGI BADMINTON - LAPORAN PEMAIN`
   - Tab Lapangan : `BIGI BADMINTON - LAPORAN LAPANGAN`
 - Judul halaman, meta title `<Head>`, dan breadcrumb layout juga otomatis tersinkronisasi mengikuti jenis tab laporan yang dipilih.
+
+
+## 32. Pemasukan Data Keuangan Admin Bulan Berjalan (13.896 Juta / Rp 13.896.000)
+- Disediakan artisan command `php artisan bigi:seed-keuangan-november {--fresh}` untuk memasukkan dataset riil dan terperinci pada bulan berjalan (November 2026) dengan akumulasi pendapatan kotor tepat **Rp 13.896.000 (13.896 jt)**.
+- Rincian komposisi keuangan:
+  1. **Pendapatan Paket Member (Sewa Lapangan di Awal)**: **Rp 7.900.000**
+     - 10 member paket `bulanan_4x3` (@ Rp 450.000 = Rp 4.500.000)
+     - 8 member paket `bulanan_4x2` (@ Rp 350.000 = Rp 2.800.000)
+     - 2 member paket `pagi_4x3` (@ Rp 300.000 = Rp 600.000)
+     - Disertai pembuatan jadwal pemakaian lapangan untuk member berbiaya Rp 0 sesuai ketentuan sistem kuota member.
+  2. **Pendapatan Sewa Lapangan Reguler (1 - 5 November 2026)**: **Rp 5.100.000**
+     - 47 sesi pemesanan reguler lunas di Lapangan 1 dan Lapangan 2 dengan durasi 1 jam (60k), 2 jam (100k), 3 jam (160k), dan acara kampus (360k).
+     - Subtotal Sewa Lapangan (Member + Reguler): **Rp 13.000.000**.
+  3. **Pendapatan Kasir POS & Kantin (1 - 5 November 2026)**: **Rp 896.000**
+     - Terdistribusi dalam 5 sesi shift kasir harian (`ShiftKasir`) dengan transaksi penjualan shuttlecock Garuda & Yonex, mie instan, teh manis, isotonik, dan air mineral.
+  4. **Kalkulasi Laporan & Dashboard**:
+     - Total Pendapatan Kotor di Admin Dashboard & Laporan Keuangan: **Rp 13.896.000**.
+     - Pengeluaran Biaya Operasional (WiFi Indosat): **Rp 220.000**.
+     - Laba Bersih Operasional: 13.896.000 - 220.000 = **Rp 13.676.000**.
+
