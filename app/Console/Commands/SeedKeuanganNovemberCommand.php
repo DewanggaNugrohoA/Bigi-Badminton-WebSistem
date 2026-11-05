@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\AuditLog;
 use App\Models\DetailReservasi;
 use App\Models\DetailTransaksiPos;
+use App\Models\Lapangan;
 use App\Models\PaketMember;
 use App\Models\Pembayaran;
 use App\Models\Produk;
@@ -158,12 +159,18 @@ class SeedKeuanganNovemberCommand extends Command
                 ['user' => $memberUsers[9], 'tgl' => '2026-11-05', 'lap' => 1, 'mulai' => '20:00', 'selesai' => '23:00'],
             ];
 
+            $lap1 = Lapangan::first();
+            $lap2 = Lapangan::skip(1)->first() ?: $lap1;
+            $idLap1 = $lap1 ? $lap1->id_lapangan : 1;
+            $idLap2 = $lap2 ? $lap2->id_lapangan : 2;
+
             foreach ($memberSessions as $ms) {
                 $u = $ms['user']['user'];
                 $pkt = $ms['user']['paket'];
                 $cMulai = Carbon::parse("{$ms['tgl']} {$ms['mulai']}:00");
                 $cSelesai = Carbon::parse("{$ms['tgl']} {$ms['selesai']}:00");
                 $durasi = (int) $cMulai->diffInMinutes($cSelesai);
+                $lapId = ($ms['lap'] === 1) ? $idLap1 : $idLap2;
 
                 $res = Reservasi::create([
                     'id_user' => $u->id_user,
@@ -177,7 +184,7 @@ class SeedKeuanganNovemberCommand extends Command
 
                 DetailReservasi::create([
                     'id_reservasi' => $res->id_reservasi,
-                    'id_lapangan' => $ms['lap'],
+                    'id_lapangan' => $lapId,
                     'tanggal_main' => $ms['tgl'],
                     'jam_mulai' => $ms['mulai'] . ':00',
                     'jam_selesai' => $ms['selesai'] . ':00',
@@ -264,9 +271,11 @@ class SeedKeuanganNovemberCommand extends Command
                     'status_reservasi' => Reservasi::STATUS_TERKONFIRMASI,
                 ]);
 
+                $lapIdReg = ($r['lap'] === 1) ? $idLap1 : $idLap2;
+
                 DetailReservasi::create([
                     'id_reservasi' => $res->id_reservasi,
-                    'id_lapangan' => $r['lap'],
+                    'id_lapangan' => $lapIdReg,
                     'tanggal_main' => $r['tgl'],
                     'jam_mulai' => $r['mulai'] . ':00',
                     'jam_selesai' => $r['selesai'] . ':00',
@@ -294,12 +303,12 @@ class SeedKeuanganNovemberCommand extends Command
             // 3. TRANSAKSI KASIR POS (1 - 5 NOVEMBER 2026) (TOTAL: Rp 896.000)
             // -------------------------------------------------------------
             // Ambil master produk
-            $pAir = Produk::firstOrCreate(['nama_produk' => 'Air Mineral'], ['kategori' => 'Minuman', 'harga' => 5000, 'stok' => 50, 'status_produk' => 'aktif']);
-            $pTeh = Produk::firstOrCreate(['nama_produk' => 'Teh Manis'], ['kategori' => 'Minuman', 'harga' => 7000, 'stok' => 30, 'status_produk' => 'aktif']);
-            $pIso = Produk::firstOrCreate(['nama_produk' => 'Isotonik'], ['kategori' => 'Minuman', 'harga' => 10000, 'stok' => 20, 'status_produk' => 'aktif']);
-            $pMie = Produk::firstOrCreate(['nama_produk' => 'Mie Instan'], ['kategori' => 'Makanan', 'harga' => 12000, 'stok' => 20, 'status_produk' => 'aktif']);
-            $pGaruda = Produk::firstOrCreate(['nama_produk' => 'Shuttlecock Garuda'], ['kategori' => 'Perlengkapan', 'harga' => 80000, 'stok' => 20, 'status_produk' => 'aktif']);
-            $pYonex = Produk::firstOrCreate(['nama_produk' => 'Shuttlecock Yonex'], ['kategori' => 'Perlengkapan', 'harga' => 120000, 'stok' => 20, 'status_produk' => 'aktif']);
+            $pAir = Produk::firstOrCreate(['nama_produk' => 'Air Mineral'], ['kategori' => 'Minuman', 'gambar' => 'produk/air_mineral.jpg', 'harga' => 5000, 'stok' => 50, 'status_produk' => 'aktif']);
+            $pTeh = Produk::firstOrCreate(['nama_produk' => 'Teh Manis'], ['kategori' => 'Minuman', 'gambar' => 'produk/teh_manis.jpg', 'harga' => 7000, 'stok' => 35, 'status_produk' => 'aktif']);
+            $pIso = Produk::firstOrCreate(['nama_produk' => 'Isotonik'], ['kategori' => 'Minuman', 'gambar' => 'produk/isotonik.jpg', 'harga' => 10000, 'stok' => 25, 'status_produk' => 'aktif']);
+            $pMie = Produk::firstOrCreate(['nama_produk' => 'Mie Instan'], ['kategori' => 'Makanan', 'gambar' => 'produk/mie_instan.jpg', 'harga' => 12000, 'stok' => 30, 'status_produk' => 'aktif']);
+            $pGaruda = Produk::firstOrCreate(['nama_produk' => 'Shuttlecock Garuda'], ['kategori' => 'Perlengkapan', 'gambar' => 'produk/shuttlecock_garuda.jpg', 'harga' => 80000, 'stok' => 20, 'status_produk' => 'aktif']);
+            $pYonex = Produk::firstOrCreate(['nama_produk' => 'Shuttlecock Yonex'], ['kategori' => 'Perlengkapan', 'gambar' => 'produk/shuttlecock_yonex.jpg', 'harga' => 120000, 'stok' => 15, 'status_produk' => 'aktif']);
 
             $posShiftsData = [
                 // 1 November 2026 (Total: Rp 175.000)

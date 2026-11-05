@@ -56,12 +56,12 @@ class SeedKeuanganNovemberCommandTest extends TestCase
             'status_lapangan' => 'tersedia',
         ]);
 
-        Produk::create(['nama_produk' => 'Air Mineral', 'kategori' => 'Minuman', 'harga' => 5000, 'stok' => 50, 'status_produk' => 'aktif']);
-        Produk::create(['nama_produk' => 'Teh Manis', 'kategori' => 'Minuman', 'harga' => 7000, 'stok' => 30, 'status_produk' => 'aktif']);
-        Produk::create(['nama_produk' => 'Isotonik', 'kategori' => 'Minuman', 'harga' => 10000, 'stok' => 20, 'status_produk' => 'aktif']);
-        Produk::create(['nama_produk' => 'Mie Instan', 'kategori' => 'Makanan', 'harga' => 12000, 'stok' => 20, 'status_produk' => 'aktif']);
-        Produk::create(['nama_produk' => 'Shuttlecock Garuda', 'kategori' => 'Perlengkapan', 'harga' => 80000, 'stok' => 20, 'status_produk' => 'aktif']);
-        Produk::create(['nama_produk' => 'Shuttlecock Yonex', 'kategori' => 'Perlengkapan', 'harga' => 120000, 'stok' => 20, 'status_produk' => 'aktif']);
+        Produk::create(['nama_produk' => 'Air Mineral', 'kategori' => 'Minuman', 'gambar' => 'produk/air_mineral.jpg', 'harga' => 5000, 'stok' => 50, 'status_produk' => 'aktif']);
+        Produk::create(['nama_produk' => 'Teh Manis', 'kategori' => 'Minuman', 'gambar' => 'produk/teh_manis.jpg', 'harga' => 7000, 'stok' => 35, 'status_produk' => 'aktif']);
+        Produk::create(['nama_produk' => 'Isotonik', 'kategori' => 'Minuman', 'gambar' => 'produk/isotonik.jpg', 'harga' => 10000, 'stok' => 25, 'status_produk' => 'aktif']);
+        Produk::create(['nama_produk' => 'Mie Instan', 'kategori' => 'Makanan', 'gambar' => 'produk/mie_instan.jpg', 'harga' => 12000, 'stok' => 30, 'status_produk' => 'aktif']);
+        Produk::create(['nama_produk' => 'Shuttlecock Garuda', 'kategori' => 'Perlengkapan', 'gambar' => 'produk/shuttlecock_garuda.jpg', 'harga' => 80000, 'stok' => 20, 'status_produk' => 'aktif']);
+        Produk::create(['nama_produk' => 'Shuttlecock Yonex', 'kategori' => 'Perlengkapan', 'gambar' => 'produk/shuttlecock_yonex.jpg', 'harga' => 120000, 'stok' => 15, 'status_produk' => 'aktif']);
     }
 
     public function test_command_seed_keuangan_november_menghasilkan_tepat_13_896_juta(): void
@@ -108,6 +108,15 @@ class SeedKeuanganNovemberCommandTest extends TestCase
             ->where('ringkasan.pendapatan_sewa_lapangan', 13000000)
             ->where('ringkasan.pendapatan_pos', 896000)
             ->where('ringkasan.total_pendapatan_kotor', 13896000)
+        );
+
+        // 6. Verifikasi pada response Kasir POS bahwa produk memiliki url_gambar
+        $resKasir = $this->actingAs($this->kasirUser, 'staff')->get('/kasir');
+        $resKasir->assertStatus(200);
+        $resKasir->assertInertia(fn ($page) => $page
+            ->component('Kasir/Index')
+            ->has('produk', 6)
+            ->where('produk.0.url_gambar', fn ($val) => !empty($val) && str_contains($val, '/storage/produk/'))
         );
 
         Carbon::setTestNow();

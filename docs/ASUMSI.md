@@ -325,3 +325,45 @@
      - Pengeluaran Biaya Operasional (WiFi Indosat): **Rp 220.000**.
      - Laba Bersih Operasional: 13.896.000 - 220.000 = **Rp 13.676.000**.
 
+
+## 33. Penyediaan dan Sinkronisasi Foto Produk Kasir POS (Internet / Wikimedia Commons)
+- Berdasarkan permintaan pengguna agar barang di kasir memiliki gambar yang sesuai dengan nama barangnya:
+  1. **Sumber Foto & Pengolahan Gambar**:
+     - Mengunduh foto riil produk berlisensi bebas dari Wikimedia Commons untuk seluruh produk kasir:
+       - `Air Mineral`: Botol air mineral Aqua (`produk/air_mineral.jpg`)
+       - `Teh Manis`: Gelas es teh manis segar (`produk/teh_manis.jpg`)
+       - `Isotonik`: Botol Pocari Sweat 500ml (`produk/isotonik.jpg`)
+       - `Mie Instan`: Sajian Indomie goreng lengkap (`produk/mie_instan.jpg`)
+       - `Shuttlecock Yonex`: Tabung Shuttlecock Yonex Aerosensa (`produk/shuttlecock_yonex.jpg`)
+       - `Shuttlecock Garuda`: Shuttlecock bulu tangkis di lapangan (`produk/shuttlecock_garuda.jpg`)
+       - `ayam geprek`: Piring ayam geprek sambal bawang (`produk/ayam_geprek.jpg`)
+       - `Le Mineral`: Botol Le Minerale (`produk/QrtrLJaUwsCUmzM9JJS1b7x5cJ9twwoOk9PlzBlA.jpg`)
+     - Gambar dioptimasi dan dipotong bujur sangkar (square crop 600x600 px) dengan kompresi berkualitas tinggi (~25KB s.d. 110KB) menggunakan ekstensi PHP GD agar kartu kasir POS termuat seketika tanpa jeda/lag.
+  2. **Penyimpanan & Akses URL**:
+     - File disimpan di `storage/app/public/produk/` yang terhubung via symlink ke `public/storage/produk/`.
+     - Accessor `url_gambar` pada model `Produk` menggunakan root-relative `/storage/{gambar}` jika driver storage bertipe `local`, sehingga gambar terjamin tampil utuh di semua environment (Apache port 80, artisan serve port 8000, localhost, maupun domain virtual host `bigi-badminton.test`).
+  3. **Seeder**:
+     - Dibuat seeder `ProdukGambarSeeder` dan pembaruan pada `DatabaseSeeder` agar setiap fresh install atau reset database selalu memiliki referensi foto produk yang lengkap.
+
+
+## 34. Pembersihan Total Data Sistem Kecuali Akun Utama (User, Admin, Kasir)
+- Berdasarkan permintaan pembatalan penambahan data keuangan dan instruksi pembersihan sistem:
+  - Seluruh data operasional dan transaksi dihapus bersih dari database:
+    - Transaksi POS & Kasir: `detail_transaksi_pos`, `retur_void`, `transaksi_pos`, `shift_kasir`, `restock`, `stock_opname` (seluruhnya 0 baris)
+    - Reservasi & Sewa: `detail_reservasi`, `pembayaran`, `reservasi` (seluruhnya 0 baris)
+    - Member & Paket: `paket_member`, `penyesuaian_paket` (seluruhnya 0 baris)
+    - Open Mabar & Chat: `open_mabar`, `peserta_mabar`, `chat_mabar` (seluruhnya 0 baris)
+    - Pengeluaran & Audit: `biaya_operasional`, `pemeriksaan_lapangan`, `audit_log`, `laporan_keuangan`, `informasi` (seluruhnya 0 baris)
+  - Pengguna dipertahankan hanya 4 akun utama:
+    - ID 1: `dewa nugroho` (User)
+    - ID 2: `Admin Bigi` (Admin)
+    - ID 3: `Kasir Bigi` (Kasir)
+    - ID 4: `Dewangga Nugroho` (User)
+    - Seluruh akun member impor/tambahan (ID > 4) dihapus bersih.
+  - Data master sarana:
+    - Master `lapangan` (Lapangan 1 & Lapangan 2) tetap tersedia dengan status tersedia.
+    - Master `produk` (katalog kasir) tetap tersedia dengan stok awal bersih dan foto produk riil beresolusi pas.
+  - Disediakan artisan command `php artisan bigi:reset-data-sistem {--force}` untuk menjalankan proses pembersihan ini secara otomatis kapan saja dibutuhkan.
+
+
+

@@ -33,7 +33,11 @@ class Produk extends Model
             return null;
         }
 
-        return Storage::disk('public')->url($this->gambar);
+        if (str_starts_with($this->gambar, 'http://') || str_starts_with($this->gambar, 'https://')) {
+            return $this->gambar;
+        }
+
+        return '/storage/' . ltrim($this->gambar, '/');
     }
 
     public function restock() { return $this->hasMany(Restock::class, 'id_produk'); }
