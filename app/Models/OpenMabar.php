@@ -22,8 +22,26 @@ class OpenMabar extends Model
 
     protected $table = 'open_mabar';
     protected $primaryKey = 'id_mabar';
-    
-    protected $fillable = ['id_user', 'judul', 'tanggal', 'jam_mulai', 'jam_selesai', 'gender', 'batas_usia_min', 'batas_usia_max', 'kuota', 'deskripsi', 'foto', 'id_lapangan', 'status'];
+    protected $fillable = [
+        'id_user',
+        'judul',
+        'tanggal',
+        'jam_mulai',
+        'jam_selesai',
+        'gender',
+        'no_hp',
+        'batas_usia_min',
+        'batas_usia_max',
+        'kuota',
+        'deskripsi',
+        'foto',
+        'id_lapangan',
+        'status',
+    ];
+
+    protected $hidden = [
+        'no_hp',
+    ];
 
     public function user() { return $this->belongsTo(User::class, 'id_user'); }
     public function lapangan() { return $this->belongsTo(Lapangan::class, 'id_lapangan'); }

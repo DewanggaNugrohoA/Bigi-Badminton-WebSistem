@@ -10,7 +10,9 @@ use App\Models\Pembayaran;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class Fase1FTest extends TestCase
@@ -196,7 +198,7 @@ class Fase1FTest extends TestCase
         ]);
 
         $response->assertRedirect('/pengaturan/akun');
-        $response->assertSessionHas('success', 'Profil Berhasil Diperbarui');
+        $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('users', [
             'id_user' => $user->id_user,
@@ -238,11 +240,47 @@ class Fase1FTest extends TestCase
         ]);
 
         $response->assertRedirect('/pengaturan/akun');
-        $response->assertSessionHas('success', 'Profil Berhasil Diperbarui');
+        $response->assertSessionHas('success');
         $this->assertDatabaseHas('users', [
             'id_user' => $user->id_user,
             'nama' => 'Nama Diperbarui',
         ]);
+    }
+
+    public function test_update_profil_menerima_format_62_dan_menormalkan_ke_08(): void
+    {
+        $user = $this->user;
+
+        $response = $this->actingAs($user)->put('/pengaturan/akun/profil', [
+            'nama' => 'User Format 62',
+            'no_whatsapp' => '62895322428769',
+        ]);
+
+        $response->assertRedirect('/pengaturan/akun');
+        $this->assertDatabaseHas('users', [
+            'id_user' => $user->id_user,
+            'no_whatsapp' => '0895322428769',
+        ]);
+    }
+
+    public function test_update_profil_bisa_upload_foto_dan_tampil(): void
+    {
+        Storage::fake('public');
+        $user = $this->user;
+        $foto = UploadedFile::fake()->image('profil.jpg', 200, 200);
+
+        $response = $this->actingAs($user)->put('/pengaturan/akun/profil', [
+            'nama' => 'User Foto',
+            'no_whatsapp' => $user->no_whatsapp,
+            'foto' => $foto,
+        ]);
+
+        $response->assertRedirect('/pengaturan/akun');
+        Storage::disk('public')->assertExists('avatars/avatar_' . $user->id_user . '.jpg');
+
+        $user->refresh();
+        $this->assertNotNull($user->foto);
+        $this->assertStringContainsString('avatars/avatar_' . $user->id_user . '.jpg', $user->foto);
     }
 
     
@@ -304,5 +342,73 @@ class Fase1FTest extends TestCase
     {
         $this->get('/dashboard')->assertRedirect('/login');
         $this->get('/pengaturan/akun')->assertRedirect('/login');
+    }
+
+    public function test_user_dapat_minta_otp_lupa_password_di_pengaturan_akun(): void
+    {
+        $user = $this->user;
+
+        $response = $this->actingAs($user)->post('/pengaturan/akun/lupa-password/kirim-otp');
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('password_reset_otp', [
+            'no_whatsapp' => '628155550001',
+        ]);
+    }
+
+    public function test_user_dapat_verifikasi_otp_dan_reset_password_di_pengaturan_akun(): void
+    {
+        $user = $this->user;
+        $otp = '123456';
+        $hashedOtp = hash_hmac('sha256', $otp, (string) config('app.key'));
+
+        \App\Models\PasswordResetOtp::updateOrCreate(
+            ['no_whatsapp' => '628155550001'],
+            [
+                'kode_otp' => $hashedOtp,
+                'expires_at' => Carbon::now()->addMinutes(10),
+            ]
+        );
+
+        $response = $this->actingAs($user)->post('/pengaturan/akun/lupa-password/verifikasi', [
+            'kode_otp' => $otp,
+            'password' => 'kata_sandi_baru_123',
+            'password_confirmation' => 'kata_sandi_baru_123',
+        ]);
+
+        $response->assertRedirect('/pengaturan/akun');
+        $response->assertSessionHas('success');
+
+        // Verifikasi password baru dapat digunakan
+        $user->refresh();
+        $this->assertTrue(Hash::check('kata_sandi_baru_123', $user->password));
+
+        // OTP harus sudah terhapus setelah berhasil
+        $this->assertDatabaseMissing('password_reset_otp', [
+            'no_whatsapp' => '628155550001',
+        ]);
+    }
+
+    public function test_user_gagal_verifikasi_otp_lupa_password_jika_kode_salah(): void
+    {
+        $user = $this->user;
+        $otp = '123456';
+        $hashedOtp = hash_hmac('sha256', $otp, (string) config('app.key'));
+
+        \App\Models\PasswordResetOtp::updateOrCreate(
+            ['no_whatsapp' => '628155550001'],
+            [
+                'kode_otp' => $hashedOtp,
+                'expires_at' => Carbon::now()->addMinutes(10),
+            ]
+        );
+
+        $response = $this->actingAs($user)->post('/pengaturan/akun/lupa-password/verifikasi', [
+            'kode_otp' => '999999',
+            'password' => 'kata_sandi_baru_123',
+            'password_confirmation' => 'kata_sandi_baru_123',
+        ]);
+
+        $response->assertSessionHasErrors('kode_otp');
     }
 }

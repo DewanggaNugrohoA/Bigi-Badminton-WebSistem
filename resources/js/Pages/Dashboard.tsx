@@ -162,7 +162,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left">
                         <div className="flex items-start sm:items-center gap-4 text-left">
                             
-                            <div className="size-14 sm:size-16 rounded-2xl bg-gradient-to-br from-[var(--brand)] to-purple-600 text-white font-extrabold text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-xs">
+                            <div className="size-14 sm:size-16 rounded-2xl bg-gradient-to-br from-[var(--brand)] to-slate-800 text-white font-extrabold text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-xs">
                                 {getInitial(user.nama)}
                             </div>
 
@@ -261,13 +261,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                         <Link href="/open-mabar">
                             <Button variant="outline" size="sm" className="gap-2 text-xs h-10 px-4 font-semibold hover:border-[var(--brand)]/40">
                                 <Calendar className="size-3.5 text-[var(--brand)]" />
-                                Cari Jadwal
-                            </Button>
-                        </Link>
-                        <Link href="/open-mabar/create">
-                            <Button size="sm" className="gap-2 text-xs bg-[var(--brand)] hover:opacity-90 text-white h-10 px-4 font-semibold shadow-xs">
-                                <PlusCircle className="size-3.5" />
-                                Buat Jadwal Baru
+                                Lihat Jadwal
                             </Button>
                         </Link>
                         <Link href="/open-mabar/saya">
@@ -365,7 +359,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                             <p className="text-xs text-muted-foreground">Jadwal main bareng aktif yang siap Anda ikuti</p>
                         </div>
                         <Link href="/open-mabar" className="text-xs font-semibold text-[var(--brand)] hover:underline flex items-center gap-1 shrink-0">
-                            <span>Cari jadwal lain</span>
+                            <span>Lihat jadwal lain</span>
                             <ArrowRight className="size-3" />
                         </Link>
                     </div>
@@ -386,7 +380,7 @@ export default function Dashboard({ user, mabarStats, reservasiSaya, mabarDiikut
                             <Link href="/open-mabar" className="shrink-0 w-full sm:w-auto">
                                 <Button className="w-full sm:w-auto h-10 px-5 gap-2 bg-[var(--brand)] hover:opacity-90 text-white shadow-xs font-semibold">
                                     <Calendar className="size-4" />
-                                    <span>Cari Jadwal Mabar</span>
+                                    <span>Lihat Jadwal Mabar</span>
                                 </Button>
                             </Link>
                         </div>

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\BiayaOperasional;
 use App\Models\Pembayaran;
 use App\Models\Produk;
 use App\Models\Reservasi;
@@ -71,9 +72,18 @@ class LaporanEksporService
         $posQris = (float) ($posSelesai->total_qris ?? 0);
 
         $sewaValidAgg = Pembayaran::query()
-            ->join('reservasi', 'pembayaran.id_reservasi', '=', 'reservasi.id_reservasi')
+            ->leftJoin('reservasi', 'pembayaran.id_reservasi', '=', 'reservasi.id_reservasi')
+            ->leftJoin('paket_member', 'pembayaran.id_paket', '=', 'paket_member.id_paket')
             ->where('pembayaran.status_pembayaran', Pembayaran::STATUS_TERKONFIRMASI)
-            ->where('reservasi.status_reservasi', '!=', Reservasi::STATUS_BATAL)
+            ->where(function ($q) {
+                $q->where(function ($qRes) {
+                    $qRes->whereNotNull('pembayaran.id_reservasi')
+                        ->where('reservasi.status_reservasi', '!=', Reservasi::STATUS_BATAL);
+                })->orWhere(function ($qPkt) {
+                    $qPkt->whereNotNull('pembayaran.id_paket')
+                        ->where('paket_member.status', '!=', \App\Models\PaketMember::STATUS_DIBATALKAN);
+                });
+            })
             ->whereDate('pembayaran.tanggal_pembayaran', '>=', $startDate)
             ->whereDate('pembayaran.tanggal_pembayaran', '<=', $endDate)
             ->selectRaw('
@@ -131,6 +141,29 @@ class LaporanEksporService
             ->whereDate('pembayaran.tanggal_pembayaran', '<=', $endDate)
             ->sum('pembayaran.jumlah');
 
+        $biayaOperasionalItems = BiayaOperasional::query()
+            ->whereDate('tanggal_biaya', '>=', $startDate)
+            ->whereDate('tanggal_biaya', '<=', $endDate)
+            ->orderBy('tanggal_biaya', 'asc')
+            ->orderBy('id_biaya', 'asc')
+            ->get(['id_biaya', 'tanggal_biaya', 'jenis_pengeluaran', 'keterangan', 'jumlah']);
+
+        $biayaOperasional = (float) $biayaOperasionalItems->sum('jumlah');
+
+        $ringkasanKategoriBiaya = $biayaOperasionalItems
+            ->groupBy('jenis_pengeluaran')
+            ->map(function ($group, $jenis) {
+                return [
+                    'jenis' => $jenis ?: 'Operasional',
+                    'total' => (float) $group->sum('jumlah'),
+                    'jumlah_item' => $group->count(),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
+        $labaBersih = $totalPendapatan - $biayaOperasional;
+
         $spreadsheet = new Spreadsheet();
         $spreadsheet->removeSheetByIndex(0);
 
@@ -145,11 +178,15 @@ class LaporanEksporService
             'sewaDp' => $sewaDp,
             'sewaLunas' => $sewaLunas,
             'totalPendapatan' => $totalPendapatan,
+            'biayaOperasional' => $biayaOperasional,
+            'labaBersih' => $labaBersih,
             'jumlahVoidRetur' => $jumlahVoidRetur,
             'totalNominalVoidRetur' => $totalNominalVoidRetur,
             'totalSelisihShift' => $totalSelisihShift,
             'sisaTagihan' => $sisaTagihan,
             'dpBatal' => $dpBatal,
+            'biayaOperasionalItems' => $biayaOperasionalItems,
+            'ringkasanKategoriBiaya' => $ringkasanKategoriBiaya,
         ]);
 
         $this->buildSheetPosHarian($spreadsheet, $startDate, $endDate);
@@ -252,6 +289,9 @@ class LaporanEksporService
             ['DI LUAR TOTAL PENDAPATAN', '', ''],
             ['  Piutang Sewa (Belum Lunas)', 'Sisa tagihan reservasi terkonfirmasi', $data['sisaTagihan']],
             ['  DP Reservasi Batal', 'Pembayaran sewa pada reservasi yang dibatalkan', $data['dpBatal']],
+            ['PENGELUARAN OPERASIONAL & LABA BERSIH', '', ''],
+            ['  Total Biaya Operasional', 'Beban operasional (listrik, wifi, gas, dll)', $data['biayaOperasional']],
+            ['LABA BERSIH (NETTO)', 'Total pendapatan kotor dikurangi biaya operasional', $data['labaBersih']],
         ];
 
         $r = 7;
@@ -263,12 +303,12 @@ class LaporanEksporService
                 $sheet->getStyle("C{$r}")->getNumberFormat()->setFormatCode('#,##0');
             }
 
-            if (in_array($item[0], ['PENDAPATAN', 'KOREKSI KAS', 'DI LUAR TOTAL PENDAPATAN'], true)) {
+            if (in_array($item[0], ['PENDAPATAN', 'KOREKSI KAS', 'DI LUAR TOTAL PENDAPATAN', 'PENGELUARAN OPERASIONAL & LABA BERSIH'], true)) {
                 $sheet->getStyle("A{$r}:C{$r}")->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('374151'));
                 $sheet->getStyle("A{$r}:C{$r}")->getBorders()->getBottom()->setBorderStyle(Border::BORDER_HAIR);
             }
 
-            if ($item[0] === 'TOTAL PENDAPATAN (POS + SEWA)') {
+            if (in_array($item[0], ['TOTAL PENDAPATAN (POS + SEWA)', 'LABA BERSIH (NETTO)'], true)) {
                 $sheet->getStyle("A{$r}:C{$r}")->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['rgb' => '111827']],
                     'borders' => [
@@ -284,8 +324,108 @@ class LaporanEksporService
         $sheet->setCellValue("A" . ($r + 1), 'Catatan: Piutang sewa belum lunas dan DP reservasi batal tidak termasuk ke dalam kalkulasi total pendapatan.');
         $sheet->getStyle("A" . ($r + 1))->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('6B7280'))->setSize(9);
 
-        $this->autoFitColumns($sheet, ['A', 'B', 'C']);
         $sheet->getStyle('C7:C' . ($r - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        $currRow = $r + 3;
+
+        // B. Ringkasan per Jenis Pengeluaran
+        $sheet->setCellValue("A{$currRow}", 'RINGKASAN BIAYA OPERASIONAL PER JENIS');
+        $sheet->getStyle("A{$currRow}")->getFont()->setBold(true)->setSize(11)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('1F2937'));
+        $currRow++;
+
+        $sheet->setCellValue("A{$currRow}", 'JENIS PENGELUARAN');
+        $sheet->setCellValue("B{$currRow}", 'JUMLAH TRANSAKSI');
+        $sheet->setCellValue("C{$currRow}", 'PORSI');
+        $sheet->setCellValue("D{$currRow}", 'SUBTOTAL (RP)');
+        $sheet->getStyle("A{$currRow}:D{$currRow}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => '1F2937']],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E5E7EB'],
+            ],
+            'borders' => [
+                'bottom' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '9CA3AF']],
+            ],
+        ]);
+        $currRow++;
+
+        $kategoriList = $data['ringkasanKategoriBiaya'] ?? [];
+        if (empty($kategoriList) || count($kategoriList) === 0) {
+            $sheet->setCellValue("A{$currRow}", 'Tidak ada pengeluaran operasional pada periode ini');
+            $sheet->getStyle("A{$currRow}")->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('6B7280'));
+            $currRow++;
+        } else {
+            $startKatRow = $currRow;
+            foreach ($kategoriList as $kat) {
+                $porsi = ($data['biayaOperasional'] > 0) ? round(($kat['total'] / $data['biayaOperasional']) * 100, 1) . '%' : '0%';
+                $sheet->setCellValue("A{$currRow}", $this->sanitizeText($kat['jenis']));
+                $sheet->setCellValue("B{$currRow}", $kat['jumlah_item'] . ' transaksi');
+                $sheet->setCellValue("C{$currRow}", $porsi);
+                $sheet->setCellValueExplicit("D{$currRow}", $kat['total'], DataType::TYPE_NUMERIC);
+                $sheet->getStyle("D{$currRow}")->getNumberFormat()->setFormatCode('#,##0');
+                $currRow++;
+            }
+            $sheet->getStyle("D{$startKatRow}:D" . ($currRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("C{$startKatRow}:C" . ($currRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        }
+
+        $currRow++; // empty spacing
+
+        // A. Rincian per Item
+        $sheet->setCellValue("A{$currRow}", 'RINCIAN PENGELUARAN OPERASIONAL');
+        $sheet->getStyle("A{$currRow}")->getFont()->setBold(true)->setSize(11)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('1F2937'));
+        $currRow++;
+
+        $sheet->setCellValue("A{$currRow}", 'TANGGAL');
+        $sheet->setCellValue("B{$currRow}", 'JENIS PENGELUARAN');
+        $sheet->setCellValue("C{$currRow}", 'KETERANGAN');
+        $sheet->setCellValue("D{$currRow}", 'NOMINAL (RP)');
+        $sheet->getStyle("A{$currRow}:D{$currRow}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => '1F2937']],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E5E7EB'],
+            ],
+            'borders' => [
+                'bottom' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '9CA3AF']],
+            ],
+        ]);
+        $currRow++;
+
+        $itemsList = $data['biayaOperasionalItems'] ?? [];
+        if (empty($itemsList) || count($itemsList) === 0) {
+            $sheet->setCellValue("A{$currRow}", 'Tidak ada pengeluaran operasional pada periode ini');
+            $sheet->getStyle("A{$currRow}")->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('6B7280'));
+            $currRow++;
+        } else {
+            $startItemRow = $currRow;
+            foreach ($itemsList as $item) {
+                $tglFormatted = $item->tanggal_biaya ? Carbon::parse($item->tanggal_biaya)->locale('id')->isoFormat('D MMM Y') : '-';
+                $sheet->setCellValue("A{$currRow}", $tglFormatted);
+                $sheet->setCellValue("B{$currRow}", $this->sanitizeText($item->jenis_pengeluaran ?: 'Operasional'));
+                $sheet->setCellValue("C{$currRow}", $this->sanitizeText($item->keterangan ?: '-'));
+                $sheet->setCellValueExplicit("D{$currRow}", (float) $item->jumlah, DataType::TYPE_NUMERIC);
+                $sheet->getStyle("D{$currRow}")->getNumberFormat()->setFormatCode('#,##0');
+                $currRow++;
+            }
+            $sheet->getStyle("D{$startItemRow}:D" . ($currRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+            // Total Pengeluaran Operasional
+            $sheet->setCellValue("A{$currRow}", 'TOTAL PENGELUARAN OPERASIONAL');
+            $sheet->setCellValueExplicit("D{$currRow}", $data['biayaOperasional'], DataType::TYPE_NUMERIC);
+            $sheet->getStyle("D{$currRow}")->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle("A{$currRow}:D{$currRow}")->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['rgb' => '111827']],
+                'borders' => [
+                    'top' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '374151']],
+                    'bottom' => ['borderStyle' => Border::BORDER_DOUBLE, 'color' => ['rgb' => '374151']],
+                ],
+            ]);
+            $sheet->getStyle("D{$currRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $currRow++;
+        }
+
+        $this->autoFitColumns($sheet, ['A', 'B', 'C', 'D']);
     }
 
     private function buildSheetPosHarian(Spreadsheet $spreadsheet, string $startDate, string $endDate): void
@@ -481,7 +621,7 @@ class LaporanEksporService
 
         $this->applySheetStyles($sheet, 'I', 1);
 
-        $pembayaran = Pembayaran::with(['reservasi.user'])
+        $pembayaran = Pembayaran::with(['reservasi.user', 'paket.user'])
             ->whereDate('tanggal_pembayaran', '>=', $startDate)
             ->whereDate('tanggal_pembayaran', '<=', $endDate)
             ->orderBy('tanggal_pembayaran', 'asc')
@@ -490,16 +630,18 @@ class LaporanEksporService
         $row = 2;
         foreach ($pembayaran as $p) {
             $res = $p->reservasi;
-            $namaPemesan = $res?->nama_pemesan ?: ($res?->user?->nama ?: 'Pelanggan');
+            $namaPemesan = $res?->nama_pemesan ?: ($res?->user?->nama ?: ($p->paket?->user?->nama ?: 'Pelanggan'));
+            $refId = $p->id_reservasi ? ('#' . $p->id_reservasi) : ('Paket #' . $p->id_paket);
+            $statusSewa = $res ? ucfirst($res->status_reservasi) : ucfirst($p->paket?->status ?? 'Aktif');
 
             $sheet->setCellValue("A{$row}", Carbon::parse($p->tanggal_pembayaran)->format('d/m/Y'));
-            $sheet->setCellValueExplicit("B{$row}", '#' . $p->id_reservasi, DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("B{$row}", $refId, DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("C{$row}", $this->sanitizeText($namaPemesan), DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("D{$row}", $p->jenis_pembayaran, DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("E{$row}", strtoupper($p->metode_pembayaran), DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("F{$row}", (float) $p->jumlah, DataType::TYPE_NUMERIC);
             $sheet->setCellValueExplicit("G{$row}", ucfirst($p->status_pembayaran), DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit("H{$row}", ucfirst($res?->status_reservasi ?? '-'), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("H{$row}", $statusSewa, DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("I{$row}", $this->sanitizeText($p->keterangan ?? '-'), DataType::TYPE_STRING);
 
             $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('#,##0');

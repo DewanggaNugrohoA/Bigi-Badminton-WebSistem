@@ -49,14 +49,6 @@ class ReservasiController extends Controller
             })
             ->get();
 
-        
-        $mabarHariIni = OpenMabar::with('lapangan:id_lapangan,nama_lapangan')
-            ->whereDate('tanggal', $tanggal)
-            ->where('status', OpenMabar::STATUS_DISETUJUI)
-            ->whereNotNull('id_lapangan')
-            ->get();
-
-        
         $slotHours = [];
         for ($h = 8; $h <= 22; $h++) {
             $slotHours[] = sprintf('%02d:00', $h);
@@ -71,18 +63,10 @@ class ReservasiController extends Controller
                 $strStart = $startSlot->format('H:i:s');
                 $strEnd = $endSlot->format('H:i:s');
 
-                
                 $booking = $detailHariIni->first(function ($item) use ($lap, $strStart, $strEnd) {
                     return $item->id_lapangan === $lap->id_lapangan
                         && $item->jam_mulai < $strEnd
                         && $item->jam_selesai > $strStart;
-                });
-
-                
-                $mabar = $mabarHariIni->first(function ($m) use ($lap, $strStart, $strEnd) {
-                    return $m->id_lapangan === $lap->id_lapangan
-                        && $m->jam_mulai < $strEnd
-                        && $m->jam_selesai > $strStart;
                 });
 
                 $status = 'tersedia';
@@ -104,14 +88,6 @@ class ReservasiController extends Controller
                         'jam_mulai' => substr($booking->jam_mulai, 0, 5),
                         'jam_selesai' => substr($booking->jam_selesai, 0, 5),
                         'status_reservasi' => $booking->reservasi->status_reservasi,
-                    ];
-                } elseif ($mabar) {
-                    $status = 'open_mabar';
-                    $info = [
-                        'id_mabar' => $mabar->id_mabar,
-                        'judul' => $mabar->judul,
-                        'jam_mulai' => substr($mabar->jam_mulai, 0, 5),
-                        'jam_selesai' => substr($mabar->jam_selesai, 0, 5),
                     ];
                 }
 
@@ -142,16 +118,19 @@ class ReservasiController extends Controller
             })
             ->orderBy('id_reservasi', 'desc')
             ->get()
-            ->map(function ($res) {
+            ->map(function ($res) use ($tanggal) {
                 $totalBayar = $res->pembayaran->sum('jumlah');
                 $sisa = max(0, $res->total_biaya - $totalBayar);
-                $detail = $res->detailReservasi->first();
+                $detail = $res->detailReservasi->first(fn ($d) => $d->tanggal_main == $tanggal) ?? $res->detailReservasi->first();
                 $namaTampil = $res->id_user ? ($res->user->nama ?? 'Pelanggan') : ($res->nama_pemesan ?? 'Pelanggan');
                 $waTampil = $res->id_user ? ($res->user->no_whatsapp ?? '-') : ($res->no_whatsapp_pemesan ?? '-');
                 $jenisPelanggan = $res->id_user ? ($res->user->jenis_pelanggan ?? 'reguler') : 'reguler';
 
                 return [
                     'id_reservasi' => $res->id_reservasi,
+                    'id_detail_reservasi' => $detail?->id_detail_reservasi,
+                    'id_lapangan' => $detail?->id_lapangan,
+                    'tanggal_main' => $detail ? Carbon::parse($detail->tanggal_main)->toDateString() : $tanggal,
                     'pemesan' => [
                         'id_user' => $res->id_user,
                         'nama' => $namaTampil,
@@ -169,6 +148,7 @@ class ReservasiController extends Controller
                     'bisa_dilunasi' => $sisa > 0 && $res->status_reservasi !== Reservasi::STATUS_BATAL,
                     'bisa_dibatalkan' => $res->status_reservasi === Reservasi::STATUS_TERKONFIRMASI,
                     'bisa_diselesaikan' => $res->status_reservasi === Reservasi::STATUS_TERKONFIRMASI,
+                    'bisa_diedit' => $res->status_reservasi === Reservasi::STATUS_TERKONFIRMASI && $jenisPelanggan === 'member',
                 ];
             });
 
@@ -210,9 +190,12 @@ class ReservasiController extends Controller
             'jam_mulai' => ['required', 'date_format:H:i'],
             'jam_selesai' => ['required', 'date_format:H:i', 'after:jam_mulai'],
             'harga_per_sesi' => ['nullable', 'integer', 'min:1', 'max:100000000'],
+            'jumlah_sesi' => ['nullable'],
         ]);
 
         $hargaPerSesi = $request->filled('harga_per_sesi') ? (int) $request->harga_per_sesi : null;
+        $jumlahSesiInput = $request->input('jumlah_sesi');
+        $jumlahSesi = (is_numeric($jumlahSesiInput) && (int) $jumlahSesiInput > 0) ? (int) $jumlahSesiInput : null;
 
         $preview = $this->reservasiService->previewMemberAutofield(
             (int) $request->id_user,
@@ -220,7 +203,8 @@ class ReservasiController extends Controller
             (string) $request->hari,
             (string) $request->jam_mulai,
             (string) $request->jam_selesai,
-            $hargaPerSesi
+            $hargaPerSesi,
+            $jumlahSesi
         );
 
         return response()->json($preview);
@@ -229,7 +213,17 @@ class ReservasiController extends Controller
     
     public function storeAutofield(StoreMemberAutofieldRequest $request)
     {
-        $this->reservasiService->storeMemberAutofield($request->validated(), $request->user()->id_user);
+        $reservasi = $this->reservasiService->storeMemberAutofield($request->validated(), $request->user()->id_user);
+
+        $firstDetail = $reservasi->detailReservasi()->orderBy('tanggal_main', 'asc')->first();
+        $targetDate = $firstDetail ? Carbon::parse($firstDetail->tanggal_main)->toDateString() : null;
+
+        if ($targetDate) {
+            $labelTgl = Carbon::parse($targetDate)->locale('id')->isoFormat('dddd, D MMMM Y');
+            $totalPertemuan = $reservasi->detailReservasi()->count();
+            return redirect()->to("/admin/reservasi?tanggal={$targetDate}")
+                ->with('success', "Paket reservasi rutin member berhasil disimpan untuk {$totalPertemuan} pertemuan (mulai {$labelTgl}).");
+        }
 
         return redirect()->back()->with('success', 'Paket reservasi rutin member berhasil disimpan secara kolektif.');
     }
@@ -275,6 +269,42 @@ class ReservasiController extends Controller
         $this->reservasiService->selesaikanReservasi($id, $request->user()->id_user);
 
         return redirect()->back()->with('success', 'Reservasi ditandai selesai bermain.');
+    }
+
+    /**
+     * Reschedule jadwal reservasi (ubah tanggal, jam, atau lapangan).
+     */
+    public function reschedule(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'id_detail_reservasi' => ['nullable', 'integer'],
+            'id_lapangan' => ['required', 'integer', 'exists:lapangan,id_lapangan'],
+            'tanggal_main' => ['required', 'date'],
+            'jam_mulai' => ['required', 'string'],
+            'jam_selesai' => ['required', 'string'],
+            'alasan' => ['nullable', 'string', 'max:500'],
+        ], [
+            'id_lapangan.required' => 'Lapangan wajib dipilih.',
+            'id_lapangan.exists' => 'Lapangan tidak ditemukan.',
+            'tanggal_main.required' => 'Tanggal main baru wajib diisi.',
+            'jam_mulai.required' => 'Jam mulai wajib dipilih.',
+            'jam_selesai.required' => 'Jam selesai wajib dipilih.',
+        ]);
+
+        $this->reservasiService->rescheduleReservasi($id, $validated, $request->user()->id_user);
+
+        return redirect()->back()->with('success', 'Jadwal reservasi berhasil di-reschedule.');
+    }
+
+    /**
+     * Hapus reservasi dan kembalikan sesi paket member jika ada.
+     */
+    public function destroy(Request $request, int $id)
+    {
+        $alasan = $request->input('alasan');
+        $this->reservasiService->hapusReservasi($id, $request->user()->id_user, $alasan);
+
+        return redirect()->back()->with('success', 'Reservasi berhasil dihapus dan sesi/slot telah dikembalikan.');
     }
 
     

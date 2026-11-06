@@ -7,7 +7,6 @@ import {
     Package,
     Boxes,
     ClipboardCheck,
-    Ban,
     Menu,
     LogOut,
     Sun,
@@ -74,7 +73,6 @@ interface MenuGroup {
  * Definisi grup navigasi sidebar Panel Kasir:
  * - Transaksi: Antarmuka kasir penjualan POS, shift kerja, dan riwayat struk
  * - Inventori: Katalog master produk, penambahan stok (restock), dan opname berkala
- * - Koreksi: Form pembatalan transaksi (void/retur) barang
  */
 const MENU_GROUPS: MenuGroup[] = [
     {
@@ -93,12 +91,6 @@ const MENU_GROUPS: MenuGroup[] = [
             { title: "Stok Opname", href: "/kasir/opname", icon: ClipboardCheck },
         ],
     },
-    {
-        title: "Koreksi",
-        items: [
-            { title: "Void/Retur", href: "/kasir/void", icon: Ban },
-        ],
-    },
 ];
 
 const SIDEBAR_STORAGE_KEY = "kasir_sidebar_open";
@@ -113,27 +105,26 @@ export default function KasirLayout({
     fullWidth = false,
 }: KasirLayoutProps) {
     const { auth, flash } = usePage<SharedProps>().props;
+    const { url } = usePage();
     const user = auth?.user;
-    const currentUrl = typeof window !== "undefined" ? window.location.pathname : "";
+    const pathname = url.split("?")[0].split("#")[0];
 
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+        if (typeof window === "undefined") return true;
+        try {
+            const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+            if (saved !== null) {
+                return saved === "true";
+            }
+            return window.innerWidth >= 768;
+        } catch {
+            return true;
+        }
+    });
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isDark, setIsDark] = useState(true);
 
     const lastFlash = useRef<{ success?: string | null; error?: string | null }>({});
-
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-            if (saved !== null) {
-                setSidebarOpen(saved === "true");
-            } else {
-                setSidebarOpen(false);
-            }
-        } catch {
-            setSidebarOpen(false);
-        }
-    }, []);
 
     const toggleSidebar = () => {
         setSidebarOpen((prev) => {
@@ -193,9 +184,9 @@ export default function KasirLayout({
 
     const isItemActive = (href: string) => {
         if (href === "/kasir") {
-            return currentUrl === "/kasir";
+            return pathname === "/kasir";
         }
-        return currentUrl === href || currentUrl.startsWith(href + "/");
+        return pathname === href || pathname.startsWith(href + "/");
     };
 
     const renderNavItems = (isMobile = false) => (
@@ -218,7 +209,7 @@ export default function KasirLayout({
                                         if (isMobile) setMobileOpen(false);
                                     }}
                                     className={cn(
-                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
                                         isActive
                                             ? "bg-[var(--brand)] text-white shadow-xs font-semibold"
                                             : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -237,11 +228,11 @@ export default function KasirLayout({
     );
 
     return (
-        <div className="min-h-screen bg-background text-foreground flex flex-col antialiased">
+        <div className="min-h-screen bg-transparent text-foreground flex flex-col antialiased print:min-h-0 print:bg-white print:text-slate-900">
             <aside
                 aria-label="Sidebar Kasir"
                 className={cn(
-                    "fixed inset-y-0 left-0 z-40 bg-sidebar border-r border-sidebar-border hidden md:flex flex-col transition-all duration-300 ease-in-out",
+                    "fixed inset-y-0 left-0 z-40 bg-sidebar border-r border-sidebar-border hidden md:flex flex-col transition-all duration-300 ease-in-out print:hidden",
                     sidebarOpen ? "w-60 translate-x-0" : "-translate-x-full w-60"
                 )}
             >
@@ -280,20 +271,6 @@ export default function KasirLayout({
                 <div className="flex-1 overflow-y-auto px-3 py-2">
                     {renderNavItems(false)}
                 </div>
-
-                <div className="p-3 border-t border-sidebar-border shrink-0">
-                    <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-muted/40">
-                        <div className="size-7 rounded-full bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center font-bold text-xs shrink-0">
-                            {user?.nama ? user.nama.charAt(0).toUpperCase() : "K"}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-semibold text-foreground truncate">{user?.nama || "Kasir"}</span>
-                            <span className="text-[10px] text-muted-foreground font-medium">
-                                Staf Kasir
-                            </span>
-                        </div>
-                    </div>
-                </div>
             </aside>
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -328,11 +305,11 @@ export default function KasirLayout({
 
             <div
                 className={cn(
-                    "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out",
+                    "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out print:pl-0",
                     sidebarOpen ? "md:pl-60" : "md:pl-0"
                 )}
             >
-                <header className="sticky top-0 z-30 h-16 bg-background/85 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-4">
+                <header className="sticky top-0 z-30 h-16 bg-card/85 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-4 print:hidden">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <Button
                             type="button"
@@ -345,21 +322,18 @@ export default function KasirLayout({
                             <Menu className="size-4" />
                         </Button>
 
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={toggleSidebar}
-                            className="hidden md:inline-flex shrink-0 size-9"
-                            aria-label={sidebarOpen ? "Sembunyikan menu navigasi" : "Buka menu navigasi"}
-                            aria-expanded={sidebarOpen}
-                        >
-                            {sidebarOpen ? <PanelLeftClose className="size-4" /> : <PanelLeft className="size-4" />}
-                        </Button>
-
-                        <div className="flex items-center gap-2 truncate">
-                            <span className="text-sm font-semibold text-foreground truncate">{title}</span>
-                        </div>
+                        {!sidebarOpen && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={toggleSidebar}
+                                className="hidden md:inline-flex shrink-0 size-9"
+                                aria-label="Buka menu navigasi kasir"
+                            >
+                                <PanelLeft className="size-4" />
+                            </Button>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
@@ -424,7 +398,7 @@ export default function KasirLayout({
                     {fullWidth ? (
                         children
                     ) : (
-                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8 print:p-0 print:m-0 print:max-w-none">
                             {children}
                         </div>
                     )}

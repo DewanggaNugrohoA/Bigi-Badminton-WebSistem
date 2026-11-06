@@ -101,6 +101,17 @@ class LoginController extends Controller
         Auth::login($user, false);
         $request->session()->regenerate();
 
+        \App\Models\AuditLog::create([
+            'id_user' => $user->id_user,
+            'role' => $user->role,
+            'aksi' => 'LOGIN_USER_SUKSES',
+            'objek' => 'Sesi Pengguna',
+            'modul' => 'auth',
+            'keterangan' => "Pengguna {$user->nama} berhasil masuk dari IP: {$request->ip()}",
+            'ip_address' => $request->ip(),
+            'waktu' => \Carbon\Carbon::now('Asia/Jakarta'),
+        ]);
+
         
         $target = $request->input('redirect') ?: $request->session()->pull('url.intended');
 
@@ -142,6 +153,20 @@ class LoginController extends Controller
 
     public function destroy(Request $request)
     {
+        $user = $request->user('web') ?: $request->user();
+        if ($user) {
+            \App\Models\AuditLog::create([
+                'id_user' => $user->id_user,
+                'role' => $user->role,
+                'aksi' => 'LOGOUT_USER',
+                'objek' => 'Sesi Pengguna',
+                'modul' => 'auth',
+                'keterangan' => "Pengguna {$user->nama} telah keluar dari sistem.",
+                'ip_address' => $request->ip(),
+                'waktu' => \Carbon\Carbon::now('Asia/Jakarta'),
+            ]);
+        }
+
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

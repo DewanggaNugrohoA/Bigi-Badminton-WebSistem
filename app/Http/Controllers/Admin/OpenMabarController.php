@@ -27,9 +27,12 @@ class OpenMabarController extends Controller
     
     public function index(Request $request): Response
     {
-        $statusFilter = $request->input('status', 'menunggu');
-        $search = $request->input('q', '');
-        $tanggal = $request->input('tanggal', '');
+        $statusFilter = $request->input('status', 'semua');
+        if (! in_array($statusFilter, ['semua', 'menunggu', 'disetujui', 'ditolak'], true)) {
+            $statusFilter = 'semua';
+        }
+        $search = trim((string) $request->input('q', ''));
+        $tanggal = trim((string) $request->input('tanggal', ''));
 
         $query = OpenMabar::query()
             ->with([
@@ -41,7 +44,7 @@ class OpenMabarController extends Controller
             }]);
 
         
-        if ($statusFilter !== 'semua' && in_array($statusFilter, ['menunggu', 'disetujui', 'ditolak'])) {
+        if ($statusFilter !== 'semua') {
             $query->where('status', $statusFilter);
         }
 
@@ -49,6 +52,7 @@ class OpenMabarController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', "%{$search}%")
+                  ->orWhere('no_hp', 'like', "%{$search}%")
                   ->orWhereHas('user', function ($uq) use ($search) {
                       $uq->where('nama', 'like', "%{$search}%")
                          ->orWhere('no_whatsapp', 'like', "%{$search}%");
@@ -61,10 +65,15 @@ class OpenMabarController extends Controller
             $query->whereDate('tanggal', $tanggal);
         }
 
-        $daftarMabar = $query->orderBy('tanggal', 'desc')
+        $daftarMabar = $query
+            ->orderByRaw("CASE WHEN status = 'menunggu' THEN 0 ELSE 1 END")
+            ->orderBy('tanggal', 'desc')
             ->orderBy('jam_mulai', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate(10)
             ->withQueryString();
+
+        $daftarMabar->getCollection()->each->makeVisible('no_hp');
 
         $daftarLapangan = Lapangan::select('id_lapangan', 'nama_lapangan', 'status_lapangan')->get();
 
@@ -208,5 +217,33 @@ class OpenMabarController extends Controller
 
             return redirect()->back()->with('success', "Open Mabar '{$mabar->judul}' telah ditolak. Pengaju dapat melihat catatan dan mengajukan revisi.");
         });
+    }
+
+    /**
+     * Endpoint API status notifikasi pengajuan open mabar untuk polling panel admin.
+     */
+    public function notifikasi(Request $request): JsonResponse
+    {
+        $pendingCount = OpenMabar::where('status', OpenMabar::STATUS_MENUNGGU)->count();
+
+        $latest = OpenMabar::where('status', OpenMabar::STATUS_MENUNGGU)
+            ->with(['user:id_user,nama,no_whatsapp', 'lapangan:id_lapangan,nama_lapangan'])
+            ->orderBy('id_mabar', 'desc')
+            ->first();
+
+        return response()->json([
+            'pending_count' => $pendingCount,
+            'latest' => $latest ? [
+                'id_mabar' => $latest->id_mabar,
+                'judul' => $latest->judul,
+                'nama_pemohon' => $latest->user?->nama ?? 'Member',
+                'no_hp' => $latest->no_hp ?? $latest->user?->no_whatsapp ?? '-',
+                'nama_lapangan' => $latest->lapangan?->nama_lapangan ?? 'Lapangan Belum Ditentukan',
+                'tanggal' => (string) $latest->tanggal,
+                'jam_mulai' => substr((string) $latest->jam_mulai, 0, 5),
+                'jam_selesai' => substr((string) $latest->jam_selesai, 0, 5),
+                'created_at' => $latest->created_at?->toIso8601String() ?? now()->toIso8601String(),
+            ] : null,
+        ]);
     }
 }

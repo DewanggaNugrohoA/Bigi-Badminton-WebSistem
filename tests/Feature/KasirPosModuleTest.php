@@ -214,8 +214,10 @@ class KasirPosModuleTest extends TestCase
             'id_produk' => $this->produkAktif1->id_produk,
             'jumlah' => 2,
             'harga' => 5000,
-            'subtotal' => 10000,
         ]);
+
+        $detail1 = $transaksi->detailTransaksiPos()->where('id_produk', $this->produkAktif1->id_produk)->first();
+        $this->assertEquals(10000, $detail1->subtotal, 'Subtotal harus terhitung dinamis dari perkalian jumlah * harga.');
 
         $this->assertDatabaseHas('audit_log', [
             'id_user' => $this->kasirUser->id_user,

@@ -83,7 +83,7 @@ export default function PelunasanModal({
                             type="text"
                             inputMode="numeric"
                             autoComplete="off"
-                            placeholder="Contoh: 50.000"
+                            placeholder="Contoh: 60.000"
                             value={form.data.jumlah ? Number(form.data.jumlah).toLocaleString("id-ID") : ""}
                             onKeyDown={(e) => {
                                 if (["-", "+", "e", "E", ".", ","].includes(e.key)) {

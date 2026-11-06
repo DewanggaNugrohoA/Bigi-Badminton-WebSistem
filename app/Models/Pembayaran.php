@@ -25,7 +25,17 @@ class Pembayaran extends Model
     protected $table = 'pembayaran';
     protected $primaryKey = 'id_pembayaran';
     
-    protected $fillable = ['id_reservasi', 'tanggal_pembayaran', 'jenis_pembayaran', 'jumlah', 'metode_pembayaran', 'status_pembayaran', 'keterangan'];
+    protected $fillable = [
+        'id_reservasi',
+        'id_paket',
+        'tanggal_pembayaran',
+        'jenis_pembayaran',
+        'jumlah',
+        'metode_pembayaran',
+        'status_pembayaran',
+        'keterangan',
+    ];
 
     public function reservasi() { return $this->belongsTo(Reservasi::class, 'id_reservasi'); }
+    public function paket() { return $this->belongsTo(PaketMember::class, 'id_paket'); }
 }

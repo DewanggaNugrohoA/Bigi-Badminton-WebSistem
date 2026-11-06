@@ -39,7 +39,7 @@ const prefersReducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, noRipple = false, children, onPointerDown, disabled, ...props }, ref) => {
+  ({ className, variant, size, noRipple = true, children, onPointerDown, disabled, ...props }, ref) => {
     const [pressed, setPressed] = React.useState(false);
     const layerRef = React.useRef<HTMLSpanElement>(null);
     const animated = !noRipple && !disabled && variant !== "link";

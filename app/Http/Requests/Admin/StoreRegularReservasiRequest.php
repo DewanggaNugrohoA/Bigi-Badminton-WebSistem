@@ -49,8 +49,8 @@ class StoreRegularReservasiRequest extends FormRequest
 
             $mulai = Carbon::parse($this->input('jam_mulai'));
             $selesai = Carbon::parse($this->input('jam_selesai'));
-            $durasiMenit = $mulai->diffInMinutes($selesai);
-            $totalBiaya = (int) round(($durasiMenit / 60) * $lapangan->harga_per_jam);
+            $durasiMenit = (int) $mulai->diffInMinutes($selesai);
+            $totalBiaya = \App\Services\ReservasiService::hitungTarifReservasi($durasiMenit);
 
             $jenis = $this->input('jenis_pembayaran');
             $nominalInput = $this->input('nominal_dp') ?? $this->input('jumlah_bayar');

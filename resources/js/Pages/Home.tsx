@@ -1,19 +1,18 @@
 import { useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import PublicLayout from "@/layouts/public-layout";
-import { Button } from "@/components/ui/button";
+import { CommunityCtaCard } from "@/components/community-cta-card";
 import { APP_CONTENT, buildWaLink } from "@/lib/content";
 import { motion, useReducedMotion } from "framer-motion";
 import {
     Phone,
-    Calendar,
     Users,
     Trophy,
     Sparkles,
     Coffee,
     ShieldCheck,
     Wifi,
-    ArrowRight,
+    ArrowUpRight,
 } from "lucide-react";
 
 interface SharedProps {
@@ -40,7 +39,35 @@ const facilityIcons = [
     Wifi,
 ];
 
-export default function Home() {
+interface BigiMember {
+    id_user: number;
+    nama: string;
+    foto?: string | null;
+}
+
+interface HomeProps {
+    communityMembers?: Array<{
+        id_user: number;
+        name: string;
+        role: string;
+        img: string;
+    }>;
+    bigiMembers?: BigiMember[];
+    totalMemberCount?: number;
+}
+
+const getInitials = (name?: string) => {
+    if (!name) return "M";
+    return name
+        .trim()
+        .split(/\s+/)
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase();
+};
+
+export default function Home({ communityMembers, bigiMembers = [], totalMemberCount = 50 }: HomeProps) {
     const { auth, config } = usePage<SharedProps>().props;
     const user = auth?.user;
     const waReservationLink = buildWaLink(config?.wa_admin_number);
@@ -48,15 +75,17 @@ export default function Home() {
 
     useEffect(() => {
         const scrollToTarget = () => {
-            if (typeof window !== "undefined" && window.location.hash === "#fasilitas") {
-                const el = document.getElementById("fasilitas");
-                if (el) {
-                    el.scrollIntoView({ behavior: "smooth" });
+            if (typeof window !== "undefined") {
+                const hash = window.location.hash;
+                if (hash) {
+                    const el = document.querySelector(hash);
+                    if (el) {
+                        el.scrollIntoView({ behavior: "smooth" });
+                    }
                 }
             }
         };
 
-        
         const timer = setTimeout(scrollToTarget, 150);
         window.addEventListener("hashchange", scrollToTarget);
         return () => {
@@ -71,265 +100,236 @@ export default function Home() {
             : {
                   initial: { opacity: 0, y: 20 },
                   whileInView: { opacity: 1, y: 0 },
-                  viewport: { once: false, margin: "-50px" },
-                  transition: { duration: 0.5, delay, ease: "easeOut" as const },
+                  viewport: { once: true, margin: "-40px" },
+                  transition: { duration: 0.55, delay, ease: [0.16, 1, 0.3, 1] },
               };
 
     return (
         <PublicLayout title="Beranda">
-            <section className="relative pt-28 pb-8 min-[340px]:pt-30 min-[340px]:pb-10 sm:pt-36 sm:pb-12 lg:pt-40 lg:pb-16 px-4 sm:px-6">
-
-                <div className="max-w-6xl mx-auto grid grid-cols-1 min-[340px]:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_auto] items-center gap-x-4 sm:gap-x-8 lg:gap-x-12 gap-y-4 sm:gap-y-5 lg:gap-y-0 text-left">
-                    
-                    <div className="col-start-1 row-start-1 text-left min-w-0 self-end lg:self-end">
-                        
-                        <motion.h1
-                            {...(prefersReducedMotion
-                                ? {}
-                                : {
-                                      initial: { opacity: 0, y: 16 },
-                                      animate: { opacity: 1, y: 0 },
-                                      transition: { duration: 0.5, delay: 0.1 },
-                                  })}
-                            className="font-unbounded text-xl min-[360px]:text-[22px] min-[390px]:text-2xl sm:text-3xl md:text-[38px] lg:text-[44px] xl:text-[48px] font-extrabold tracking-[-0.01em] text-foreground leading-[1.3] sm:leading-[1.35] lg:leading-[1.38]"
-                        >
-                            Main Badminton Lebih Seru di{" "}
-                            <span className="text-[var(--brand)] inline-block">
-                                Bigi Badminton
-                            </span>
-                        </motion.h1>
-
-                        
-                        <motion.p
-                            {...(prefersReducedMotion
-                                ? {}
-                                : {
-                                      initial: { opacity: 0, y: 14 },
-                                      animate: { opacity: 1, y: 0 },
-                                      transition: { duration: 0.5, delay: 0.2 },
-                                  })}
-                            className="font-sans font-normal mt-3.5 sm:mt-5 lg:mt-6 text-sm sm:text-base lg:text-[17px] text-muted-foreground/90 leading-relaxed sm:leading-loose max-w-xl"
-                        >
-                            {APP_CONTENT.tagline}
-                        </motion.p>
-                    </div>
-
-                    
+            {/* =========================================================================
+                HERO SECTION — Mengadaptasi UI Victory Badminton Court (Sesuai Referensi)
+                ========================================================================= */}
+            <section className="relative min-h-[100dvh] h-auto lg:h-screen lg:min-h-[640px] lg:max-h-[960px] w-full flex flex-col justify-end overflow-hidden bg-slate-950 px-5 sm:px-8 lg:px-14 pt-20 sm:pt-28 pb-20 min-[390px]:pb-24 sm:pb-12 lg:pb-10">
+                {/* Background Image: Lapangan Biru Terang & Cerah dengan Animasi Slow Ambient Ken Burns */}
+                <div className="absolute inset-0 size-full overflow-hidden select-none pointer-events-none z-0">
                     <motion.div
-                        initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
-                        animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.25 }}
-                        className="col-start-1 min-[340px]:col-start-2 row-start-2 min-[340px]:row-start-1 lg:row-span-2 flex items-end justify-center min-[340px]:justify-end shrink-0 w-full self-center relative"
+                        className="size-full"
+                        animate={
+                            prefersReducedMotion
+                                ? {}
+                                : {
+                                      scale: [1.04, 1.09, 1.05, 1.08, 1.04],
+                                      x: [0, -10, 6, -5, 0],
+                                      y: [0, -6, -2, -8, 0],
+                                  }
+                        }
+                        transition={{
+                            duration: 24,
+                            repeat: Infinity,
+                            repeatType: "mirror",
+                            ease: "easeInOut",
+                        }}
                     >
-                        
-                        <div
-                            className="absolute -inset-10 sm:-inset-16 pointer-events-none -z-10 flex items-center justify-center overflow-visible select-none"
-                            aria-hidden="true"
-                        >
-                            <svg
-                                viewBox="0 0 600 600"
-                                className="w-full h-full max-w-[560px] lg:max-w-[620px] select-none"
-                            >
-                                <defs>
-                                    
-                                    <linearGradient id="bigiTextGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.22" />
-                                        <stop offset="38%" stopColor="#C4B5FD" stopOpacity="0.30" />
-                                        <stop offset="72%" stopColor="#6C3BFF" stopOpacity="0.16" />
-                                        <stop offset="100%" stopColor="#4C1D95" stopOpacity="0.03" />
-                                    </linearGradient>
-
-                                    
-                                    <linearGradient id="bigiStrokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.38" />
-                                        <stop offset="45%" stopColor="#A78BFA" stopOpacity="0.32" />
-                                        <stop offset="100%" stopColor="#6C3BFF" stopOpacity="0.08" />
-                                    </linearGradient>
-
-                                    
-                                    <linearGradient id="diagShapeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.24" />
-                                        <stop offset="55%" stopColor="#5B2EFF" stopOpacity="0.13" />
-                                        <stop offset="100%" stopColor="#4338CA" stopOpacity="0.02" />
-                                    </linearGradient>
-
-                                    
-                                    <linearGradient id="motionArcGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#6C3BFF" stopOpacity="0.1" />
-                                        <stop offset="50%" stopColor="#A78BFA" stopOpacity="0.75" />
-                                        <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.95" />
-                                    </linearGradient>
-
-                                    
-                                    <radialGradient id="auraGrad" cx="52%" cy="46%" r="50%">
-                                        <stop offset="0%" stopColor="#6C3BFF" stopOpacity="0.24" />
-                                        <stop offset="50%" stopColor="#5B2EFF" stopOpacity="0.09" />
-                                        <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-                                    </radialGradient>
-                                </defs>
-
-                                
-                                <circle cx="330" cy="280" r="230" fill="url(#auraGrad)" />
-
-                                
-                                <polygon
-                                    points="180,20 530,20 380,580 30,580"
-                                    fill="url(#diagShapeGrad)"
-                                />
-
-                                
-                                <line
-                                    x1="210"
-                                    y1="20"
-                                    x2="60"
-                                    y2="580"
-                                    stroke="#A78BFA"
-                                    strokeWidth="1.2"
-                                    strokeOpacity="0.25"
-                                    strokeDasharray="6 8"
-                                />
-
-                                
-                                <text
-                                    x="300"
-                                    y="360"
-                                    textAnchor="middle"
-                                    className="font-unbounded font-black select-none pointer-events-none"
-                                    fontSize="180"
-                                    fontWeight="900"
-                                    letterSpacing="-0.04em"
-                                    fill="url(#bigiTextGrad)"
-                                    stroke="url(#bigiStrokeGrad)"
-                                    strokeWidth="1.5"
-                                >
-                                    BIGI
-                                </text>
-
-                                
-                                <path
-                                    d="M 60,470 C 220,480 390,380 500,120"
-                                    fill="none"
-                                    stroke="url(#motionArcGrad)"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                />
-
-                                
-                                <path
-                                    d="M 120,500 C 260,500 420,410 520,170"
-                                    fill="none"
-                                    stroke="#8B5CF6"
-                                    strokeWidth="1.2"
-                                    strokeLinecap="round"
-                                    strokeOpacity="0.4"
-                                    strokeDasharray="4 8"
-                                />
-                            </svg>
-                        </div>
-
-                        
                         <img
-                            src="/images/atlet-smash.png"
-                            alt="Atlet bulu tangkis melayang melakukan smash di udara"
-                            width={887}
-                            height={1774}
-                            className="h-[180px] min-[360px]:h-[210px] min-[390px]:h-[235px] sm:h-[300px] md:h-[360px] lg:h-[430px] w-auto max-w-full object-contain select-none pointer-events-none drop-shadow-none -translate-y-4 sm:-translate-y-5 lg:-translate-y-6 -translate-x-4 sm:-translate-x-5 lg:-translate-x-6 relative z-10"
-                            style={{
-                                maskImage: "linear-gradient(to bottom, black 84%, transparent 98%)",
-                                WebkitMaskImage: "linear-gradient(to bottom, black 84%, transparent 98%)",
-                            }}
+                            src="/images/hero-bright-court.jpg"
+                            alt="Bigi Badminton Arena - Lapangan Karpet Standar BWF"
+                            className="size-full object-cover object-[center_25%] sm:object-center transform-gpu brightness-105"
                             loading="eager"
                         />
                     </motion.div>
 
-                    
+                    {/* Subtle warm spotlight glow pada area raket & shuttlecock */}
                     <motion.div
-                        {...(prefersReducedMotion
-                            ? {}
-                            : {
-                                  initial: { opacity: 0, y: 14 },
-                                  animate: { opacity: 1, y: 0 },
-                                  transition: { duration: 0.5, delay: 0.3 },
-                              })}
-                        className="col-start-1 col-span-1 min-[340px]:col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2 self-start lg:self-start flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3 w-full lg:w-auto mt-4 sm:mt-6 lg:mt-7"
-                    >
-                        <motion.div
-                            whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                            whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-                            className="w-full sm:w-auto"
+                        className="absolute top-1/4 right-1/4 size-[480px] rounded-full bg-amber-400/[0.12] blur-3xl pointer-events-none"
+                        animate={
+                            prefersReducedMotion
+                                ? {}
+                                : {
+                                      opacity: [0.2, 0.45, 0.2],
+                                      scale: [0.95, 1.15, 0.95],
+                                  }
+                        }
+                        transition={{
+                            duration: 9,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                        }}
+                    />
+
+                    {/* Cool daylight sky blue ambient glow */}
+                    <motion.div
+                        className="absolute -top-10 -left-10 size-[540px] rounded-full bg-sky-500/[0.16] blur-3xl pointer-events-none"
+                        animate={
+                            prefersReducedMotion
+                                ? {}
+                                : {
+                                      opacity: [0.25, 0.5, 0.25],
+                                      scale: [1, 1.2, 1],
+                                  }
+                        }
+                        transition={{
+                            duration: 12,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                        }}
+                    />
+
+                    {/* Gradien lembut terarah: Menjaga warna biru lapangan tetap cerah dan hidup */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/20 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/25 to-transparent pointer-events-none" />
+                </div>
+
+                {/* Konten Hero (Bottom-aligned proporsional di mobile & desktop) */}
+                <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 lg:gap-8">
+                    
+                    {/* Kolom Kiri: Headline, Deskripsi, & Tombol CTA */}
+                    <div className="max-w-2xl space-y-3.5 sm:space-y-4 text-left">
+                        {/* Judul Utama Hero */}
+                        <motion.h1
+                            {...getAnimProps(0.05)}
+                            className="font-heading font-extrabold text-[26px] min-[390px]:text-[30px] sm:text-4xl md:text-[44px] lg:text-[48px] xl:text-[54px] text-white tracking-tight leading-[1.18] drop-shadow-md"
                         >
+                            Maksimalkan Potensimu di{" "}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-blue-200 to-indigo-200">
+                                Lapangan Eksklusif
+                            </span>
+                        </motion.h1>
+
+                        {/* Deskripsi Singkat */}
+                        <motion.p
+                            {...getAnimProps(0.1)}
+                            className="text-xs sm:text-sm text-white/85 max-w-lg font-normal leading-relaxed drop-shadow-sm"
+                        >
+                            Main seru bareng komunitas, booking slot mudah, karpet vinyl standar internasional BWF, dan pencahayaan terang bebas silau di Kota Bengkulu.
+                        </motion.p>
+
+                        {/* Tombol Aksi CTA (Gabung Mabar + Reservasi WhatsApp) */}
+                        <motion.div {...getAnimProps(0.18)} className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                            {/* Tombol Utama: Gabung Mabar Sekarang */}
+                            <Link
+                                href={user ? "/open-mabar" : "/login?redirect=/open-mabar"}
+                                className="group inline-flex items-center justify-between sm:justify-start gap-3 pl-5 pr-2 py-2 rounded-full bg-white text-slate-950 hover:bg-slate-100 font-bold text-xs sm:text-sm shadow-xl active:scale-95 transition-all"
+                            >
+                                <span className="tracking-wide">
+                                    Gabung Mabar Sekarang
+                                </span>
+                                <span className="size-7 sm:size-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold shadow-md group-hover:scale-105 transition-transform shrink-0">
+                                    <ArrowUpRight className="size-3.5 sm:size-4" />
+                                </span>
+                            </Link>
+
+                            {/* Tombol Sekunder: Reservasi WhatsApp */}
                             <a
                                 href={waReservationLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-full sm:w-auto block"
+                                className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/25 transition-all text-xs sm:text-sm font-semibold shadow-md active:scale-95"
                             >
-                                <Button
-                                    size="lg"
-                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all gap-2 shadow-xs hover:shadow-md flex items-center justify-center"
-                                >
-                                    <Phone className="size-4" />
-                                    <span>Reservasi via WA</span>
-                                </Button>
+                                <Phone className="size-3.5 text-emerald-400 shrink-0" />
+                                <span>Reservasi Lapangan</span>
                             </a>
                         </motion.div>
+                    </div>
 
-                        <motion.div
-                            whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                            whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-                            className="w-full sm:w-auto"
-                        >
-                            <Link
-                                href={user ? "/open-mabar" : "/login?redirect=/open-mabar"}
-                                className="w-full sm:w-auto block"
-                            >
-                                <Button
-                                    variant="outline"
-                                    size="lg"
-                                    className="w-full sm:w-auto h-11 min-h-[44px] px-6 font-unbounded text-xs sm:text-sm font-semibold tracking-wide border-border/80 bg-card hover:bg-muted/70 hover:text-foreground text-foreground gap-2 rounded-lg transition-all shadow-xs hover:shadow-md flex items-center justify-center"
+                    {/* Kolom Kanan: Floating Frosted Card (Hanya Tampil di Layar Desktop lg:) */}
+                    <motion.div
+                        {...getAnimProps(0.25)}
+                        className="hidden lg:block w-auto max-w-[310px] rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-4 shadow-xl text-left shrink-0"
+                    >
+                        {/* Stacked Circular Avatars Member */}
+                        <div className="flex -space-x-2 items-center mb-3 pt-1 pl-1 overflow-visible">
+                            {bigiMembers.slice(0, 3).map((member, idx) => (
+                                <div
+                                    key={member.id_user || idx}
+                                    title={member.nama}
+                                    className="relative size-8 sm:size-9 rounded-full border-2 border-amber-400 shadow-sm shrink-0 overflow-hidden bg-slate-800"
                                 >
-                                    <Calendar className="size-4 text-[var(--brand)]" />
-                                    <span>Lihat Open Mabar</span>
-                                </Button>
-                            </Link>
-                        </motion.div>
+                                    {member.foto ? (
+                                        <img
+                                            src={member.foto}
+                                            alt={member.nama}
+                                            className="size-full object-cover rounded-full"
+                                        />
+                                    ) : (
+                                        <div className="size-full flex items-center justify-center bg-gradient-to-br from-amber-500 to-amber-700 text-white text-[11px] font-bold rounded-full">
+                                            {getInitials(member.nama)}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+
+                            <div className="inline-flex size-8 sm:size-9 items-center justify-center rounded-full bg-slate-900/90 border-2 border-white/60 text-[11px] font-bold text-white shadow-sm shrink-0">
+                                +{totalMemberCount}
+                            </div>
+                        </div>
+
+                        {/* Tulisan Teks Menarik untuk Member Bigi */}
+                        <p className="text-[11px] sm:text-xs text-white/90 leading-snug font-medium">
+                            Telah bergabung bersama puluhan member aktif Bigi Badminton. Nikmati prioritas booking dan jadwal mabar eksklusif setiap minggu.
+                        </p>
                     </motion.div>
                 </div>
             </section>
 
-            
-            <section id="fasilitas" className="pt-8 sm:pt-12 lg:pt-16 pb-14 sm:pb-20 px-4 sm:px-6 bg-muted/30 border-t border-border/70 scroll-mt-20 lg:scroll-mt-24">
-                <div className="max-w-6xl mx-auto">
-                    <motion.div {...getAnimProps()} className="text-left max-w-3xl mb-10 sm:mb-12">
-                        <span className="font-unbounded text-xs uppercase tracking-widest text-[var(--brand)] font-bold">
-                            FASILITAS & PROFIL
-                        </span>
-                        <h2 className="mt-2 font-unbounded text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight leading-tight">
-                            Kenyamanan Maksimal untuk Setiap Smash
+            {/* =========================================================================
+                SECTION 2: FASILITAS & PROFIL GOR BIGI BADMINTON (UI Bersih, Cerah & Terang)
+                ========================================================================= */}
+            <section id="fasilitas" className="pt-20 sm:pt-24 lg:pt-28 pb-20 sm:pb-28 px-4 sm:px-6 bg-slate-50 border-t border-slate-200/80 scroll-mt-20 relative overflow-hidden">
+                {/* Subtle soft ambient light decorations */}
+                <div
+                    className="absolute top-0 right-1/4 size-[600px] bg-sky-100/60 rounded-full blur-3xl pointer-events-none -z-10"
+                    aria-hidden="true"
+                />
+                <div
+                    className="absolute bottom-0 left-1/4 size-[600px] bg-amber-50/80 rounded-full blur-3xl pointer-events-none -z-10"
+                    aria-hidden="true"
+                />
+
+                <div id="tentang" className="max-w-6xl mx-auto scroll-mt-20">
+                    <motion.div
+                        initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
+                        whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+                        viewport={{ once: false, amount: 0.25 }}
+                        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                        className="text-left max-w-3xl mb-12 sm:mb-16"
+                    >
+                        <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                            Kenyamanan Maksimal untuk{" "}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600">
+                                Setiap Smash
+                            </span>
                         </h2>
-                        <p className="mt-3 text-muted-foreground text-sm sm:text-base leading-relaxed">
+                        <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
                             {APP_CONTENT.deskripsi}
                         </p>
                     </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
                         {APP_CONTENT.fasilitas.map((item, idx) => {
                             const IconComponent = facilityIcons[idx % facilityIcons.length];
                             return (
                                 <motion.div
                                     key={idx}
-                                    {...getAnimProps(idx * 0.06)}
-                                    whileHover={prefersReducedMotion ? {} : { y: -5, transition: { duration: 0.2 } }}
-                                    className="p-5 sm:p-6 rounded-xl bg-card border border-border/80 hover:border-[var(--brand)]/40 hover:shadow-md transition-all flex flex-col justify-between group shadow-xs text-left"
+                                    initial={prefersReducedMotion ? {} : { opacity: 0, y: 45, scale: 0.95 }}
+                                    whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0, scale: 1 }}
+                                    viewport={{ once: false, amount: 0.2 }}
+                                    transition={{
+                                        duration: 0.5,
+                                        delay: prefersReducedMotion ? 0 : (idx % 3) * 0.1,
+                                        ease: [0.16, 1, 0.3, 1],
+                                    }}
+                                    whileHover={prefersReducedMotion ? {} : { y: -8, scale: 1.015, transition: { duration: 0.25, ease: "easeOut" } }}
+                                    whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
+                                    className="p-7 sm:p-8 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-500/60 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col justify-between group shadow-sm text-left cursor-default"
                                 >
                                     <div>
-                                        <div className="size-10 rounded-lg bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)] mb-5 group-hover:scale-110 transition-transform">
-                                            <IconComponent className="size-5" />
+                                        <div className="mb-4 text-slate-700 group-hover:text-blue-600 transition-colors">
+                                            <IconComponent className="size-6 stroke-[1.75]" />
                                         </div>
-                                        <h3 className="font-unbounded text-sm sm:text-base font-bold text-foreground transition-colors tracking-tight">
+                                        <h3 className="font-heading text-base sm:text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight">
                                             {item.judul}
                                         </h3>
-                                        <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                                        <p className="mt-2.5 text-xs sm:text-sm text-slate-600 leading-relaxed">
                                             {item.deskripsi}
                                         </p>
                                     </div>
@@ -340,50 +340,18 @@ export default function Home() {
                 </div>
             </section>
 
-            
-            <section className="py-14 sm:py-20 px-4 sm:px-6 border-t border-border/70">
+            {/* =========================================================================
+                SECTION 3: CTA KOMUNITAS OPEN MABAR
+                ========================================================================= */}
+            <section className="py-20 sm:py-28 px-4 sm:px-6 bg-slate-100/70 border-t border-slate-200 relative overflow-hidden">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
-                        {...getAnimProps()}
-                        className="rounded-2xl p-6 sm:p-10 lg:p-12 border border-border/80 bg-gradient-to-br from-card via-card to-[var(--brand)]/5 shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8 text-left"
+                        initial={prefersReducedMotion ? {} : { opacity: 0, y: 50, scale: 0.96 }}
+                        whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0, scale: 1 }}
+                        viewport={{ once: false, amount: 0.15 }}
+                        transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
                     >
-                        <div className="max-w-2xl text-left">
-                            <div className="size-12 rounded-xl bg-[var(--brand)]/10 border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)] mb-5">
-                                <Users className="size-6" />
-                            </div>
-
-                            <h2 className="font-unbounded text-xl min-[360px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight leading-tight">
-                                Gabung Komunitas Open Mabar Bigi
-                            </h2>
-
-                            <p className="mt-3 text-muted-foreground text-sm sm:text-base leading-relaxed">
-                                Cari lawan tanding atau teman main bareng badminton dengan mudah. Pilih jadwal, daftar, dan mulai bertanding bersama komunitas badminton Bengkulu!
-                            </p>
-                        </div>
-
-                        <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-                            {user ? (
-                                <Link href="/open-mabar" className="w-full sm:w-auto">
-                                    <Button
-                                        size="lg"
-                                        className="w-full sm:w-auto h-11 px-7 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
-                                    >
-                                        <span>Buka Open Mabar</span>
-                                        <ArrowRight className="size-4" />
-                                    </Button>
-                                </Link>
-                            ) : (
-                                <Link href="/login?redirect=/open-mabar" className="w-full sm:w-auto">
-                                    <Button
-                                        size="lg"
-                                        className="w-full sm:w-auto h-11 px-7 font-unbounded text-xs sm:text-sm font-semibold tracking-wide bg-[var(--brand)] hover:bg-[var(--brand)]/90 text-white gap-2 rounded-lg transition-all shadow-xs hover:shadow-md"
-                                    >
-                                        <span>Masuk untuk melihat jadwal</span>
-                                        <ArrowRight className="size-4" />
-                                    </Button>
-                                </Link>
-                            )}
-                        </div>
+                        <CommunityCtaCard communityMembers={communityMembers} />
                     </motion.div>
                 </div>
             </section>

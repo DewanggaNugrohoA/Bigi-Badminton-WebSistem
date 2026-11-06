@@ -388,10 +388,10 @@ export default function KasirIndex({ shiftAktif, produk, kategoriList }: Props) 
                                             disabled={isOutOfStock}
                                             onClick={() => addToCart(item)}
                                             aria-label={`Tambah ${item.nama_produk}`}
-                                            className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all select-none relative group min-h-[44px] ${
+                                            className={`p-3 rounded-xl border text-left flex flex-col justify-between select-none relative group min-h-[44px] ${
                                                 isOutOfStock
                                                     ? "opacity-45 cursor-not-allowed bg-muted/40 border-border"
-                                                    : "bg-card border-border hover:border-foreground/40 active:scale-[0.98] cursor-pointer shadow-2xs hover:shadow-xs"
+                                                    : "bg-card border-border hover:border-foreground/40 cursor-pointer shadow-2xs hover:shadow-xs"
                                             }`}
                                         >
                                             {cartQty > 0 && (
@@ -406,7 +406,7 @@ export default function KasirIndex({ shiftAktif, produk, kategoriList }: Props) 
                                                         <img
                                                             src={item.url_gambar}
                                                             alt={item.nama_produk}
-                                                            className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-200"
+                                                            className="w-full h-full object-cover"
                                                             loading="lazy"
                                                         />
                                                     ) : (

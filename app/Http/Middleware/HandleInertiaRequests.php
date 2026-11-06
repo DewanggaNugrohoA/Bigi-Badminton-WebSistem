@@ -34,10 +34,17 @@ class HandleInertiaRequests extends Middleware
                     'nama' => $user->nama,
                     'email' => $user->email,
                     'role' => $user->role,
+                    'foto' => $user->foto,
                 ] : null,
             ],
             'config' => [
                 'wa_admin_number' => config('bigi.wa_admin_number'),
+                'wa_admin_number_secondary' => config('bigi.wa_admin_number_secondary'),
+                'alamat' => config('bigi.alamat'),
+                'instagram' => config('bigi.instagram'),
+                'instagram_url' => config('bigi.instagram_url'),
+                'maps_url' => config('bigi.maps_url'),
+                'maps_embed_url' => config('bigi.maps_embed_url'),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

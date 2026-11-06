@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, KeyRound, Smartphone } from 'lucide-react';
+import { KeyRound, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { WakeGlyph } from '@/components/ui/background-ascii-wake';
+import { AuthImagePanel, AuthMobileBanner } from '@/components/auth-image-panel';
 
 interface VerifikasiOtpProps {
     no_whatsapp: string;
@@ -57,49 +59,27 @@ export default function VerifikasiOtp({ no_whatsapp }: VerifikasiOtpProps) {
     };
 
     return (
-        <div className="min-h-dvh w-screen bg-background text-foreground flex overflow-y-auto">
-            <div className="hidden lg:flex flex-1 relative overflow-hidden bg-muted">
-                <div className="absolute top-6 left-6 z-10">
-                    <Link
-                        href="/register"
-                        aria-label="Kembali ke pendaftaran"
-                        className="w-10 h-10 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center hover:bg-white/40 transition-all text-white"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                </div>
+        <div className="min-h-dvh w-full bg-transparent text-foreground flex flex-col lg:flex-row overflow-x-hidden">
+            <AuthImagePanel
+                imageSrc="/images/login-panel.jpg"
+                imageAlt="Verifikasi akun Bigi Badminton"
+                title="Verifikasi Akun"
+                description="Satu langkah lagi untuk bergabung bersama komunitas pemain Bigi Badminton. Pastikan nomor WhatsApp Anda aktif."
+                backHref="/register"
+                backLabel="Kembali ke pendaftaran"
+            />
 
-                <div className="absolute inset-0">
-                    <img
-                        src="/images/login-bg.jpg"
-                        alt="Bigi Badminton Arena"
-                        className="w-full h-full object-cover"
+            <div className="flex-1 w-full flex flex-col justify-center items-center bg-transparent px-5 sm:px-8 py-3 sm:py-6 lg:py-12 relative overflow-x-hidden overflow-y-auto lg:overflow-hidden min-h-dvh lg:min-h-0 box-border pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <WakeGlyph cellSize={14} className="absolute inset-0 opacity-20 pointer-events-none" />
+
+                <div className="w-full max-w-md my-auto flex flex-col space-y-4 sm:space-y-6 relative z-10">
+                    <AuthMobileBanner
+                        isCompact={true}
+                        imageSrc="/images/panel-athletes-transparent.png"
+                        imageAlt="Verifikasi akun Bigi Badminton"
+                        backHref="/register"
+                        backLabel="Kembali ke pendaftaran"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-                </div>
-
-                <div className="absolute bottom-12 left-12 right-12 z-10">
-                    <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">
-                        Verifikasi Akun
-                    </h2>
-                    <p className="text-zinc-200 text-sm max-w-md">
-                        Satu langkah lagi untuk bergabung bersama komunitas pemain Bigi Badminton. Pastikan nomor WhatsApp Anda aktif.
-                    </p>
-                </div>
-            </div>
-
-            <div className="flex-1 flex items-center justify-center bg-background px-6 py-12 relative">
-                <div className="lg:hidden absolute top-6 left-6 z-10">
-                    <Link
-                        href="/register"
-                        aria-label="Kembali ke pendaftaran"
-                        className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center hover:bg-secondary/80 transition-all text-foreground"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                </div>
-
-                <div className="w-full max-w-md space-y-6">
                     <div>
                         <div className="size-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-[var(--brand)] mb-4">
                             <KeyRound className="size-6" />

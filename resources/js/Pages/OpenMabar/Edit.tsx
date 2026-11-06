@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Upload, AlertCircle } from "lucide-react";
 import React, { useState } from "react";
+import {
+    formatIndonesianPhoneInput,
+    handlePhoneKeyDown,
+    JAM_BULAT_OPTIONS,
+    formatJamLabel,
+    getDefaultJamSelesai,
+} from "@/lib/content";
 
 interface LapanganOption {
     id_lapangan: number;
@@ -19,8 +26,7 @@ interface EditProps {
         jam_mulai: string;
         jam_selesai: string;
         gender: "putra" | "putri" | "campuran";
-        batas_usia_min: number;
-        batas_usia_max: number;
+        no_hp?: string;
         kuota: number;
         deskripsi: string | null;
         id_lapangan: number | null;
@@ -39,8 +45,7 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
         jam_mulai: mabar.jam_mulai ? mabar.jam_mulai.substring(0, 5) : "",
         jam_selesai: mabar.jam_selesai ? mabar.jam_selesai.substring(0, 5) : "",
         gender: mabar.gender,
-        batas_usia_min: String(mabar.batas_usia_min),
-        batas_usia_max: String(mabar.batas_usia_max),
+        no_hp: mabar.no_hp || "",
         kuota: String(mabar.kuota),
         deskripsi: mabar.deskripsi || "",
         id_lapangan: mabar.id_lapangan ? String(mabar.id_lapangan) : "",
@@ -50,6 +55,26 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(
         mabar.foto ? (mabar.foto.startsWith("http") ? mabar.foto : `/storage/${mabar.foto}`) : null
     );
+
+    const handleJamMulaiChange = (newMulai: string) => {
+        setData((prev) => {
+            const next = { ...prev, jam_mulai: newMulai };
+            if (!prev.jam_selesai || prev.jam_selesai <= newMulai) {
+                next.jam_selesai = getDefaultJamSelesai(newMulai);
+            }
+            return next;
+        });
+    };
+
+    const jamMulaiList = [...JAM_BULAT_OPTIONS.filter((j) => j <= "22:00")];
+    if (data.jam_mulai && !jamMulaiList.includes(data.jam_mulai)) {
+        jamMulaiList.unshift(data.jam_mulai);
+    }
+
+    const jamSelesaiList = [...JAM_BULAT_OPTIONS.filter((j) => !data.jam_mulai || j > data.jam_mulai)];
+    if (data.jam_selesai && !jamSelesaiList.includes(data.jam_selesai)) {
+        jamSelesaiList.unshift(data.jam_selesai);
+    }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
@@ -127,13 +152,20 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                                 <Label htmlFor="jam_mulai" className="text-sm font-semibold">
                                     Jam Mulai <span className="text-rose-500">*</span>
                                 </Label>
-                                <Input
+                                <select
                                     id="jam_mulai"
-                                    type="time"
                                     value={data.jam_mulai}
-                                    onChange={(e) => setData("jam_mulai", e.target.value)}
-                                    className={errors.jam_mulai ? "border-rose-500" : ""}
-                                />
+                                    onChange={(e) => handleJamMulaiChange(e.target.value)}
+                                    className={`w-full h-10 px-3 rounded-lg border bg-background text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground ${errors.jam_mulai ? "border-rose-500" : "border-input"}`}
+                                    required
+                                >
+                                    <option value="" disabled className="bg-background text-muted-foreground">Pilih Jam Mulai</option>
+                                    {jamMulaiList.map((jam) => (
+                                        <option key={jam} value={jam} className="bg-background text-foreground">
+                                            {formatJamLabel(jam)}
+                                        </option>
+                                    ))}
+                                </select>
                                 {errors.jam_mulai && (
                                     <p className="text-xs text-rose-500">{errors.jam_mulai}</p>
                                 )}
@@ -143,18 +175,31 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                                 <Label htmlFor="jam_selesai" className="text-sm font-semibold">
                                     Jam Selesai <span className="text-rose-500">*</span>
                                 </Label>
-                                <Input
+                                <select
                                     id="jam_selesai"
-                                    type="time"
                                     value={data.jam_selesai}
                                     onChange={(e) => setData("jam_selesai", e.target.value)}
-                                    className={errors.jam_selesai ? "border-rose-500" : ""}
-                                />
+                                    className={`w-full h-10 px-3 rounded-lg border bg-background text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground ${errors.jam_selesai ? "border-rose-500" : "border-input"}`}
+                                    required
+                                >
+                                    <option value="" disabled className="bg-background text-muted-foreground">
+                                        {data.jam_mulai ? "Pilih Jam Selesai" : "Pilih Jam Mulai Dulu"}
+                                    </option>
+                                    {jamSelesaiList.map((jam) => (
+                                        <option key={jam} value={jam} className="bg-background text-foreground">
+                                            {formatJamLabel(jam)}
+                                        </option>
+                                    ))}
+                                </select>
                                 {errors.jam_selesai && (
                                     <p className="text-xs text-rose-500">{errors.jam_selesai}</p>
                                 )}
                             </div>
                         </div>
+
+                        <p className="text-xs text-muted-foreground">
+                            Waktu operasional open mabar: 09:00 WIB s.d. 23:00 WIB (11 malam).
+                        </p>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -194,40 +239,31 @@ export default function OpenMabarEdit({ mabar, lapangan }: EditProps) {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="batas_usia_min" className="text-sm font-semibold">
-                                    Batas Usia Minimal <span className="text-rose-500">*</span>
-                                </Label>
-                                <Input
-                                    id="batas_usia_min"
-                                    type="number"
-                                    min={1}
-                                    value={data.batas_usia_min}
-                                    onChange={(e) => setData("batas_usia_min", e.target.value)}
-                                    className={errors.batas_usia_min ? "border-rose-500" : ""}
-                                />
-                                {errors.batas_usia_min && (
-                                    <p className="text-xs text-rose-500">{errors.batas_usia_min}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="batas_usia_max" className="text-sm font-semibold">
-                                    Batas Usia Maksimal <span className="text-rose-500">*</span>
-                                </Label>
-                                <Input
-                                    id="batas_usia_max"
-                                    type="number"
-                                    min={1}
-                                    value={data.batas_usia_max}
-                                    onChange={(e) => setData("batas_usia_max", e.target.value)}
-                                    className={errors.batas_usia_max ? "border-rose-500" : ""}
-                                />
-                                {errors.batas_usia_max && (
-                                    <p className="text-xs text-rose-500">{errors.batas_usia_max}</p>
-                                )}
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="no_hp" className="text-sm font-semibold">
+                                Nomor HP/WhatsApp <span className="text-rose-500">*</span>
+                            </Label>
+                            <Input
+                                id="no_hp"
+                                type="tel"
+                                name="no_hp"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={13}
+                                value={data.no_hp}
+                                onChange={(e) => setData("no_hp", formatIndonesianPhoneInput(e.target.value))}
+                                onKeyDown={handlePhoneKeyDown}
+                                placeholder="Contoh: 081234567890"
+                                className={errors.no_hp ? "border-rose-500" : ""}
+                                required
+                                autoComplete="tel"
+                            />
+                            {errors.no_hp && (
+                                <p className="text-xs text-rose-500">{errors.no_hp}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                                Nomor hanya dilihat Admin untuk verifikasi, tidak ditampilkan ke pengguna lain.
+                            </p>
                         </div>
 
                         <div className="space-y-2">

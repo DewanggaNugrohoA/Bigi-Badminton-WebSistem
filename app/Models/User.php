@@ -54,6 +54,21 @@ class User extends Authenticatable
         ];
     }
 
+    public function getFotoAttribute(): ?string
+    {
+        $dir = \Illuminate\Support\Facades\Storage::disk('public')->path('avatars');
+        if (!is_dir($dir)) {
+            return null;
+        }
+        $files = glob($dir . DIRECTORY_SEPARATOR . 'avatar_' . $this->id_user . '.*');
+        if (!empty($files)) {
+            $basename = basename($files[0]);
+            $mtime = filemtime($files[0]);
+            return \Illuminate\Support\Facades\Storage::disk('public')->url('avatars/' . $basename) . '?v=' . $mtime;
+        }
+        return null;
+    }
+
     public function reservasi() { return $this->hasMany(Reservasi::class, 'id_user'); }
     public function openMabar() { return $this->hasMany(OpenMabar::class, 'id_user'); }
     public function pesertaMabar() { return $this->hasMany(PesertaMabar::class, 'id_user'); }

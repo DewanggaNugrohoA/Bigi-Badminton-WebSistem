@@ -248,9 +248,9 @@ export default function PenyesuaianModal({ open, onOpenChange, paket }: Penyesua
                         </Button>
                         <Button
                             type="submit"
-                            disabled={processing}
+                            disabled={processing || !data.catatan.trim() || Number(data.jumlah) < 1}
                             variant="default"
-                            className="rounded-md text-xs sm:text-sm h-8 sm:h-9 bg-[var(--brand)] text-white hover:opacity-90"
+                            className="rounded-md text-xs sm:text-sm h-8 sm:h-9 bg-[var(--brand)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {processing
                                 ? "Menyimpan..."

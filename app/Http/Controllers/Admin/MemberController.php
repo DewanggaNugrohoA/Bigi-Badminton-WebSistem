@@ -73,6 +73,7 @@ class MemberController extends Controller
         } elseif ($filter === 'bukan_member') {
             $query->where(function ($q) {
                 $q->where('jenis_pelanggan', '!=', User::JENIS_PELANGGAN_MEMBER)
+                    ->orWhere('status_member', User::STATUS_MEMBER_TIDAK_AKTIF)
                     ->orWhereNull('jenis_pelanggan');
             });
         } elseif ($filter === 'kedaluwarsa') {
@@ -98,13 +99,11 @@ class MemberController extends Controller
 
             $isExpired = $u->tanggal_akhir_member && Carbon::parse($u->tanggal_akhir_member)->startOfDay()->lt($today);
             $statusLabel = 'Bukan Member';
-            if ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER) {
-                if ($u->status_member === User::STATUS_MEMBER_AKTIF && ! $isExpired) {
+            if ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER && $u->status_member === User::STATUS_MEMBER_AKTIF) {
+                if (! $isExpired) {
                     $statusLabel = 'Member Aktif';
-                } elseif ($isExpired) {
-                    $statusLabel = 'Member Kedaluwarsa';
                 } else {
-                    $statusLabel = 'Member Tidak Aktif';
+                    $statusLabel = 'Member Kedaluwarsa';
                 }
             }
 
@@ -150,6 +149,10 @@ class MemberController extends Controller
 
                 return [
                     'id_paket' => $p->id_paket,
+                    'jenis_paket' => $p->jenis_paket,
+                    'durasi_jam_per_sesi' => $p->durasi_jam_per_sesi,
+                    'harga_paket' => (float) $p->harga_paket,
+                    'nama_paket' => $p->nama_paket_label,
                     'jumlah_sesi' => $p->jumlah_sesi,
                     'sesi_terpakai' => $p->sesi_terpakai,
                     'sisa_sesi' => $p->sisa_sesi,
@@ -178,9 +181,9 @@ class MemberController extends Controller
                 'status_label' => $statusLabel,
                 'tanggal_mulai_member' => $u->tanggal_mulai_member?->format('Y-m-d'),
                 'tanggal_akhir_member' => $u->tanggal_akhir_member?->format('Y-m-d'),
-                'masa_berlaku_teks' => $u->tanggal_mulai_member && $u->tanggal_akhir_member
+                'masa_berlaku_teks' => ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER && $u->status_member === User::STATUS_MEMBER_AKTIF && $u->tanggal_mulai_member && $u->tanggal_akhir_member)
                     ? "{$u->tanggal_mulai_member->format('d/m/Y')} s/d {$u->tanggal_akhir_member->format('d/m/Y')}"
-                    : ($u->tanggal_mulai_member ? "Mulai {$u->tanggal_mulai_member->format('d/m/Y')}" : '-'),
+                    : ($u->jenis_pelanggan === User::JENIS_PELANGGAN_MEMBER && $u->status_member === User::STATUS_MEMBER_AKTIF && $u->tanggal_mulai_member ? "Mulai {$u->tanggal_mulai_member->format('d/m/Y')}" : '-'),
                 'sisa_sesi_aktif' => $activePaket ? $activePaket->sisa_sesi : 0,
                 'paket_aktif_id' => $activePaket ? $activePaket->id_paket : null,
                 'paket_list' => $daftarPaket,
@@ -204,12 +207,8 @@ class MemberController extends Controller
         $user = User::where('role', User::ROLE_USER)->findOrFail($userId);
         $adminId = $request->user()->id_user;
 
-        $validated = $request->only([
-            'jenis_pelanggan',
-            'status_member',
-            'tanggal_mulai_member',
-            'tanggal_akhir_member',
-        ]);
+        $jenisPelanggan = $request->input('jenis_pelanggan');
+        $statusMember = $request->input('status_member');
 
         $oldStatus = [
             'jenis' => $user->jenis_pelanggan,
@@ -218,16 +217,46 @@ class MemberController extends Controller
             'akhir' => $user->tanggal_akhir_member?->format('Y-m-d'),
         ];
 
-        $user->update($validated);
+        // Jika dinonaktifkan atau disetel reguler, hilangkan status member secara tuntas
+        $isDeactivating = $statusMember === User::STATUS_MEMBER_TIDAK_AKTIF || $jenisPelanggan === User::JENIS_PELANGGAN_REGULER;
+
+        if ($isDeactivating) {
+            $user->update([
+                'jenis_pelanggan' => User::JENIS_PELANGGAN_REGULER,
+                'status_member' => User::STATUS_MEMBER_TIDAK_AKTIF,
+                'tanggal_mulai_member' => null,
+                'tanggal_akhir_member' => null,
+            ]);
+
+            $this->logAudit(
+                $adminId,
+                'UBAH_STATUS_MEMBER',
+                "Pengguna #{$user->id_user} ({$user->nama})",
+                "Mencabut status member {$user->nama}: berubah menjadi Pelanggan Reguler (User Biasa)."
+            );
+
+            return redirect()->back()->with('success', "Status keanggotaan {$user->nama} berhasil dihentikan. Pelanggan kini berstatus User Biasa (Reguler).");
+        }
+
+        // Aktifkan sebagai member
+        $tanggalMulai = $request->input('tanggal_mulai_member') ?: Carbon::today('Asia/Jakarta')->toDateString();
+        $tanggalAkhir = $request->input('tanggal_akhir_member');
+
+        $user->update([
+            'jenis_pelanggan' => User::JENIS_PELANGGAN_MEMBER,
+            'status_member' => User::STATUS_MEMBER_AKTIF,
+            'tanggal_mulai_member' => $tanggalMulai,
+            'tanggal_akhir_member' => $tanggalAkhir,
+        ]);
 
         $this->logAudit(
             $adminId,
             'UBAH_STATUS_MEMBER',
             "Pengguna #{$user->id_user} ({$user->nama})",
-            "Mengubah status member: {$oldStatus['jenis']}/{$oldStatus['status']} -> {$user->jenis_pelanggan}/{$user->status_member} (Masa aktif: {$user->tanggal_mulai_member?->format('d/m/Y')} - {$user->tanggal_akhir_member?->format('d/m/Y')})"
+            "Mengaktifkan status member {$user->nama} (Masa aktif: {$tanggalMulai} s/d " . ($tanggalAkhir ?: 'selamanya') . ")."
         );
 
-        return redirect()->back()->with('success', "Status keanggotaan {$user->nama} berhasil diperbarui.");
+        return redirect()->back()->with('success', "Status keanggotaan {$user->nama} berhasil diaktifkan sebagai Member.");
     }
 
     /**
@@ -238,23 +267,62 @@ class MemberController extends Controller
         $user = User::where('role', User::ROLE_USER)->findOrFail($userId);
         $adminId = $request->user()->id_user;
 
-        $paket = PaketMember::create([
-            'id_user' => $user->id_user,
-            'jumlah_sesi' => $request->jumlah_sesi,
-            'tanggal_mulai' => $request->tanggal_mulai,
-            'tanggal_akhir' => $request->tanggal_akhir,
-            'status' => PaketMember::STATUS_AKTIF,
-            'catatan' => $request->catatan,
-        ]);
+        return DB::transaction(function () use ($user, $request, $adminId) {
+            $jenis = $request->input('jenis_paket', 'kustom');
+            $jumlahSesi = (int) $request->input('jumlah_sesi');
+            $durasi = $request->filled('durasi_jam_per_sesi') ? (int) $request->input('durasi_jam_per_sesi') : null;
+            $harga = $request->filled('harga_paket') ? (float) $request->input('harga_paket') : 0;
 
-        $this->logAudit(
-            $adminId,
-            'TAMBAH_PAKET_MEMBER',
-            "Paket Member #{$paket->id_paket}",
-            "Menambahkan paket {$paket->jumlah_sesi} sesi untuk {$user->nama} (Masa berlaku: {$paket->tanggal_mulai->format('d/m/Y')}" . ($paket->tanggal_akhir ? " s/d {$paket->tanggal_akhir->format('d/m/Y')}" : '') . ')'
-        );
+            if ($jenis === 'bulanan_4x3') {
+                $jumlahSesi = 4;
+                $durasi = 3;
+                $harga = 450000.00;
+            } elseif ($jenis === 'bulanan_4x2') {
+                $jumlahSesi = 4;
+                $durasi = 2;
+                $harga = 350000.00;
+            } elseif ($jenis === 'pagi_4x3') {
+                $jumlahSesi = 4;
+                $durasi = 3;
+                $harga = 300000.00;
+            }
 
-        return redirect()->back()->with('success', "Paket sesi ({$paket->jumlah_sesi} sesi) berhasil ditambahkan untuk {$user->nama}.");
+            $paket = PaketMember::create([
+                'id_user' => $user->id_user,
+                'jenis_paket' => $jenis,
+                'jumlah_sesi' => $jumlahSesi,
+                'durasi_jam_per_sesi' => $durasi,
+                'harga_paket' => $harga,
+                'tanggal_mulai' => $request->tanggal_mulai,
+                'tanggal_akhir' => $request->tanggal_akhir,
+                'status' => PaketMember::STATUS_AKTIF,
+                'catatan' => $request->catatan,
+            ]);
+
+            // Catat pembayaran SATU KALI di awal jika harga paket > 0
+            if ($harga > 0) {
+                $metode = $request->input('metode_pembayaran', 'transfer') ?: 'transfer';
+                \App\Models\Pembayaran::create([
+                    'id_paket' => $paket->id_paket,
+                    'id_reservasi' => null,
+                    'tanggal_pembayaran' => Carbon::now('Asia/Jakarta')->toDateString(),
+                    'jenis_pembayaran' => \App\Models\Pembayaran::JENIS_LUNAS,
+                    'jumlah' => $harga,
+                    'metode_pembayaran' => $metode,
+                    'status_pembayaran' => \App\Models\Pembayaran::STATUS_TERKONFIRMASI,
+                    'keterangan' => "Pembayaran Paket Member #{$paket->id_paket} ({$paket->nama_paket_label})",
+                ]);
+            }
+
+            $this->logAudit(
+                $adminId,
+                'TAMBAH_PAKET_MEMBER',
+                "Paket Member #{$paket->id_paket}",
+                "Menambahkan paket {$paket->nama_paket_label} ({$paket->jumlah_sesi} sesi" . ($harga > 0 ? ", Rp " . number_format($harga, 0, ',', '.') : '') . ") untuk {$user->nama}"
+            );
+
+            return redirect()->back()->with('success', "Paket {$paket->nama_paket_label} berhasil ditambahkan untuk {$user->nama}.");
+        });
     }
 
     /**

@@ -8,10 +8,8 @@ use App\Http\Requests\RestockRequest;
 use App\Http\Requests\SimpanProdukRequest;
 use App\Http\Requests\StokOpnameRequest;
 use App\Http\Requests\TutupShiftRequest;
-use App\Http\Requests\VoidReturRequest;
 use App\Models\Produk;
 use App\Models\Restock;
-use App\Models\ReturVoid;
 use App\Models\ShiftKasir;
 use App\Models\StockOpname;
 use App\Models\TransaksiPos;
@@ -271,40 +269,5 @@ class KasirController extends Controller
         $this->posService->prosesOpname($user, $request->validated('items'));
 
         return redirect()->route('kasir.opname.index')->with('success', 'Stock opname berhasil disimpan dan stok produk telah diperbarui.');
-    }
-
-    public function voidIndex(Request $request)
-    {
-        $user = $request->user('staff');
-        $shiftAktif = $this->posService->getActiveShift($user);
-
-        $transaksiBisaDibatalkan = [];
-        if ($shiftAktif) {
-            $transaksiBisaDibatalkan = TransaksiPos::with(['detailTransaksiPos.produk'])
-                ->where('id_shift', $shiftAktif->id_shift)
-                ->where('id_user', $user->id_user)
-                ->where('status_transaksi', TransaksiPos::STATUS_SELESAI)
-                ->orderBy('id_transaksi', 'desc')
-                ->get();
-        }
-
-        $riwayatVoid = ReturVoid::with(['transaksiPos', 'pengaju'])
-            ->where('id_user', $user->id_user)
-            ->orderBy('id_retur', 'desc')
-            ->paginate(15);
-
-        return Inertia::render('Kasir/Void/Index', [
-            'shiftAktif' => $shiftAktif,
-            'transaksiBisaDibatalkan' => $transaksiBisaDibatalkan,
-            'riwayatVoid' => $riwayatVoid,
-        ]);
-    }
-
-    public function voidStore(VoidReturRequest $request)
-    {
-        $user = $request->user('staff');
-        $this->posService->prosesVoidRetur($user, $request->validated());
-
-        return redirect()->route('kasir.void.index')->with('success', 'Pembatalan transaksi berhasil dicatat dan stok produk telah dikembalikan.');
     }
 }

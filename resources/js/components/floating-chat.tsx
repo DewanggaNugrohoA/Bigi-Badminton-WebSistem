@@ -252,7 +252,7 @@ export function FloatingChat() {
                 <div
                     role="dialog"
                     aria-label="Panel Forum Chat Mabar"
-                    className="w-[92vw] sm:w-96 h-[520px] max-h-[80vh] bg-card border border-border/80 rounded-2xl shadow-xl flex flex-col overflow-hidden mb-3 animate-in fade-in slide-in-from-bottom-2 duration-200"
+                    className="w-[92vw] sm:w-96 h-[520px] max-h-[80vh] bg-card border border-border/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden mb-3 animate-in fade-in zoom-in-95 slide-in-from-bottom-3 duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                 >
                     
                     <div className="h-14 px-4 bg-card/95 border-b border-border/80 flex items-center justify-between shrink-0">
@@ -487,7 +487,7 @@ export function FloatingChat() {
                         setIsOpen(false);
                     }
                 }}
-                className="size-12 rounded-full bg-[var(--brand)] hover:opacity-95 text-white shadow-lg flex items-center justify-center p-0 transition-transform active:scale-95"
+                className="size-12 rounded-full bg-[var(--brand)] hover:opacity-95 hover:scale-105 active:scale-95 text-white shadow-lg shadow-[var(--brand)]/20 flex items-center justify-center p-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                 title="Buka Forum Chat Mabar"
                 aria-label="Buka Forum Chat Mabar"
             >

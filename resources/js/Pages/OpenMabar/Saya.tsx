@@ -2,7 +2,17 @@ import PublicLayout from "@/layouts/public-layout";
 import { Link, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { MabarImage } from "@/components/mabar-image";
-import { Calendar, Clock, Users, PlusCircle, Edit, Trash2, ArrowRight } from "lucide-react";
+import {
+    Calendar,
+    Clock,
+    Users,
+    PlusCircle,
+    Edit,
+    Trash2,
+    MessageSquare,
+    CheckCircle2,
+    AlertCircle,
+} from "lucide-react";
 import { useState } from "react";
 
 interface JadwalSayaItem {
@@ -12,8 +22,6 @@ interface JadwalSayaItem {
     jam_mulai: string;
     jam_selesai: string;
     gender: "putra" | "putri" | "campuran";
-    batas_usia_min: number;
-    batas_usia_max: number;
     kuota: number;
     status: "menunggu" | "disetujui" | "ditolak";
     foto?: string | null;
@@ -47,11 +55,24 @@ interface SayaProps {
 export default function OpenMabarSaya({ jadwalSaya, flash }: SayaProps) {
     const [deletingId, setDeletingId] = useState<number | null>(null);
 
+    const handleBukaChat = (idMabar: number) => {
+        window.dispatchEvent(
+            new CustomEvent("bigi:buka-chat", {
+                detail: { idMabar },
+            })
+        );
+    };
+
     const handleDelete = (id: number, judul: string) => {
         if (confirm(`Apakah Anda yakin ingin membatalkan dan menghapus jadwal "${judul}"?`)) {
             setDeletingId(id);
             router.delete(`/open-mabar/${id}`, {
+                preserveScroll: true,
                 onFinish: () => setDeletingId(null),
+                onError: (errors) => {
+                    const message = Object.values(errors)[0] || "Gagal membatalkan jadwal mabar.";
+                    alert(message);
+                },
             });
         }
     };
@@ -114,6 +135,19 @@ export default function OpenMabarSaya({ jadwalSaya, flash }: SayaProps) {
                     </Link>
                 </div>
 
+                {flash?.success && (
+                    <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-3">
+                        <CheckCircle2 className="size-4 shrink-0" />
+                        <span>{flash.success}</span>
+                    </div>
+                )}
+                {flash?.error && (
+                    <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm flex items-center gap-3">
+                        <AlertCircle className="size-4 shrink-0" />
+                        <span>{flash.error}</span>
+                    </div>
+                )}
+
                 {jadwalSaya.data.length === 0 ? (
                     <div className="border border-dashed border-border/80 rounded-2xl p-6 sm:p-8 text-left bg-card/60 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xs my-8">
                         <div className="flex items-start gap-4 text-left">
@@ -139,7 +173,7 @@ export default function OpenMabarSaya({ jadwalSaya, flash }: SayaProps) {
                         {jadwalSaya.data.map((item) => (
                             <div
                                 key={item.id_mabar}
-                                className="bg-card border border-border/80 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-[var(--brand)]/40 hover:shadow-md shadow-xs transition-all"
+                                className="bg-card border border-border/80 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-[var(--brand)]/50 hover:shadow-xl hover:shadow-[var(--brand)]/5 hover:-translate-y-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-xs"
                             >
                                 <div className="flex items-start sm:items-center justify-between gap-4 flex-1">
                                     <div className="space-y-2 flex-1 min-w-0">
@@ -184,31 +218,37 @@ export default function OpenMabarSaya({ jadwalSaya, flash }: SayaProps) {
 
                                 <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto justify-end">
                                     {(item.status === "menunggu" || item.status === "ditolak") && (
-                                        <Link href={`/open-mabar/${item.id_mabar}/edit`}>
-                                            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                                                <Edit className="size-3.5" />
-                                                <span>Revisi</span>
+                                        <>
+                                            <Link href={`/open-mabar/${item.id_mabar}/edit`}>
+                                                <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                                                    <Edit className="size-3.5" />
+                                                    <span>Revisi</span>
+                                                </Button>
+                                            </Link>
+
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                disabled={deletingId === item.id_mabar}
+                                                onClick={() => handleDelete(item.id_mabar, item.judul)}
+                                                className="gap-1.5 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 border-rose-500/20"
+                                            >
+                                                <Trash2 className="size-3.5" />
+                                                <span>Hapus</span>
                                             </Button>
-                                        </Link>
+                                        </>
                                     )}
 
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={deletingId === item.id_mabar}
-                                        onClick={() => handleDelete(item.id_mabar, item.judul)}
-                                        className="gap-1.5 text-xs text-rose-400 hover:text-rose-500 hover:bg-rose-500/10 border-rose-500/20"
-                                    >
-                                        <Trash2 className="size-3.5" />
-                                        <span>Batal</span>
-                                    </Button>
-
-                                    <Link href={`/open-mabar/${item.id_mabar}`}>
-                                        <Button size="sm" className="gap-1.5 text-xs bg-[var(--brand)] hover:opacity-90">
-                                            <span>Detail</span>
-                                            <ArrowRight className="size-3.5" />
+                                    {item.status === "disetujui" && (
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handleBukaChat(item.id_mabar)}
+                                            className="gap-1.5 text-xs bg-[var(--brand)] hover:opacity-90 text-white font-medium shadow-xs"
+                                        >
+                                            <MessageSquare className="size-3.5" />
+                                            <span>Buka Forum Saya</span>
                                         </Button>
-                                    </Link>
+                                    )}
                                 </div>
                             </div>
                         ))}

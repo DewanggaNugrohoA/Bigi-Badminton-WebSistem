@@ -63,13 +63,13 @@ export default function DitheredFooter({
     brand = "Bigi Badminton",
     wordmark = "BIGI",
     brandHref = "/",
-    tagline = "Sistem Reservasi dan Informasi Open Mabar Bigi Badminton.",
+    tagline = "Pusat reservasi lapangan badminton modern dan wadah mabar komunitas di Kota Bengkulu.",
     columns = [],
     socials = [],
     legal = [],
     copyright = `© ${new Date().getFullYear()} Bigi Badminton.`,
     status = null,
-    accent = "var(--brand, #6633ee)",
+    accent = "var(--brand, #2563eb)",
 }: DitheredFooterProps) {
     const field = useRef<HTMLDivElement>(null);
     const frame = useRef(0);

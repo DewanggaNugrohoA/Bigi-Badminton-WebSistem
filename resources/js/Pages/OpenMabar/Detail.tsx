@@ -24,8 +24,6 @@ interface DetailProps {
         jam_mulai: string;
         jam_selesai: string;
         gender: "putra" | "putri" | "campuran";
-        batas_usia_min: number;
-        batas_usia_max: number;
         kuota: number;
         deskripsi: string | null;
         foto: string | null;
@@ -119,11 +117,22 @@ export default function OpenMabarDetail({
         <PublicLayout title={`${mabar.judul} - Open Mabar Bigi Badminton`}>
             <div className="pt-28 pb-16 px-4 sm:px-6 max-w-5xl mx-auto">
                 <Link
-                    href="/open-mabar"
+                    href={isOwner ? "/open-mabar/saya" : "/open-mabar"}
+                    onClick={(e) => {
+                        if (
+                            typeof window !== "undefined" &&
+                            window.history.length > 1 &&
+                            document.referrer &&
+                            document.referrer.includes(window.location.host)
+                        ) {
+                            e.preventDefault();
+                            window.history.back();
+                        }
+                    }}
                     className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors"
                 >
                     <ArrowLeft className="size-3.5" />
-                    <span>Kembali ke Cari Jadwal</span>
+                    <span>{isOwner ? "Kembali ke Jadwal Saya" : "Kembali ke Eksplor Mabar"}</span>
                 </Link>
 
                 {errors?.message && (
@@ -203,18 +212,6 @@ export default function OpenMabarDetail({
 
                                     <div className="flex items-center gap-3">
                                         <div className="size-8 rounded-md bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
-                                            <Users className="size-4" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[11px] text-muted-foreground font-medium">Batas Usia</p>
-                                            <p className="font-semibold text-foreground text-xs sm:text-sm">
-                                                {mabar.batas_usia_min} s/d {mabar.batas_usia_max} tahun
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-8 rounded-md bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
                                             <User className="size-4" />
                                         </div>
                                         <div>
@@ -266,6 +263,17 @@ export default function OpenMabarDetail({
                                 <div className="text-center p-3 rounded-lg bg-muted text-xs text-muted-foreground">
                                     Pendaftaran belum dibuka (jadwal belum disetujui admin).
                                 </div>
+                            ) : isOwner ? (
+                                <div className="space-y-3">
+                                    <Button
+                                        type="button"
+                                        onClick={handleBukaChat}
+                                        className="w-full h-11 min-h-[44px] bg-[var(--brand)] hover:opacity-90 font-semibold text-white shadow-xs gap-2"
+                                    >
+                                        <MessageSquare className="size-4" />
+                                        <span>Buka Forum Saya</span>
+                                    </Button>
+                                </div>
                             ) : isTerdaftar ? (
                                 <div className="space-y-3">
                                     <Button
@@ -297,23 +305,25 @@ export default function OpenMabarDetail({
                             )}
 
                             
-                            <div className="mt-6 pt-5 border-t border-border/60">
-                                {canAccessChat ? (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={handleBukaChat}
-                                        className="w-full h-10 gap-2 text-sm font-medium hover:border-[var(--brand)]/50"
-                                    >
-                                        <MessageSquare className="size-4 text-[var(--brand)]" />
-                                        <span>Gabung Forum Chat</span>
-                                    </Button>
-                                ) : (
-                                    <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                                        Ikuti Open Mabar ini untuk bergabung ke forum chat.
-                                    </p>
-                                )}
-                            </div>
+                            {!isOwner && (
+                                <div className="mt-6 pt-5 border-t border-border/60">
+                                    {canAccessChat ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={handleBukaChat}
+                                            className="w-full h-10 gap-2 text-sm font-medium hover:border-[var(--brand)]/50"
+                                        >
+                                            <MessageSquare className="size-4 text-[var(--brand)]" />
+                                            <span>Gabung Forum Chat</span>
+                                        </Button>
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                                            Ikuti Open Mabar ini untuk bergabung ke forum chat.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
